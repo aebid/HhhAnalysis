@@ -57,7 +57,8 @@ class HHbbWWProducer(Module):
         self.jets = []
         self.jets_pre = []
         self.jets_clean = []
-        self.jets_btagged = []
+        self.jets_btagged_medium = []
+        self.jets_btagged_loose = []
         self.ak8jets_pre = []
         self.ak8jets_clean = []
         self.ak8jets_btagged = []
@@ -263,7 +264,8 @@ class HHbbWWProducer(Module):
         self.jets = []
         self.jets_pre = []
         self.jets_clean = []
-        self.jets_btagged = []
+        self.jets_btagged_medium = []
+        self.jets_btagged_loose = []
         self.ak8jets_pre = []
         self.ak8jets_clean = []
         self.ak8jets_btagged = []
@@ -316,11 +318,12 @@ class HHbbWWProducer(Module):
         self.electrons_tight = [x for x in self.electrons_fakeable if self.electronTight(x)]
 
         self.jets_pre = [x for x in self.jets if self.ak4jetPreselection(x)]
-        self.jets_clean = [x for x in self.jets_pre if self.ak4jetCleaning(x)]
-        self.jets_btagged = [x for x in self.jets_clean if self.ak4jetBtagging(x)]
+        self.jets_clean = [x for x in self.jets_pre if self.jetCleaning(x, 0.4)]
+        self.jets_btagged_medium = [x for x in self.jets_clean if self.ak4jetBtagging(x, "medium")]
+        self.jets_btagged_loose = [x for x in self.jets_clean if self.ak4jetBtagging(x, "loose")]
 
         self.ak8jets_pre = [x for x in ak8jets if self.ak8jetPreselection(x)]
-        self.ak8jets_clean = [x for x in self.ak8jets_pre if self.ak8jetCleaning(x)]
+        self.ak8jets_clean = [x for x in self.ak8jets_pre if self.jetCleaning(x, 0.8)]
         self.ak8jets_btagged = [x for x in self.ak8jets_clean if self.ak8jetBtagging(x)]
 
 
@@ -387,12 +390,13 @@ class HHbbWWProducer(Module):
 
     def muonFakeable(self, muon):
       #Preselection, lepton cone-pT >= 10, jetDeepJet <= medium WP (per year), if leptonMVA <= 0.5: JetRelIso <= 0.5 and jetDeepJet upper cut obtained with interpolation
-      if self.get_jet_from_lepton(muon) == 0:
-        return False
       jetDeepJet_MedWP = [0.3093, 0.3033, 0.2770]
       jet = self.get_jet_from_lepton(muon)
       #JetRelIso < 0.8 *** Changed https://github.com/FlorianBury/HHbbWWAnalysis/blob/84204a8d8c31eb67d7f1a8e4bd77ce00d7232bd6/BaseHHtobbWW.py#L1033
-      return self.conept(muon) >= 10 and jet.btagDeepFlavB <= jetDeepJet_MedWP[Runyear - 2016] and (muon.mvaTTH > 0.5 or (muon.jetRelIso < 0.8 and jet.btagDeepFlavB <= self.jetDeepJetUpper(muon)))
+      #return self.conept(muon) >= 10 and jet.btagDeepFlavB <= jetDeepJet_MedWP[Runyear - 2016] and (muon.mvaTTH > 0.5 or (muon.jetRelIso < 0.5 and jet.btagDeepFlavB <= self.jetDeepJetUpper(muon)))
+      #If no associated jet, skip jet cuts *** 
+      if jet == 0: return self.conept(muon) >= 10 and (muon.mvaTTH > 0.5 or muon.jetRelIso < 0.8)
+      else: return self.conept(muon) >= 10 and jet.btagDeepFlavB <= jetDeepJet_MedWP[Runyear - 2016] and (muon.mvaTTH > 0.5 or (muon.jetRelIso < 0.8 and jet.btagDeepFlavB <= self.jetDeepJetUpper(muon)))
 
     def muonTight(self, muon):
       #Fakeable object selection, leptonMVA >= 0.5, Medium ID
@@ -411,13 +415,19 @@ class HHbbWWProducer(Module):
 
     def electronFakeable(self, ele):
       #preselection, lepton cone-pT >= 10, (abs(eta) <= 1.479 and sieie <= 0.011), (1.479 < abs(eta) < 2.5 and sieie <= 0.030), hoe <= 0.10, -0.04 <= eInvMinusPInv, jetDeepJet <= medium WP, (leptonMVA <= 0.80 and JetRelIso <= 0.7 and Fall17V2noIso_WP80), number of missing inner hits = 0, convVeto
-      if not ((abs(ele.eta) > 1.479 and abs(ele.eta) < 2.5 and ele.sieie <= 0.030) or (abs(ele.eta) <= 1.479 and ele.sieie <= 0.011)):
-        return False
-      if self.get_jet_from_lepton(ele) == 0:
+      eta = ele.eta + ele.deltaEtaSC
+      #if not ((abs(eta) > 1.479 and abs(eta) < 2.5 and ele.sieie <= 0.030) or (abs(eta) <= 1.479 and ele.sieie <= 0.011)): *** you lose 1 event by including the eta < 2.5 cut, not sure if this is a big deal or not
+      if not ((abs(eta) > 1.479 and ele.sieie <= 0.030) or (abs(eta) <= 1.479 and ele.sieie <= 0.011)):
         return False
       wpmedium = [0.3093, 0.3033, 0.2770]
-      if not (self.get_jet_from_lepton(ele).btagDeepFlavB <= wpmedium[Runyear-2016]):
-        return False
+      wptight = [0.7221, 0.7489, 0.7264]
+      jet = self.get_jet_from_lepton(ele)
+      if jet != 0:
+      #jet.btagDeepFlavB <= wpmedium[Runyear-2016]) *** Changed https://github.com/FlorianBury/HHbbWWAnalysis/blob/84204a8d8c31eb67d7f1a8e4bd77ce00d7232bd6/BaseHHtobbWW.py#L1069-L1071
+        if ele.mvaTTH < 0.3:
+          if not (jet.btagDeepFlavB <= wptight[Runyear-2016]): return False
+        else:
+          if not (jet.btagDeepFlavB <= wpmedium[Runyear-2016]): return False
       #ele.mvaTTH <= 0.30 *** Changed https://github.com/FlorianBury/HHbbWWAnalysis/blob/84204a8d8c31eb67d7f1a8e4bd77ce00d7232bd6/BaseHHtobbWW.py#L1067
       #ele.mvaFall17V2noIso_WP80 *** Changed https://github.com/FlorianBury/HHbbWWAnalysis/blob/84204a8d8c31eb67d7f1a8e4bd77ce00d7232bd6/BaseHHtobbWW.py#L1067
       if (ele.mvaTTH < 0.30 and not (ele.jetRelIso < 0.7 and ele.mvaFall17V2noIso_WP90)):
@@ -428,31 +438,49 @@ class HHbbWWProducer(Module):
       #Fakeable object selection, leptonMVA >= 0.80
       return ele.mvaTTH >= 0.30
 
-    def ak4jetPreselection(self, jet):
-      #PF jet ID: 2016 - loose, 2017 - tight, 2018 - tight, pt >= 25, abs(eta) < 2.4, Jet PU ID (loose WP for pt < 50)
-      if (jet.pt < 50 and not jet.puId >= 4):
-        return False
-      PFJetID = [0, 2, 2]
-      return (abs(jet.eta) <= 2.4 and jet.pt >= 25 and jet.jetId >= PFJetID[Runyear-2016])
-
-    def ak4jetCleaning(self, jet):
-      #AK4 jets are removed if they overlap with fakeable muons or electrons within dR< 0.4
+    def jetCleaning(self, jet, dR): 
+      #Not all fakeables, only leading in SL or DL!!!
+      #AK4 jets are removed if they overlap with fakeable muons or electrons within dR < 0.4: AK8 dR < 0.8
       muons_fakeable = self.muons_fakeable; electrons_fakeable = self.electrons_fakeable
-      for mu in muons_fakeable:
-        if deltaR(jet.eta, jet.phi, mu.eta, mu.phi) < 0.4:
-          return False
-      for ele in electrons_fakeable:
-        if deltaR(jet.eta, jet.phi, ele.eta, ele.phi) < 0.4:
+      leptons_fakeable = muons_fakeable + electrons_fakeable; leptons_fakeable.sort(key=lambda x:self.conept(x), reverse=True)
+
+      for i in range(min(len(leptons_fakeable), 2)):
+        #Single vs Double channels. Florian's code shows only need 1/2 for SL/DL channel (min(length, 2)) and we can check channels by len(leptons_fakeable) later
+        lep = leptons_fakeable[i]
+        if deltaR(jet.eta, jet.phi, lep.eta, lep.phi) < dR:
           return False
       return True
 
-    def ak4jetBtagging(self, jet):
+      #for mu in muons_fakeable:
+      #  if deltaR(jet.eta, jet.phi, mu.eta, mu.phi) < 0.4:
+      #    return False
+      #for ele in electrons_fakeable:
+      #  if deltaR(jet.eta, jet.phi, ele.eta, ele.phi) < 0.4:
+      #    return False
+      #return True
+
+    def ak4jetPreselection(self, jet):
+      #PF jet ID: 2016 - loose, 2017 - tight, 2018 - tight, pt >= 25, abs(eta) < 2.4, Jet PU ID (loose WP for pt < 50)
+      badevent = False
+      #if self.ievent in [8558, 9513, 11223, 11640, 11999, 185867, 186482, 195813, 64706, 67492, 74559, 150026, 150962, 79914, 96359, 145368, 146583, 165085, 189430, 190426]:
+      #  print "Bad event found, ", self.ievent
+      #  badevent = True
+      if badevent: print "eta = ", jet.eta, " pt = ", jet.pt, " ID = ", jet.jetId
+      if not (jet.pt > 50 or jet.puId & 4): #Bit operators!!!
+        return False
+      if badevent: print "Pass puID"
+      PFJetID = [1, 2, 2] # Jet ID flags bit1 is loose, bit2 is tight, bit3 is tightLepVeto
+      return (abs(jet.eta) <= 2.4 and jet.pt >= 25 and jet.jetId & PFJetID[Runyear-2016])
+
+    def ak4jetBtagging(self, jet, wp):
       #The pfDeepFlavour (DeepJet) algorithm is used.
       #Gitlab gives tight/med/loose for each runyear, but does not explain which one to use
       wploose = [0.0614, 0.0521, 0.0494]
       wpmedium = [0.3093, 0.3033, 0.2770]
       wptight = [0.7221, 0.7489, 0.7264]
-      return jet.btagDeepFlavB >= wpmedium[Runyear-2016]
+      if wp == "loose": return jet.btagDeepFlavB > wploose[Runyear-2016]
+      if wp == "medium": return jet.btagDeepFlavB > wpmedium[Runyear-2016]
+      if wp == "tight": return jet.btagDeepFlavB > wptight[Runyear-2016]
 
     def ak8jetPreselection(self, jet):
       #PF jet ID: 2016 - loose, 2017 - tight, 2018 - tight, pt >= 200, abs(eta) <= 2.4, two subjets each pt >= 20 and abs(eta) <= 2.4, 30 < msoftdrop < 210 GeV, tau2/tau1 <= 0.75
@@ -465,19 +493,8 @@ class HHbbWWProducer(Module):
       subjet2 = ak8subjets[subjet2_idx]
       if not ((subjet1.pt >= 20 and abs(subjet1.eta) <= 2.4) and (subjet2.pt >= 20 and abs(subjet2.eta) <= 2.4)):
         return False
-      PFJetID = [0, 2, 2]
-      return (jet.jetId >= PFJetID[Runyear-2016] and jet.pt >= 200 and abs(jet.eta) <= 2.4 and jet.msoftdrop > 30 and jet.msoftdrop < 210 and jet.tau2/jet.tau1 <= 0.75)
-
-    def ak8jetCleaning(self, jet):
-      #AK8 jets are removed if they overlap with fakeable muons or electrons within dR < 0.8
-      muons_fakeable = self.muons_fakeable; electrons_fakeable = self.electrons_fakeable;
-      for mu in muons_fakeable:
-        if deltaR(jet.eta, jet.phi, mu.eta, mu.phi) < 0.8:
-          return False
-      for ele in electrons_fakeable:
-        if deltaR(jet.eta, jet.phi, ele.eta, ele.phi) < 0.8:
-          return False
-      return True
+      PFJetID = [1, 2, 2] # Jet ID flags bit1 is loose, bit2 is tight, bit3 is tightLepVeto
+      return (jet.jetId & PFJetID[Runyear-2016] and jet.pt >= 200 and abs(jet.eta) <= 2.4 and jet.msoftdrop >= 30 and jet.msoftdrop <= 210 and jet.tau2/jet.tau1 <= 0.75)
 
     def ak8jetBtagging(self, jet):
       #The DeepCSV b-tagging algorithm is used. The b-tagging algorithm is applied on the subjets.
@@ -491,7 +508,7 @@ class HHbbWWProducer(Module):
       wploose = [0.2217, 0.1522, 0.1241]
       wpmedium = [0.6321, 0.4941, 0.4184]
       wptight = [0.8953, 0.8001, 0.7527]
-      return ((subjet1.btagDeepB > wpmedium[Runyear-2016] and subjet1.pt > 30) or (subjet2.btagDeepB > wpmedium[Runyear-2016] and subjet2.pt > 30))
+      return ((subjet1.btagDeepB > wpmedium[Runyear-2016] and subjet1.pt >= 30) or (subjet2.btagDeepB > wpmedium[Runyear-2016] and subjet2.pt >= 30))
 
     #Event Selection
     def single_lepton(self):
@@ -507,23 +524,32 @@ class HHbbWWProducer(Module):
       #Minimal number of jets to construct an Hbb and admit an hadronic W with a missing jet: (#selJetsAK8_b == 0 && #selJetsAK4 >= 3) || (#selJetsAK8_b >= 1 && nJet_that_not_bb >= 1)
       muons_fakeable = self.muons_fakeable; electrons_fakeable = self.electrons_fakeable;
       muons_tight = self.muons_tight; electrons_tight = self.electrons_tight;
-      ak8jets_btagged = self.ak8jets_btagged; jets_btagged = self.jets_btagged;
+      ak8jets_btagged = self.ak8jets_btagged; jets_btagged = self.jets_btagged_medium;
       jets_pre = self.jets_pre;
 
       fake_leptons = muons_fakeable + electrons_fakeable
       fake_leptons.sort(key=lambda x:self.conept(x), reverse=True)
       tight_leptons = muons_tight + electrons_tight
       tight_leptons.sort(key=lambda x:self.conept(x), reverse=True)
-      if not (len(fake_leptons) > 0 and self.met_filters(self.flag)): return "None"
+
+
+      if not (len(fake_leptons) >= 1 and self.met_filters(self.flag)): return "None" 
       leading_lepton = fake_leptons[0]
-      if not ((leading_lepton in muons_fakeable and self.single_muon_trigger(self.HLT)) or (leading_lepton in electrons_fakeable and self.single_electron_trigger(self.HLT))): return "None"
-      if not ((leading_lepton in muons_fakeable and self.conept(leading_lepton) > 25) or (leading_lepton in electrons_fakeable and self.conept(leading_lepton) > 32)): return "None"
-      if not (self.invar_mass_check()): return "None"
+      lep_type = ""
+      if (leading_lepton in muons_fakeable): lep_type = "muon"
+      if (leading_lepton in electrons_fakeable): lep_type = "ele"
+      HLT = self.HLT
+      if not ((lep_type == "muon" and self.single_muon_trigger(HLT)) or (lep_type == "ele" and self.single_electron_trigger(HLT))): return "None"
+      if not ((lep_type == "muon" and self.conept(leading_lepton) > 25) or (lep_type == "ele" and self.conept(leading_lepton) > 32)): return "None"
+      #if not (self.invar_mass_check()): return "None"
       if not ((len(tight_leptons) == 0) or (len(tight_leptons) == 1 and tight_leptons[0] == leading_lepton)): return "None"
-      if not (self.tau_veto() and self.Zmass_cut()): return "None"
+      if not (self.tau_veto() and self.Zmass_and_invar_mass_cut()): return "None"
       if not (len(ak8jets_btagged) >= 1 or len(jets_btagged) >= 1): return "None"
       Jet_that_not_bb = []
       if len(ak8jets_btagged) > 0:
+        #for i in range(len(ak8jets_btagged)): #Maybe 'leading ak8' isn't by pt, but by btag?
+        #ak8jets_btagged.sort(key=lambda x:x.btagDeepB, reverse=True) #Nope, btag didn't change anything
+        #  if (len(ak8jets_btagged) >= 2): print i, ak8jets_btagged[i].pt, ak8jets_btagged[i].btagDeepB
         Jet_that_not_bb = [x for x in jets_pre if deltaR(x.eta, x.phi, ak8jets_btagged[0].eta, ak8jets_btagged[0].phi) > 1.2]
       if not ((len(ak8jets_btagged) == 0 and len(jets_pre) >= 3) or (len(ak8jets_btagged) >= 1 and len(Jet_that_not_bb) >= 1)): return "None"
       category_string = "Single"
@@ -543,7 +569,6 @@ class HHbbWWProducer(Module):
           else: category_string += "_1b"
       if len(tight_leptons) == 1: category_string += "_Signal"
       if len(tight_leptons) == 0: category_string += "_Fake"
-
       return category_string
 
 
@@ -563,25 +588,57 @@ class HHbbWWProducer(Module):
       #Either the leading fakeable lepton, the subleading fakeable lepton or both fail the tight lepton selection criteria
       #In MC, require MC matching of the leading and subleading fakelable lepton
 
+      badevent = False
+      #if self.ievent in [8129, 8903, 184406, 186589, 186735, 187684, 187823, 192682, 193720, 194123, 194144, 194341, 194581, 194834, 195610, 195849, 64695, 64935, 66324, 66755, 67338, 67675, 67869, 72159, 72360, 72506, 73311, 73470, 73791, 74030, 75256, 75592, 148296, 148454, 149800, 149915, 150546, 150552, 150582, 76062, 76413, 76528, 76772, 77641, 78214, 78484, 78999, 79290, 79410, 84294, 84377, 84547, 84955, 85579, 85810, 85982, 86440, 87766, 97426, 97466, 97585, 97950, 98826, 99091, 144722, 89935, 89987, 91151, 91325, 91446, 91921, 146040, 146545, 147249, 147320, 147476, 147895, 151222, 151541, 151612, 151912, 151993, 165342, 165343, 166106, 166467, 167215, 16773, 167952, 188771, 188829, 189366, 189473, 189762, 189911, 189947, 190427, 190454, 190589, 191350, 191998]: #Him not in me
+      #if self.ievent in [8009, 8096, 8271, 8358, 8423, 8474, 8485, 8489, 8500, 8641, 8805, 8904, 9166, 9474, 9544, 9783, 9792, 9817, 9907, 9893, 9896, 10009, 10089, 10114, 10202, 10255, 10362, 10441, 10628, 10730, 10713, 10767, 10785, 10962, 11265, 11321, 11474, 11497, 11538, 11612, 11695, 11723, 11912, 11990, 184018, 184049, 184078, 184110, 184336, 184482, 184493, 184605, 184883, 184888, 184928, 184941, 184910, 184966, 185114, 185356, 185532, 185581, 185630, 185671, 185736, 185822, 185819, 185832, 186113, 186225, 186288, 186318, 186376, 186448, 186524, 186586, 186705, 186731, 186894, 186981, 187133, 187261, 187350, 187398, 187534, 187680, 187739, 187918, 187959, 187965, 164098, 164143, 164296, 164330, 164355, 164358, 164429, 164454, 164463, 164545, 164695, 192061, 192117, 192172, 192214, 192419, 192428, 192568, 192639, 192687, 192685, 192711, 192822, 192832, 192976, 193313, 193369, 193677, 193694, 193736, 193739, 193852, 193878, 193879, 194149, 194261, 194239, 194247, 194275, 194300, 194371, 194440, 194457, 194465, 194470, 194844, 194858, 194923, 194965, 194986, 195243, 195263, 195450, 195470, 195483, 195969, 64019, 64030, 64116, 64287, 64491, 64727, 64889, 64897, 64940, 65020, 65057, 65096, 65226, 65276, 65306, 65341, 65349, 65378, 65406, 65436, 65573, 65695, 65699, 66078, 66077, 66276, 66349, 66546, 66598, 66652, 66720, 66766, 66799, 66817, 66854, 66973, 66976, 67086, 67539, 67683, 67733, 67787, 67813, 67933, 72023, 72101, 72143, 72145, 72200, 72221, 72267, 72317, 72402, 72614, 72767, 72838, 72911, 72981, 73018, 73128, 73182, 73271, 73569, 73605, 73619, 73730, 73809, 73972, 74064, 74117, 74103, 74161, 74293, 74390, 74394, 74454, 74577, 74717, 74724, 74758, 74809, 74821, 74840, 74913, 74980, 75098, 75121, 75147, 75375, 75388, 75438, 75465, 75511, 75571, 75623, 75823, 75813, 75835, 75875, 75989, 148143, 148329, 148355, 148446, 148527, 148535, 148628, 148669, 148696, 148716, 148918, 148993, 149292, 149331, 149433, 149554, 149597, 149600, 149859, 149908, 149910, 149931, 150199, 150216, 150328, 150323, 150543, 150650, 150673, 150785, 150922, 76010, 76099, 76126, 76153, 76195, 76328, 76441, 76474, 76541, 76610, 76721, 77031, 77190, 77280, 77409, 77483, 77682, 77812, 77817, 77836, 77870, 77922, 78030, 78201, 78257, 78414, 78538, 78754, 78792, 78846, 78903, 78966, 79083, 79170, 79176, 79209, 79231, 79262, 79295, 79318, 79361, 79414, 79472, 79474, 79560, 79652, 79667, 79684, 79682, 79714, 79721, 79748, 79865, 79987, 84099, 84128, 84152, 84151, 84194, 84414, 84413, 84531, 84542, 84597, 84605, 84675, 84782, 84820, 84841, 84865, 85139, 85146, 85141, 85173, 85251, 85313, 85393, 85462, 85472, 85589, 85697, 85699, 85710, 85968, 86091, 86090, 86186, 86232, 86316, 86408, 86434, 86585, 86636, 86974, 86982, 87062, 87313, 87345, 87382, 87410, 87437, 87497, 87517, 87602, 87741, 87753, 87752, 87844, 96022, 96093, 96088, 96168, 96257, 96455, 96472, 96537, 96572, 96721, 96722, 96738, 96821, 97184, 97296, 97298, 97531, 97551, 97617, 97724, 97743, 97852, 97843, 97918, 98005, 98076, 98217, 98220, 98267, 98406, 98464, 98544, 98596, 98649, 98676, 98740, 98756, 98817, 98861, 98856, 99014, 99048, 99046, 99123, 99131, 99161, 99308, 99343, 99403, 99550, 99690, 99708, 99960, 144039, 144310, 144526, 144595, 144608, 144604, 144664, 144675, 144920, 89051, 89074, 89173, 89179, 89301, 89516, 89647, 89776, 89847, 90021, 90179, 90354, 90655, 90966, 90995, 91211, 91376, 91440, 91448, 91550, 91668, 91881, 91883, 91898, 91933, 145128, 145306, 145340, 145360, 145431, 145527, 145662, 145741, 145755, 145786, 145903, 145920, 146070, 146103, 146332, 146358, 146379, 146389, 146399, 146562, 146585, 146588, 146615, 146698, 146763, 146772, 146804, 146818, 146941, 147044, 147061, 147181, 147417, 147410, 147459, 147472, 147544, 147553, 147719, 147764, 147840, 147851, 147890, 147946, 88227, 88234, 88317, 88336, 88411, 88446, 88593, 88701, 88736, 88772, 88815, 151021, 151060, 151143, 151150, 151173, 151229, 151386, 151553, 151718, 151944, 165041, 165059, 165097, 165069, 165188, 165244, 165345, 165360, 165505, 165539, 165608, 166007, 166257, 166337, 166502, 166516, 166784, 166797, 166918, 166940, 167149, 167146, 167155, 167309, 167328, 167400, 167478, 167504, 167548, 167556, 167569, 167925, 167957, 188047, 188125, 188189, 188179, 188303, 188368, 188404, 188666, 188672, 188688, 188700, 188880, 189099, 189076, 189090, 189198, 189201, 189347, 189684, 189760, 189848, 189896, 189940, 189950, 190051, 190074, 190062, 190144, 190271, 190385, 190361, 190478, 190658, 190694, 190679, 190714, 190795, 190827, 190877, 190904, 190897, 190963, 190965, 191202, 191360, 191460, 191547, 191557, 191800, 191799, 191960]:
+
+      #if self.ievent in [8263, 11473, 185206, 192910, 64356, 67396, 150373, 84084, 86649, 87316, 89796, 90402, 91337, 91649, 145810, 146329, 167232, 167784, 189906]: #Him not me, fake
+      #if self.ievent in [8044, 8064, 8645, 9019, 11351, 11530, 185022, 185234, 187378, 164481, 164569, 192058, 193346, 193860, 194005, 194259, 194568, 194668, 194662, 195726, 195895, 64664, 66435, 66668, 66793, 67244, 67455, 72218, 73521, 73549, 74489, 74496, 75080, 75352, 75603, 148392, 149679, 149906, 149979, 150635, 150934, 76002, 76847, 77449, 79557, 79976, 84719, 86914, 86926, 87319, 87376, 97109, 97414, 97593, 97839, 98493, 98816, 99223, 90477, 90827, 145074, 145366, 146223, 147002, 88024, 88080, 151007, 151655, 165643, 166672, 167133, 167523, 167724, 167706, 167935, 188238, 189180]: #Me not him, fake
+
+      #  print "This is the bad event ", self.ievent
+      #  badevent = True
+
       muons_fakeable = self.muons_fakeable; electrons_fakeable = self.electrons_fakeable;
       muons_tight = self.muons_tight; electrons_tight = self.electrons_tight;
-      ak8jets_btagged = self.ak8jets_btagged; jets_btagged = self.jets_btagged;
+      ak8jets_btagged = self.ak8jets_btagged; jets_btagged = self.jets_btagged_medium;
       jets_pre = self.jets_pre;
 
       fake_leptons = muons_fakeable + electrons_fakeable
       fake_leptons.sort(key=lambda x:self.conept(x), reverse=True)
       tight_leptons = muons_tight + electrons_tight
       tight_leptons.sort(key=lambda x:self.conept(x), reverse=True)
+      if badevent:
+        print "This is the bad event, starting"
       if not (len(fake_leptons) >= 2 and self.met_filters(self.flag)): return "None"
       leading_lepton = fake_leptons[0]
       subleading_lepton = fake_leptons[1]
+      lep_type = ""
+      if (leading_lepton in muons_fakeable):
+        if (subleading_lepton in muons_fakeable): lep_type = "MuMu"
+        if (subleading_lepton in electrons_fakeable): lep_type = "ElMu"
+      if (leading_lepton in electrons_fakeable):
+        if (subleading_lepton in muons_fakeable): lep_type = "ElMu"
+        if (subleading_lepton in electrons_fakeable): lep_type = "ElEl"
+      if badevent:
+        print "This is the bad event, lep_type ", lep_type
       HLT = self.HLT
-      if not ((leading_lepton in muons_fakeable and subleading_lepton in muons_fakeable and (self.double_muon_trigger(HLT) or self.single_muon_trigger(HLT))) or (leading_lepton in electrons_fakeable and subleading_lepton in electrons_fakeable and (self.double_electron_trigger(HLT) or self.single_electron_trigger(HLT))) or ((leading_lepton in muons_fakeable and subleading_lepton in electrons_fakeable) or ((leading_lepton in electrons_fakeable and subleading_lepton in muons_fakeable)) and self.muon_electron_trigger(HLT))): return "None"
+      if badevent:
+        print "This is the bad event, got HLT"
+      if not ((lep_type == "MuMu" and (self.double_muon_trigger(HLT) or self.single_muon_trigger(HLT))) or (lep_type == "ElEl" and (self.double_electron_trigger(HLT) or self.single_electron_trigger(HLT))) or ((lep_type == "ElMu" and (self.muon_electron_trigger(HLT) or self.single_muon_trigger(HLT) or self.single_electron_trigger(HLT))))): return "None"
+      if badevent:
+        print "This is the bad event, pass triggers"
       if not (self.conept(leading_lepton) > 25 and self.conept(subleading_lepton) > 15 and leading_lepton.charge != subleading_lepton.charge): return "None"
-      if not (self.invar_mass_check()): return "None"
+      #if not (self.invar_mass_check()): return "None"
+
+      if badevent:
+        print "This is the bad event, pass conept"
 
       if not ((len(tight_leptons) <= 2)): return "None"
-      if not (self.Zmass_cut()): return "None"
+      if not (self.Zmass_and_invar_mass_cut()): return "None"
+
+      if badevent:
+        print "This is the bad event, pass mass cut"
+
       category_string = "Double"
       if len(ak8jets_btagged) >= 1: category_string += "_Boosted"
       elif len(jets_pre) >= 2 and len(jets_btagged) >= 1: category_string += "_Resolved"
@@ -589,23 +646,11 @@ class HHbbWWProducer(Module):
       else: category_string += "_Fake"
       if (("Boosted" not in category_string) and ("Resolved" not in category_string)): return "None"
 
+      if badevent:
+        print "This is the bad event, string is ", category_string
+
       return category_string
 
-
-    def invar_mass_check(self):
-      #The invariant mass of each pair of preselected leptons (electrons not cleaned wrt muons) must be greater than 12 GeV
-      lep1_p4 = ROOT.TLorentzVector(); lep2_p4 = ROOT.TLorentzVector(); pair_p4 = ROOT.TLorentzVector();
-      pre_leptons = self.electrons_pre + self.muons_pre
-      for i in pre_leptons:
-        lep1_p4.SetPtEtaPhiM(i.pt, i.eta, i.phi, i.mass)
-        for j in pre_leptons:
-          if i == j: continue
-          lep2_p4.SetPtEtaPhiM(j.pt, j.eta, j.phi, j.mass)
-          pair_p4 = lep1_p4 + lep2_p4
-          pair_mass = pair_p4.M()
-          if (pair_mass < 12):
-            return False
-      return True
 
     def tau_veto(self):
       #Tau veto: no tau passing pt>20, abs(eta) < 2.3, abs(dxy) <= 1000, abs(dz) <= 0.2, "decayModeFindingNewDMs", decay modes = {0, 1, 2, 10, 11}, and "byMediumDeepTau2017v2VSjet", "byVLooseDeepTau2017v2VSmu", "byVVVLooseDeepTau2017v2VSe". Taus overlapping with fakeable electrons or fakeable muons within dR < 0.3 are not considered for the tau veto
@@ -617,29 +662,30 @@ class HHbbWWProducer(Module):
               return False
       return True
 
-    def Zmass_cut(self):
+    def Zmass_and_invar_mass_cut(self):
       #No pair of same-flavor, opposite-sign preselected leptons within  10GeV of the Z mass
+      #The invariant mass of each pair of preselected leptons (electrons not cleaned wrt muons) must be greater than 12 GeV
       muons_pre = self.muons_pre; electrons_pre = self.electrons_pre;
       pre_leptons = muons_pre + electrons_pre
       pre1 = ROOT.TLorentzVector(); pre2 = ROOT.TLorentzVector(); pre_pair = ROOT.TLorentzVector();
-      Z_mass = 80
+      Z_mass = 91.1876 #Z_mass = 80   #Florian's code doesn't have it at 80? Am I dumb? He also cuts out invar_mass < 12?
       for i in pre_leptons:
+        pre1.SetPtEtaPhiM(i.pt, i.eta, i.phi, i.mass)
         for j in pre_leptons:
           if i == j: continue
           if not ((i in muons_pre and j in muons_pre) or (i in electrons_pre and j in electrons_pre)): continue
           if (i.charge == j.charge): continue
-          pre1.SetPtEtaPhiM(i.pt, i.eta, i.phi, i.mass)
           pre2.SetPtEtaPhiM(j.pt, j.eta, j.phi, j.mass)
           pre_pair = pre1 + pre2
-          if (abs(pre_pair.M() - Z_mass) < 10):
+          if (abs(pre_pair.M() - Z_mass) < 10 or pre_pair.M() < 12): #Include 12 here to remove separate invar mass check
             return False
       return True
 
     def single_electron_trigger(self, HLT):
       if Runyear == 2016:
-        return (HLT.Ele27_WPTight_Gsf and HLT.Ele25_eta2p1_WPTight_Gsf and HLT.Ele27_eta2p1_WPLoose_Gsf)
+        return (HLT.Ele27_WPTight_Gsf or HLT.Ele25_eta2p1_WPTight_Gsf or HLT.Ele27_eta2p1_WPLoose_Gsf)
       elif Runyear == 2017:
-        return (HLT.Ele35_WPTight_Gsf and HLT.Ele32_WPTight_Gsf)
+        return (HLT.Ele35_WPTight_Gsf or HLT.Ele32_WPTight_Gsf)
       elif Runyear == 2018:
         return (HLT.Ele32_WPTight_Gsf)
       else:
@@ -647,11 +693,11 @@ class HHbbWWProducer(Module):
 
     def single_muon_trigger(self, HLT):
       if Runyear == 2016:
-        return (HLT.IsoMu22 and HLT.IsoTkMu22 and HLT.IsoMu22_eta2p1 and HLT.IsoTkMu22_eta2p1 and HLT.IsoMu24 and HLT.IsoTkMu24)
+        return (HLT.IsoMu22 or HLT.IsoTkMu22 or HLT.IsoMu22_eta2p1 or HLT.IsoTkMu22_eta2p1 or HLT.IsoMu24 or HLT.IsoTkMu24)
       elif Runyear == 2017:
-        return (HLT.IsoMu24 and HLT.IsoMu27)
+        return (HLT.IsoMu24 or HLT.IsoMu27)
       elif Runyear == 2018:
-        return (HLT.IsoMu24 and HLT.IsoMu27)
+        return (HLT.IsoMu24 or HLT.IsoMu27)
       else:
         return False
 
@@ -667,9 +713,9 @@ class HHbbWWProducer(Module):
 
     def double_muon_trigger(self, HLT):
       if Runyear == 2016:
-        return (HLT.Mu17_TrkIsoVVL_Mu8_TrkIsoVVL and HLT.Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ and HLT.Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL and HLT.Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ)
+        return (HLT.Mu17_TrkIsoVVL_Mu8_TrkIsoVVL or HLT.Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ or HLT.Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL or HLT.Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ)
       elif Runyear == 2017:
-        return (HLT.Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8 and HLT.Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8)
+        return (HLT.Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8 or HLT.Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8)
       elif Runyear == 2018:
         return (HLT.Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8)
       else:
@@ -677,17 +723,17 @@ class HHbbWWProducer(Module):
 
     def muon_electron_trigger(self, HLT):
       if Runyear == 2016:
-        return (HLT.Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL and HLT.Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ and HLT.Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL and HLT.Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ)
+        return (HLT.Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT.Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ or HLT.Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL or HLT.Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ)
       elif Runyear == 2017:
-        return (HLT.Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ and HLT.Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ and HLT.Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL and HLT.Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)
+        return (HLT.Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ or HLT.Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ or HLT.Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL or HLT.Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ)
       elif Runyear == 2018:
-        return (HLT.Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ and HLT.Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ and HLT.Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL)
+        return (HLT.Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ or HLT.Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ or HLT.Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL)
       else:
         return False
 
     def met_filters(self, flag):
-      if not (((Runyear == 2017 or Runyear == 2018) and flag.ecalBadCalibReducedMINIAODFilter) or (Runyear == 2016)):
-        return False
+      #if not (((Runyear == 2017 or Runyear == 2018) and flag.ecalBadCalibReducedMINIAODFilter) or (Runyear == 2016)): #ecalBadCalibRediucedMINIAODFilter not in nanoAOD, using Flag_ecalBadCalibFilterV2 for now? Even florian doesn't have this figured out https://github.com/FlorianBury/HHbbWWAnalysis/blob/84204a8d8c31eb67d7f1a8e4bd77ce00d7232bd6/METScripts.py#L25
+      #  return False
       if not ((flag.eeBadScFilter and not self.isMC) or (self.isMC)):
         return False
       return (flag.goodVertices and flag.globalSuperTightHalo2016Filter and flag.HBHENoiseFilter and flag.HBHENoiseIsoFilter and flag.EcalDeadCellTriggerPrimitiveFilter and flag.BadPFMuonFilter)
@@ -707,8 +753,8 @@ class HHbbWWProducer(Module):
         out.fillBranch("n_presel_ak4JetVBF", -999);
         out.fillBranch("n_presel_ak8Jet", len(self.ak8jets_btagged));
         #out.fillBranch("n_presel_ak8lsJet", );
-        out.fillBranch("n_loose_ak4BJet", -999);
-        out.fillBranch("n_medium_ak4BJet", -999);
+        out.fillBranch("n_loose_ak4BJet", len(self.jets_btagged_loose));
+        out.fillBranch("n_medium_ak4BJet", len(self.jets_btagged_medium));
         out.fillBranch("is_ee", -999);
         out.fillBranch("is_mm", -999);
         out.fillBranch("is_em", -999);
@@ -874,7 +920,7 @@ class HHbbWWProducer(Module):
           out.fillBranch("ak8Jet{i}_subjet1_CSV".format(i = i), sub1_btagDeepB);
 
 
-        """
+        
         ######## MET ########
         met_p4 = ROOT.TLorentzVector()
         met_p4.SetPtEtaPhiM(self.met.pt, 0., self.met.phi, 0.)
@@ -898,5 +944,5 @@ class HHbbWWProducer(Module):
         out.fillBranch("fakeRate", -999);
         out.fillBranch("vbf_m_jj", -999);
         out.fillBranch("vbf_dEta_jj", -999);
-        """
+
 

@@ -7,13 +7,15 @@ import warnings
 
 #from RunConfiguration import *
 import __builtin__
-__builtin__.Runyear = 2016
+#__builtin__.Runyear = 2016
 #Runyear = 2016
+__builtin__.Runyear = 2017
+#Runyear = 2017
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 
 #sys.path.append('/afs/cern.ch/work/t/tahuang/HHAnalysis/CMSSW_10_2_0/src/HhhAnalysis/python/NanoAOD')
-sys.path.append('/afs/cern.ch/work/d/daebi/diHiggs/CMSSW_10_2_0/src/HhhAnalysis/python/NanoAOD')
+sys.path.append('/afs/cern.ch/work/d/daebi/diHiggs/CMSSW_10_2_26/src/HhhAnalysis/python/NanoAOD')
 #from countHistogramProducer import *
 from genParticleProducer import *
 #from HHbbWWProducer_sync import *
@@ -70,7 +72,7 @@ file2016Test = ["tao_oldsample/myNanoProdMc2016_NANO_brazos_20190807.root"]
 
 file2016Test = ["test/test_m300_nanohadd.root"]
 file2016Test = ["sync/sync_2016_m750.root"]
-file2017Test = ["tao_oldsample/myNanoProdMc2017_NANO_brazos.root"]
+file2017Test = ["sync/sync_2017_m750.root"]
 file2018Test = ["tao_oldsample/myNanoProdMc2018_NANO_10_20190805Test.root"]
 
 #modules = [ puWeightyear(Runyear), countHistogramAll_2016(), jetmetUncertaintiesyear(Runyear), btagSFyear(Runyear),  mht_hh(), HHbbWWProducer(True, verbose = 1) ]
@@ -79,7 +81,7 @@ modules = [ puWeightyear(Runyear),   HHbbWWProducer(True, verbose = 1) ]
 #p=PostProcessor(outputdir, filesDY1J2017,"1","keep_and_drop.txt", modules, friend = True, jsonInput = None, provenance=True)
 ##note: make minor change to postprocessor.py to change the default output TTree name:
 ## https://github.com/tahuang1991/nanoAOD-tools/blob/master/python/postprocessing/framework/postprocessor.py
-p=PostProcessor(outputdir, file2016Test,"1","keep_and_drop.txt", modules, friend = True, jsonInput = None, provenance=True, outtreeName="syncTree")
+p=PostProcessor(outputdir, file2017Test,"1","keep_and_drop.txt", modules, friend = True, jsonInput = None, provenance=True, outtreeName="syncTree")
 print "run Postprocessor here "
 p.run()
 
