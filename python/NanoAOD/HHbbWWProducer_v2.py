@@ -539,7 +539,8 @@ class HHbbWWProducer(Module):
       if (leading_lepton in muons_fakeable): lep_type = "muon"
       if (leading_lepton in electrons_fakeable): lep_type = "ele"
       HLT = self.HLT
-      if not ((lep_type == "muon" and self.single_muon_trigger(HLT)) or (lep_type == "ele" and self.single_electron_trigger(HLT))): return "None"
+      if not self.isMC: #Tao says only data uses trigger
+        if not ((lep_type == "muon" and self.single_muon_trigger(HLT)) or (lep_type == "ele" and self.single_electron_trigger(HLT))): return "None"
       if not ((lep_type == "muon" and self.conept(leading_lepton) > 25) or (lep_type == "ele" and self.conept(leading_lepton) > 32)): return "None"
       #if not (self.invar_mass_check()): return "None"
       if not ((len(tight_leptons) == 0) or (len(tight_leptons) == 1 and tight_leptons[0] == leading_lepton)): return "None"
@@ -569,6 +570,9 @@ class HHbbWWProducer(Module):
           else: category_string += "_1b"
       if len(tight_leptons) == 1: category_string += "_Signal"
       if len(tight_leptons) == 0: category_string += "_Fake"
+      if len(fake_leptons) > 1: return "None" #Only should have 1 fakeable after pT cuts
+      #if self.isMC:
+      #  if not MC_match(): return "None"
       return category_string
 
 
@@ -624,7 +628,10 @@ class HHbbWWProducer(Module):
       HLT = self.HLT
       if badevent:
         print "This is the bad event, got HLT"
-      if not ((lep_type == "MuMu" and (self.double_muon_trigger(HLT) or self.single_muon_trigger(HLT))) or (lep_type == "ElEl" and (self.double_electron_trigger(HLT) or self.single_electron_trigger(HLT))) or ((lep_type == "ElMu" and (self.muon_electron_trigger(HLT) or self.single_muon_trigger(HLT) or self.single_electron_trigger(HLT))))): return "None"
+      if not self.isMC: #Tao says only data uses trigger
+        if not (lep_type == "MuMu" and (self.double_muon_trigger(HLT) or self.single_muon_trigger(HLT))): return "None"
+        if not (lep_type == "ElEl" and (self.double_electron_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
+        if not (lep_type == "ElMu" and (self.muon_electron_trigger(HLT) or self.single_muon_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
       if badevent:
         print "This is the bad event, pass triggers"
       if not (self.conept(leading_lepton) > 25 and self.conept(subleading_lepton) > 15 and leading_lepton.charge != subleading_lepton.charge): return "None"

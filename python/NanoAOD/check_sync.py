@@ -95,8 +95,8 @@ for runyear in [2016, 2017]:
       if mytree.n_presel_ak4Jet > 0: my_events.append(mytree.event)
   print "AK4 jet count"
 
-  hnm = [x for x in tal_events if x not in my_events]
-  nmh = [x for x in my_events if x not in tal_events]
+  #hnm = [x for x in tal_events if x not in my_events]
+  #nmh = [x for x in my_events if x not in tal_events]
   #print "Single Lepton Fake Region"
-  print "Him not in me ", len(hnm), hnm
-  print "Me not in him ", len(nmh), nmh
+  #print "Him not in me ", len(hnm), hnm
+  #print "Me not in him ", len(nmh), nmh
