@@ -10,10 +10,12 @@ from RunConfiguration import *
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 
 #sys.path.append('/home/taohuang/DiHiggsAnalysis/CMSSW_9_4_0_pre1/src/HhhAnalysis/python/NanoAOD')
-sys.path.append('/afs/cern.ch/work/t/tahuang/HHAnalysis/CMSSW_10_2_0/src/HhhAnalysis/python/NanoAOD')
+#sys.path.append('/afs/cern.ch/work/t/tahuang/HHAnalysis/CMSSW_10_2_0/src/HhhAnalysis/python/NanoAOD')
+sys.path.append(os. getcwd())
 from countHistogramProducer import *
 from genParticleProducer import *
-from HHbbWWProducer import *
+#from HHbbWWProducer import *
+from Devin_sync_producer import *
 
 
 #from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import *
@@ -62,10 +64,12 @@ mht_hh = lambda : mhtProducer( lambda j : j.pt > 20 and abs(j.eta) < 2.4,
 #filesDY1J2017 = ["/fdata/hepx/store/mc/RunIIFall17NanoAODv4/DYJetsToLL_1J_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano14Dec2018_102X_mc2017_realistic_v6-v1/90000/62B5DB6B-F42C-D648-A6EF-5F26495985BF.root"]
 #file2017Test = ["/fdata/hepx/store/user/taohuang/HH_NanoAOD2017/5E621211-8B42-E811-9903-001E67F8FA2E.root"]
 outputdir   = "/eos/user/t/tahuang/2021NtupleProduceTest/"
-file2016Test = ["/eos/user/t/tahuang/NanoAODSamples_2019/myNanoProdMc2016_NANO_brazos_20190807.root"]
-file2017Test = ["/eos/user/t/tahuang/NanoAODSamples_2019/myNanoProdMc2017_NANO_brazos.root"]
-file2018Test = ["/eos/user/t/tahuang/NanoAODSamples_2019/myNanoProdMc2018_NANO_10_20190805Test.root"]
+#file2016Test = ["/eos/user/t/tahuang/NanoAODSamples_2019/myNanoProdMc2016_NANO_brazos_20190807.root"]
+#file2017Test = ["/eos/user/t/tahuang/NanoAODSamples_2019/myNanoProdMc2017_NANO_brazos.root"]
+#file2018Test = ["/eos/user/t/tahuang/NanoAODSamples_2019/myNanoProdMc2018_NANO_10_20190805Test.root"]
 
+file2016Test = ["/eos/user/t/tahuang/NanoAODSamples_2021/test_m300_nanohadd.root"]
+#file2016Test = ["/eos/user/d/daebi/hhBBww_datasets/2016/signal/m270/NanoAODproduction_2016_cfg_NANO_2.root"]
 
 #modules = [ puWeightyear(Runyear), countHistogramAll_2016(), jetmetUncertaintiesyear(Runyear), btagSFyear(Runyear),  mht_hh(), HHbbWWProducer(True, verbose = 1) ]
 modules = [ puWeightyear(Runyear),  HHbbWWProducer(True, verbose = 1) ]

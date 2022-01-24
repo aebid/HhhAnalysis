@@ -1,27 +1,32 @@
 # Installing the Package:
 
-Follow these instructions:   
+Follow these instructions to checkout CMSSW_10_2_0 branch   
 ```
 mkdir myFolder   
-cmsrel CMSSW_8_0_26   
-cd CMSSW_8_0_26/src   
-git clone https://github.com/lpernie/HhhAnalysis.git   
-cd HhhAnalysis   
+cmsrel CMSSW_10_2_0   
+cd CMSSW_10_2_0/src   
+git clone https://github.com/tahuang1991/nanoAOD-tools.git PhysicsTools/NanoAODTools   
+git clone https://github.com/tahuang1991/HhhAnalysis.git   
+cd HhhAnalysis
+git checkout origin/CMSSW_10_2_0
 scram b -j 12   
 ```
+tahuang1991/nanoAOD-tools is built based on cms-nanoAOD/nanoAOD-tools with minor change
 
-# Running on data or simulation:   
-Data:   
-```
-cd DataFormats/scripts/patifyData_Run2016/
-python multicrab3.py
-```
+# Produce NanoAOD sample v7
+https://gitlab.cern.ch/cms-nanoAOD/nanoaod-doc/-/wikis/Releases/NanoAODv7
+
+# Running on data or simulation using NanoAOD sample to produce Ntuple with Dilepton and Single lepton selections:   
+
 MC:
 ```
-cd HhhAnalysis/CutFlowAnalyzer/test/DY_generation
-vim README
+cd HhhAnalysis/python/NanoAOD
+cmsRun postproc_local.py
 ```
-# Notes on DiHiggsWWBBAnalyzer.cc
+# NanoAOD data sheet: 
+https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
+
+# Notes on DiHiggsWWBBAnalyzer.cc with MiniAOD sample
 This analyzer is targeted to run on DiHiggs, TTbar, DY samples.     
 Sampletype is used to mark which sample it is running on.   
 If you are using data, set Sampletype=0 and analyzer will skip gen-level selection   
@@ -29,38 +34,7 @@ If you are using signal sample, e.g. B6, you can set Sampletype=0, or Sampletype
 If you are using TTbar, you can set Sampletype=0, or Sampletype=13 which will check gen-level information   
 If you are using DY sample, you can set Sampletype=0, or Sampletype=14 which will check gen-level information( not implemented yet)   
 The event will be saved only if it pass preselection at reco levle but we also sometimes keep track of gen-level information   
-
-# Physics objects from Muon POG:   
-https://twiki.cern.ch/twiki/bin/viewauth/CMS/POGRecipesICHEP2016   
+ 
 
 # Samples Location
-1. Signal:
-
-Radion:
-/GluGluToRadionToHHTo2B2VTo2L2Nu_M-*_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM
-
-Graviton:
-/GluGluToBulkGravitonToHHTo2B2VTo2L2Nu_M-*_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM
-
-2. TT:
-
-/TTTo2L2Nu_13TeV-powheg/RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1/MINIAODSIM
-/fdata/hepx/store/user/lpernie/TTTo2L2Nu_13TeV-powheg
-
-3. DY:
-
-/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM
-
-/fdata/hepx/store/user/lpernie/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8
-
-/DYToLL_0J_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/MINIAODSIM
-
-/fdata/hepx/store/user/lpernie/DYToLL_0J_13TeV-amcatnloFXFX-pythia8
-
-/DYToLL_1J_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/MINIAODSIM
-
-/fdata/hepx/store/user/lpernie/DYToLL_1J_13TeV-amcatnloFXFX-pythia8
-
-/DYToLL_2J_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v1/MINIAODSIM
-
-/fdata/hepx/store/user/lpernie/DYToLL_2J_13TeV-amcatnloFXFX-pythia8
+https://gitlab.cern.ch/cms-hh-bbww/cms-hh-to-bbww/-/blob/master/Legacy/datasets.md

@@ -1,5 +1,5 @@
 
-Runyear = 2017
+Runyear = 2016
 
 if Runyear == 2016:
     import Samplelist as Slist
