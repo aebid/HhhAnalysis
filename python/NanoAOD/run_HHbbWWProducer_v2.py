@@ -14,8 +14,13 @@ __builtin__.Runyear = 2017
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 
+<<<<<<< Updated upstream
 #sys.path.append('/afs/cern.ch/work/t/tahuang/HHAnalysis/CMSSW_10_2_0/src/HhhAnalysis/python/NanoAOD')
 sys.path.append('/afs/cern.ch/work/d/daebi/diHiggs/CMSSW_10_2_26/src/HhhAnalysis/python/NanoAOD')
+=======
+sys.path.append('/afs/cern.ch/work/t/tahuang/HHAnalysis/CMSSW_10_2_0/src/HhhAnalysis/python/NanoAOD')
+#sys.path.append('/afs/cern.ch/work/d/daebi/diHiggs/CMSSW_10_2_0/src/HhhAnalysis/python/NanoAOD')
+>>>>>>> Stashed changes
 #from countHistogramProducer import *
 from genParticleProducer import *
 #from HHbbWWProducer_sync import *
@@ -66,14 +71,22 @@ mht_hh = lambda : mhtProducer( lambda j : j.pt > 20 and abs(j.eta) < 2.4,
 #outputdir   = "tao_oldsample_mytest/"
 #outputdir   = "add_cov_test/"
 #outputdir   = "mysample_test_m{mass}/".format(mass = mass)
-outputdir = "sync/"
+#outputdir = "sync/"
 #file2016Test = ["add_cov/NANOAODSIM_M-260_1.root"]
-file2016Test = ["tao_oldsample/myNanoProdMc2016_NANO_brazos_20190807.root"]
+#file2016Test = ["tao_oldsample/myNanoProdMc2016_NANO_brazos_20190807.root"]
+outputdir   = "/eos/user/t/tahuang/2021NtupleProduceTest/"
+#file2016Test = ["/eos/user/t/tahuang/NanoAODSamples_2019/myNanoProdMc2016_NANO_brazos_20190807.root"]
+#file2017Test = ["/eos/user/t/tahuang/NanoAODSamples_2019/myNanoProdMc2017_NANO_brazos.root"]
+#file2018Test = ["/eos/user/t/tahuang/NanoAODSamples_2019/myNanoProdMc2018_NANO_10_20190805Test.root"]
 
-file2016Test = ["test/test_m300_nanohadd.root"]
-file2016Test = ["sync/sync_2016_m750.root"]
-file2017Test = ["sync/sync_2017_m750.root"]
+file2016Test = ["/eos/user/t/tahuang/Sync_2021/sync_2016_m750.root"]
+file2017Test = ["/eos/user/t/tahuang/Sync_2021/sync_2017_m750.root"]
 file2018Test = ["tao_oldsample/myNanoProdMc2018_NANO_10_20190805Test.root"]
+
+#file2016Test = ["test/test_m300_nanohadd.root"]
+#file2016Test = ["sync/sync_2016_m750.root"]
+#file2017Test = ["tao_oldsample/myNanoProdMc2017_NANO_brazos.root"]
+#file2018Test = ["tao_oldsample/myNanoProdMc2018_NANO_10_20190805Test.root"]
 
 #modules = [ puWeightyear(Runyear), countHistogramAll_2016(), jetmetUncertaintiesyear(Runyear), btagSFyear(Runyear),  mht_hh(), HHbbWWProducer(True, verbose = 1) ]
 modules = [ puWeightyear(Runyear),   HHbbWWProducer(True, verbose = 1) ]
