@@ -433,6 +433,10 @@ class HHbbWWProducer(Module):
           print(" Presel ", self.ak8jetPreselection(fatjet), " fatjetcleaning ", self.jetCleaning(fatjet, 0.8, 99), " medianbtagging ", self.ak8jetBtagging(fatjet))
 	  if self.debug > 2:
 	    print("  fatjetcleaning Single ", self.jetCleaning(fatjet, 0.8, 1), " Double ",self.jetCleaning(fatjet, 0.8, 2))
+	for tau in self.taus:
+	  self.printObject(tau, "Tau")
+          print(" dxy ",tau.dxy, " dz ",tau.dz," decaymode ",tau.decayMode," VSjet ",tau.idDeepTau2017v2p1VSjet," VSe ",tau.idDeepTau2017v2p1VSe," VSmu ",tau.idDeepTau2017v2p1VSmu)
+
 
     def conept(self, lep):
       """
@@ -766,12 +770,13 @@ class HHbbWWProducer(Module):
       #the electrons and muons considered from the matching are required to originate from either a W, a Z or a Higgs boson decay.
       return lep.genPartFlav in [1, 15] #1 = prompt mu/e, 15 = tau decay
 
-    def tau_veto(self):
+    def tau_veto(self, fakeable_leptons):
       #Tau veto: no tau passing pt>20, abs(eta) < 2.3, abs(dxy) <= 1000, abs(dz) <= 0.2, "decayModeFindingNewDMs", decay modes = {0, 1, 2, 10, 11}, and "byMediumDeepTau2017v2VSjet", "byVLooseDeepTau2017v2VSmu", "byVVVLooseDeepTau2017v2VSe". Taus overlapping with fakeable electrons or fakeable muons within dR < 0.3 are not considered for the tau veto
       #False -> Gets Removed : True -> Passes veto
       for i in self.taus:
         if (i.pt > 20.0 and abs(i.eta) < 2.3 and abs(i.dxy) <= 1000.0 and abs(i.dz) <= 0.2 and i.idDecayModeNewDMs and i.decayMode in [0,1,2,10,11] and i.idDeepTau2017v2p1VSjet >= 16 and i.idDeepTau2017v2p1VSmu >= 1 and i.idDeepTau2017v2p1VSe >= 1):
-          for fake in (self.muons_fakeable + self.electrons_fakeable):
+          #for fake in (self.muons_fakeable + self.electrons_fakeable):
+          for fake in (fakeable_leptons):
             if deltaR(fake.eta, fake.phi, i.eta, i.phi) > 0.3:
               return False
       return True
