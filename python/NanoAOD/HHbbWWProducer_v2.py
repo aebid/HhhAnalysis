@@ -270,6 +270,7 @@ class HHbbWWProducer(Module):
         self.jets = []
         self.jets_pre = []
         self.jets_clean = [] #Jets clean depending on SL/DL, this variable is to fill tree NOT FOR CALCULATION
+        self.jets_btagged_medium = []
         self.jets_clean_single = []
         self.jets_btagged_medium_single = []
         self.jets_btagged_loose_single = []
@@ -335,6 +336,7 @@ class HHbbWWProducer(Module):
 
         self.jets_pre = [x for x in self.jets if self.ak4jetPreselection(x)]
         self.jets_clean = [x for x in self.jets_pre if self.jetCleaning(x, 0.4, 99)] #Include all fakeables up to (min(len(fakes), 99))
+        self.jets_btagged_medium = [x for x in self.jets_clean if self.ak4jetBtagging(x, "medium")]
 
         self.jets_clean_single = [x for x in self.jets_pre if self.jetCleaning(x, 0.4, 1)]
         self.jets_btagged_medium_single = [x for x in self.jets_clean_single if self.ak4jetBtagging(x, "medium")]
@@ -620,8 +622,6 @@ class HHbbWWProducer(Module):
       leading_lepton = fake_leptons[0]
       if not ((len(tight_leptons) == 0) or (len(tight_leptons) == 1 and tight_leptons[0] == leading_lepton)): return "None"
       self.single_cutflow += 1
-      if not (self.tau_veto()): return "None"
-      self.single_cutflow += 1
       if not (self.Zmass_and_invar_mass_cut()): return "None"
       self.single_cutflow += 1
       lep_type = self.which_channel(1)
@@ -634,6 +634,8 @@ class HHbbWWProducer(Module):
       if len(fake_leptons_ptcut) > 1: return "None" #Only should have 1 fakeable after pT cuts
       self.single_cutflow += 1
       if isMC and not self.MC_match(leading_lepton): return "None"
+      self.single_cutflow += 1
+      if not (self.tau_veto()): return "None"
       self.single_cutflow += 1
       ### jet cuts
       if not (len(ak8jets_btagged) >= 1 or len(jets_btagged) >= 1): return "None"
