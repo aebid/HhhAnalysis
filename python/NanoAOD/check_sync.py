@@ -2,12 +2,49 @@ import ROOT
 
 
 runyear = 2017
-myfilelist = ["sync/sync_2016_m750_Friend.root", "sync/sync_2017_m750_Friend.root"]
+myfilelist = ["/eos/user/t/tahuang/2021NtupleProduceTest/sync_2016_m750_Friend.root", "/eos/user/t/tahuang/2021NtupleProduceTest/sync_2017_m750_Friend.root"]
 tallinfilelist = ["/afs/cern.ch/user/k/kaehatah/public/sync_legacy_bbww/era_2016/sync_bbww_Tallinn_2016_v21.root", "/afs/cern.ch/user/k/kaehatah/public/sync_legacy_bbww/era_2017/sync_bbww_Tallinn_2017_v13.root"]
 
+def printEvent(tree):
+  print("Treename: ", tree.GetName())
+  print(" ak4jet1_pt  = ", tree.ak4Jet1_pt," ak4jet1_eta = ", tree.ak4Jet1_eta," ak4jet1_phi = ", tree.ak4Jet1_phi)
+  print(" ak4jet2_pt  = ", tree.ak4Jet2_pt," ak4jet2_eta = ", tree.ak4Jet2_eta," ak4jet2_phi = ", tree.ak4Jet2_phi)
+  print(" ak4jet3_pt  = ", tree.ak4Jet3_pt," ak4jet3_eta = ", tree.ak4Jet3_eta," ak4jet3_phi = ", tree.ak4Jet3_phi)
+  print(" ak4jet4_pt  = ", tree.ak4Jet4_pt," ak4jet4_eta = ", tree.ak4Jet4_eta," ak4jet4_phi = ", tree.ak4Jet4_phi)
+  print(" ak8jet1_pt  = ", tree.ak8Jet1_pt," ak8jet1_eta = ", tree.ak8Jet1_eta," ak8jet1_phi = ", tree.ak8Jet1_phi)
+  print(" ak8jet2_pt  = ", tree.ak8Jet2_pt," ak8jet2_eta = ", tree.ak8Jet2_eta," ak8jet2_phi = ", tree.ak8Jet2_phi)
+  print("    ele1_pt  = ", tree.ele1_pt,   "    ele1_eta = ", tree.ele1_eta,   "    ele1_phi = ", tree.ele1_phi)
+  print("    ele2_pt  = ", tree.ele2_pt,   "    ele2_eta = ", tree.ele2_eta,   "    ele2_phi = ", tree.ele2_phi)
+  print("     mu1_pt  = ", tree.mu1_pt,    "     mu1_eta = ", tree.mu1_eta,    "     mu1_phi = ", tree.mu1_phi)
+  print("     mu2_pt  = ", tree.mu2_pt,    "     mu2_eta = ", tree.mu2_eta,    "     mu2_phi = ", tree.mu2_phi)
+
+def compareTree(mytree, taltree, mytreename, taltreename):
+  tamu_index = 0
+  for i in range(taltree.GetEntries()):
+    taltree.GetEntry(i); 
+    event_num = taltree.event
+    print(taltreename, i," New event ", event_num)
+    foundmatch = False
+    for j in range(tamu_index, mytree.GetEntries()):
+      mytree.GetEntry(j)
+      if mytree.event == event_num:
+        foundmatch = True 
+        if mytree.ak4Jet1_pt != taltree.ak4Jet1_pt and taltree.ak4Jet1_pt>0:
+          print "Found same event with different ak4jet pt, evt = ", event_num
+          #print(mytreename)
+          #printEvent(mytree)
+          #print(taltreename)
+          #printEvent(taltree)
+        tamu_index  = j
+        break
+     
+    if not foundmatch:
+      print "Failed to find match event in TAMU tree for evt ", event_num, " moving on"
+      print(taltreename)
+      printEvent(taltree)
 
 
-for runyear in [2016, 2017]:
+for runyear in [2017]:
   f = ROOT.TFile(myfilelist[runyear-2016])
   tree = f.Get("syncTree")
   tree_1l_SR = f.Get("syncTree_hhbb1l_SR")
@@ -75,46 +112,20 @@ for runyear in [2016, 2017]:
 
   my_events = []; tal_events = []
   #mytree = tree_2l_Fake; taltree = tree_2l_Fake_Tall
-  #mytree = tree_2l_SR; taltree = tree_2l_SR_Tall
+  mytree = tree_2l_SR; taltree = tree_2l_SR_Tall
   #mytree = tree_1l_Fake; taltree = tree_1l_Fake_Tall
   #mytree = tree_1l_SR; taltree = tree_1l_SR_Tall
-  mytree = tree; taltree = tree2
+  #mytree = tree; taltree = tree2
 
   if runyear == 2017:
-    """
     for i in range(taltree.GetEntries()):
       taltree.GetEntry(i); tal_events.append(taltree.event)
     for i in range(mytree.GetEntries()):
       mytree.GetEntry(i); my_events.append(mytree.event)
-    """
-    counter = 0
-    for i in range(taltree.GetEntries()):
-      taltree.GetEntry(i); 
-
-      event_num = taltree.event
-      print "New event ", event_num
-      tmp_counter = counter
-      for i in range(mytree.GetEntries()):
-        mytree.GetEntry(tmp_counter)
-        if mytree.event == event_num:
-          if mytree.ak4Jet1_pt != taltree.ak4Jet1_pt:
-            print "Found same event, evt = ", event_num
-            print "my ak4Jet1_pt  = ", mytree.ak4Jet1_pt, " tal = ", taltree.ak4Jet1_pt
-            print "my ak4Jet1_eta = ", mytree.ak4Jet1_eta, " tal = ", taltree.ak4Jet1_eta
-            print "my ak4Jet1_phi = ", mytree.ak4Jet1_phi, " tal = ", taltree.ak4Jet1_phi
-          counter = tmp_counter
-          break
-        tmp_counter += 1
-        if tmp_counter == mytree.GetEntries():
-          counter = 0
-          print "Failed to find match for evt ", event_num, " moving on"
-          print "tal = ", taltree.ak4Jet1_pt
-          print "tal = ", taltree.ak4Jet1_eta
-          print "tal = ", taltree.ak4Jet1_phi
-          break
-
-  #hnm = [x for x in tal_events if x not in my_events]
-  #nmh = [x for x in my_events if x not in tal_events]
-  #print "Single Lepton Fake Region"
-  #print "Him not in me ", len(hnm), hnm
-  #print "Me not in him ", len(nmh), nmh
+    #compareTree(mytree, taltree, "TAMU", "Tallinn")
+    #compareTree(taltree, mytree, "Tallinn", "TAMU")
+  hnm = [x for x in tal_events if x not in my_events]
+  nmh = [x for x in my_events if x not in tal_events]
+  print "double Lepton Signal Region"
+  print "Him not in me ", len(hnm), hnm
+  print "Me not in him ", len(nmh), nmh

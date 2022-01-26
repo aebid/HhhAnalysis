@@ -21,7 +21,8 @@ else:
     import RunConfiguration as RunConfig
     Runyear = RunConfig.Runyear
 
-import POGRecipesRun2_allyears as POGRecipesRun2
+#import POGRecipesRun2_allyears as POGRecipesRun2
+
 
 
 if not (Runyear == 2016 or Runyear == 2017 or Runyear == 2018):
@@ -44,6 +45,7 @@ class HHbbWWProducer(Module):
         #self.runyear = Runyear
 
         #Self variables
+	self.category = "None"
         self.ievent = -1
         self.luminosityBlock = -1
         self.run = -1
@@ -69,6 +71,7 @@ class HHbbWWProducer(Module):
         self.HLT = -1
         self.flag = -1
         self.taus = []
+	self.debug = 0
 
     def beginJob(self, histFile=None, histDirName=None):
         print "BeginJob "
@@ -350,19 +353,16 @@ class HHbbWWProducer(Module):
         self.HLT = Object(event, "HLT")
         self.flag = Object(event, "Flag")
         self.taus = list(Collection(event, "Tau"))
+
+	
+        #########################################
+	### Double leptons selections
+        #########################################
         #category = "None"
-        single_category = self.single_lepton()
         double_category = self.double_lepton()
 
-
-
-        self.fillBranches(self.out)
-        if (("Single" in single_category) and ("Signal" in single_category)):
-          self.fillBranches(self.Single_Signal)
-          self.Single_Signal.fill()
-        if (("Single" in single_category) and ("Fake" in single_category)):
-          self.fillBranches(self.Single_Fake)
-          self.Single_Fake.fill()
+	if double_category != "None":
+	  self.category = double_category
         if (("Double" in double_category) and ("Signal" in double_category)):
           self.fillBranches(self.Double_Signal)
           self.Double_Signal.fill()
@@ -370,7 +370,59 @@ class HHbbWWProducer(Module):
           self.fillBranches(self.Double_Fake)
           self.Double_Fake.fill()
 
+
+        #########################################
+	### Single lepton selections
+        #########################################
+        single_category = self.single_lepton()
+
+        if single_category != "None":
+	  self.category = single_category
+        self.fillBranches(self.out)
+        if (("Single" in single_category) and ("Signal" in single_category)):
+          self.fillBranches(self.Single_Signal)
+          self.Single_Signal.fill()
+        if (("Single" in single_category) and ("Fake" in single_category)):
+          self.fillBranches(self.Single_Fake)
+          self.Single_Fake.fill()
+
+	debugevents = []
+	if self.ievent in debugevents:
+	  self.debug = 3
+	  self.printEvent()
+        if self.debug > 2:
+	  print("single selection ", single_category, " cutflow ", self.single_cutflow)
+	  print("double selection ", double_category, " cutflow ", self.double_cutflow)
+
         return True
+
+    def printObject(self, obj):
+	print(" Id ",obj.pdgId, " pt ",obj.pt, " eta ", obj.eta," phi ",obj.phi," type ",type(obj))
+
+    def printEvent(self):
+	for mu in self.muons_pre:
+	  self.printObject(mu)
+	  print(" conept ", self.conept(mu), " fakeable ", self.muonFakeable(mu)," tight ", self.muonTight(mu))
+	  if self.debug > 2:
+	    print("\t dxy ",mu.dxy, " dz ",mu.dz, " SIP3D ", muon.sip3d," conept ", self.conept(mu)," mvaTTH ", mu.mvaTTH)
+
+	for el in self.electrons_pre:
+	  self.printObject(el)
+	  print(" conept ", self.conept(el), " fakeable ", self.electronFakeable(el)," tight ", self.electronTight(el))
+	  if self.debug > 2:
+	    print("\t dxy ",el.dxy, " dz ",el.dz, " SIP3D ", el.sip3d," conept ", self.conept(el)," mvaTTH ", el.mvaTTH)
+
+	for jet in self.jets:
+	  self.printObject(jet)
+          print(" jetcleaning ", self.jetCleaning(jet, 0.4, 99), " medianbtagging ", self.ak4jetBtagging(jet, "medium"))
+	  if self.debug > 2:
+	    print("\t jetcleaning Single ", self.jetCleaning(jet, 0.4, 1), " Double ",self.jetCleaning(jet, 0.4, 2))
+
+	for fatjet in self.ak8jets:
+	  self.printObject(fatjet)
+          print(" fatjetcleaning ", self.jetCleaning(fatjet, 0.8, 99), " medianbtagging ", self.ak8jetBtagging(fatjet))
+	  if self.debug > 2:
+	    print("\t fatjetcleaning Single ", self.jetCleaning(fatjet, 0.8, 1), " Double ",self.jetCleaning(fatjet, 0.8, 2))
 
     def conept(self, lep):
       """
@@ -481,10 +533,10 @@ class HHbbWWProducer(Module):
 
     def ak4jetPreselection(self, jet):
       #PF jet ID: 2016 - loose, 2017 - tight, 2018 - tight, pt >= 25, abs(eta) < 2.4, Jet PU ID (loose WP for pt < 50)
-      if not (jet.pt > 50 or jet.puId & 4): #Bit operators!!!
+      if not (jet.pt > 50.0 or jet.puId & 4): #Bit operators!!!
         return False
       PFJetID = [1, 2, 2] # Jet ID flags bit1 is loose, bit2 is tight, bit3 is tightLepVeto
-      return (abs(jet.eta) <= 2.4 and jet.pt >= 25 and jet.jetId & PFJetID[Runyear-2016])
+      return (abs(jet.eta) <= 2.4 and jet.pt >= 25.0 and jet.jetId & PFJetID[Runyear-2016])
 
     def ak4jetBtagging(self, jet, wp):
       #The pfDeepFlavour (DeepJet) algorithm is used.
@@ -536,43 +588,66 @@ class HHbbWWProducer(Module):
       #No pair of same-flavor, opposite sign preselected leptons within 10 GeV of the Z mass
       #At least 1 medium btag (that can be on a AK8 jet): (#selJetsAK8_b >= 1 || #b-medium >= 1)
       #Minimal number of jets to construct an Hbb and admit an hadronic W with a missing jet: (#selJetsAK8_b == 0 && #selJetsAK4 >= 3) || (#selJetsAK8_b >= 1 && nJet_that_not_bb >= 1)
-      muons_fakeable = self.muons_fakeable; electrons_fakeable = self.electrons_fakeable;
-      muons_tight = self.muons_tight; electrons_tight = self.electrons_tight;
-      ak8jets_btagged = self.ak8jets_btagged_single; jets_btagged = self.jets_btagged_medium_single;
-      jets_pre = self.jets_pre;
+      muons_fakeable     = self.muons_fakeable; 
+      muons_tight        = self.muons_tight; 
+      electrons_fakeable = self.electrons_fakeable;
+      electrons_tight    = self.electrons_tight;
+      jets_clean         = self.jets_clean;
+      jets_btagged       = self.jets_btagged_medium;
+      ak8jets_btagged    = self.ak8jets_btagged; 
+      ak8jets_clean      = self.ak8jets_clean; 
+      #jets_clean         = self.jets_clean_single;
+      #jets_btagged       = self.jets_btagged_medium_single;
+      #ak8jets_btagged    = self.ak8jets_btagged_single; 
+      #ak8jets_clean      = self.ak8jets_clean_single; 
 
       fake_leptons = muons_fakeable + electrons_fakeable
       fake_leptons.sort(key=lambda x:self.conept(x), reverse=True)
+      fake_leptons_ptcut = [x for x in fake_leptons if (abs(x.pdgId)==11 and self.conept(x)>32.0) or (abs(x.pdgId)==13 and self.conept(x)>25.0)]
       tight_leptons = muons_tight + electrons_tight
       tight_leptons.sort(key=lambda x:self.conept(x), reverse=True)
       isMC = self.isMC
-
+      
+      self.single_cutflow = 0
       if not (len(fake_leptons) >= 1 and self.met_filters(self.flag)): return "None" 
+      self.single_cutflow += 1
       leading_lepton = fake_leptons[0]
+      if not ((len(tight_leptons) == 0) or (len(tight_leptons) == 1 and tight_leptons[0] == leading_lepton)): return "None"
+      self.single_cutflow += 1
+      if not (self.tau_veto()): return "None"
+      self.single_cutflow += 1
+      if not (self.Zmass_and_invar_mass_cut()): return "None"
+      self.single_cutflow += 1
       lep_type = self.which_channel(1)
       if not isMC: #Tao says only data uses trigger
         HLT = self.HLT
         if not ((lep_type == "Mu" and self.single_muon_trigger(HLT)) or (lep_type == "El" and self.single_electron_trigger(HLT))): return "None"
+      self.single_cutflow += 1
       if not ((lep_type == "Mu" and self.conept(leading_lepton) > 25) or (lep_type == "El" and self.conept(leading_lepton) > 32)): return "None"
-      #if not (self.invar_mass_check()): return "None"
-      if not ((len(tight_leptons) == 0) or (len(tight_leptons) == 1 and tight_leptons[0] == leading_lepton)): return "None"
-      if not (self.tau_veto() and self.Zmass_and_invar_mass_cut()): return "None"
+      self.single_cutflow += 1
+      if len(fake_leptons_ptcut) > 1: return "None" #Only should have 1 fakeable after pT cuts
+      self.single_cutflow += 1
+      if isMC and not self.MC_match(leading_lepton): return "None"
+      self.single_cutflow += 1
+      ### jet cuts
       if not (len(ak8jets_btagged) >= 1 or len(jets_btagged) >= 1): return "None"
+      self.single_cutflow += 1
       Jet_that_not_bb = []
       if len(ak8jets_btagged) > 0:
         #for i in range(len(ak8jets_btagged)): #Maybe 'leading ak8' isn't by pt, but by btag?
         #ak8jets_btagged.sort(key=lambda x:x.btagDeepB, reverse=True) #Nope, btag didn't change anything
         #  if (len(ak8jets_btagged) >= 2): print i, ak8jets_btagged[i].pt, ak8jets_btagged[i].btagDeepB
-        Jet_that_not_bb = [x for x in jets_pre if deltaR(x.eta, x.phi, ak8jets_btagged[0].eta, ak8jets_btagged[0].phi) > 1.2]
-      if not ((len(ak8jets_btagged) == 0 and len(jets_pre) >= 3) or (len(ak8jets_btagged) >= 1 and len(Jet_that_not_bb) >= 1)): return "None"
+        Jet_that_not_bb = [x for x in jets_clean if deltaR(x.eta, x.phi, ak8jets_btagged[0].eta, ak8jets_btagged[0].phi) > 1.2]
+      if not ((len(ak8jets_btagged) == 0 and len(jets_clean) >= 3) or (len(ak8jets_btagged) >= 1 and len(Jet_that_not_bb) >= 1)): return "None"
+      self.single_cutflow += 1
       category_string = "Single"
-      if len(ak8jets_btagged) >= 1:
+      if len(ak8jets_btagged) >= 1:##boosted
         category_string += "_HbbFat_WjjRes"
         if len(Jet_that_not_bb) >= 2: category_string += "_allReco"
         else: category_string += "_MissJet"
-      else:
+      else:## resolved
         category_string += "_Res"
-        if len(jets_pre) >= 4:
+        if len(jets_clean) >= 4:
           category_string += "_allReco"
           if len(jets_btagged) >= 1: category_string += "_2b"
           else: category_string += "_1b"
@@ -582,10 +657,6 @@ class HHbbWWProducer(Module):
           else: category_string += "_1b"
       if len(tight_leptons) == 1: category_string += "_Signal"
       if len(tight_leptons) == 0: category_string += "_Fake"
-      if len(fake_leptons) > 1: return "None" #Only should have 1 fakeable after pT cuts
-      if isMC:
-        for lep in fake_leptons:
-          if not self.MC_match(lep): return "None"
       return category_string
 
 
@@ -605,43 +676,56 @@ class HHbbWWProducer(Module):
       #Either the leading fakeable lepton, the subleading fakeable lepton or both fail the tight lepton selection criteria
       #In MC, require MC matching of the leading and subleading fakelable lepton
 
-      muons_fakeable = self.muons_fakeable; electrons_fakeable = self.electrons_fakeable;
-      muons_tight = self.muons_tight; electrons_tight = self.electrons_tight;
-      ak8jets_btagged = self.ak8jets_btagged_double; jets_btagged = self.jets_btagged_medium_double;
-      ak8jets_clean = self.ak8jets_clean_double; jets_clean = self.jets_clean_double;
+      muons_fakeable     = self.muons_fakeable; 
+      muons_tight        = self.muons_tight; 
+      electrons_fakeable = self.electrons_fakeable;
+      electrons_tight    = self.electrons_tight;
+      jets_clean         = self.jets_clean;
+      jets_btagged       = self.jets_btagged_medium;
+      ak8jets_btagged    = self.ak8jets_btagged; 
+      ak8jets_clean      = self.ak8jets_clean; 
+      #jets_clean         = self.jets_clean_double;
+      #jets_btagged       = self.jets_btagged_medium_double;
+      #ak8jets_clean      = self.ak8jets_clean_double; 
+      #ak8jets_btagged    = self.ak8jets_btagged_double; 
 
       fake_leptons = muons_fakeable + electrons_fakeable
       fake_leptons.sort(key=lambda x:self.conept(x), reverse=True)
+      fake_leptons_ptcut = [x for x in fake_leptons if self.conept(x)>15.0]
       tight_leptons = muons_tight + electrons_tight
       tight_leptons.sort(key=lambda x:self.conept(x), reverse=True)
       isMC = self.isMC
 
+      self.double_cutflow = 0
       if not (len(fake_leptons) >= 2 and self.met_filters(self.flag)): return "None"
       leading_lepton = fake_leptons[0]
       subleading_lepton = fake_leptons[1]
+      self.double_cutflow += 1
+      if not (self.conept(leading_lepton) > 25.0 and self.conept(subleading_lepton) > 15.0 and leading_lepton.charge != subleading_lepton.charge): return "None"
+      self.double_cutflow += 1
+      if not (self.Zmass_and_invar_mass_cut()): return "None"
+      self.double_cutflow += 1
       lep_type = self.which_channel(2)
       if not isMC: #Tao says only data uses trigger
         HLT = self.HLT
         if not (lep_type == "MuMu" and (self.double_muon_trigger(HLT) or self.single_muon_trigger(HLT))): return "None"
         if not (lep_type == "ElEl" and (self.double_electron_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
         if not (lep_type in ["ElMu", "MuEl"] and (self.muon_electron_trigger(HLT) or self.single_muon_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
-      if not (self.conept(leading_lepton) > 25 and self.conept(subleading_lepton) > 15 and leading_lepton.charge != subleading_lepton.charge): return "None"
-
+      self.double_cutflow += 1
+      if len(fake_leptons_ptcut) > 2: return "None"
+      self.double_cutflow += 1
+      if isMC and not (self.MC_match(leading_lepton) and self.MC_match(subleading_lepton)): return "None"
+      self.double_cutflow += 1
       if not ((len(tight_leptons) <= 2)): return "None"
-      if not (self.Zmass_and_invar_mass_cut()): return "None"
+      self.double_cutflow += 1
 
       category_string = "Double"
-      #if len(ak8jets_btagged) >= 1: category_string += "_Boosted"
-      if len(ak8jets_clean) >= 1 and (ak8jets_clean[0] in ak8jets_btagged): category_string += "_Boosted"
-      #elif len(jets_clean) >= 2 and len(jets_btagged) >= 1: category_string += "_Resolved"
-      elif len(jets_clean) >= 2 and (jets_clean[0] in jets_btagged or jets_clean[1] in jets_btagged): category_string += "_Resolved"
+      if len(ak8jets_clean) >= 1 and (ak8jets_clean[0] in ak8jets_btagged): category_string += "_HbbFat"
+      elif len(jets_clean) >= 2 and (jets_clean[0] in jets_btagged or jets_clean[1] in jets_btagged): category_string += "_Res"
       else: return "None" #If not boosted or resolved then fail whole case
+      self.double_cutflow += 1
       if ((leading_lepton in tight_leptons) and (subleading_lepton in tight_leptons)): category_string += "_Signal"
       else: category_string += "_Fake"
-      if len(fake_leptons) > 2: return "None"
-      if isMC:
-        for lep in fake_leptons:
-          if not self.MC_match(lep): return "None"
 
       return category_string
 
@@ -698,11 +782,14 @@ class HHbbWWProducer(Module):
         pre1.SetPtEtaPhiM(i.pt, i.eta, i.phi, i.mass)
         for j in pre_leptons:
           if i == j: continue
-          if not ((i in muons_pre and j in muons_pre) or (i in electrons_pre and j in electrons_pre)): continue
-          if (i.charge == j.charge): continue
           pre2.SetPtEtaPhiM(j.pt, j.eta, j.phi, j.mass)
           pre_pair = pre1 + pre2
-          if (abs(pre_pair.M() - Z_mass) < 10 or pre_pair.M() < 12): #Include 12 here to remove separate invar mass check
+          if (pre_pair.M() <= 12.0): #Include 12 here to remove separate invar mass check
+	    return False
+          if not ((i in muons_pre and j in muons_pre) or (i in electrons_pre and j in electrons_pre)): continue
+          if (i.charge == j.charge): continue
+          #if (abs(pre_pair.M() - Z_mass) < 10 or pre_pair.M() < 12): #Include 12 here to remove separate invar mass check
+	  if (abs(pre_pair.M() - Z_mass) < 10.0):
             return False
       return True
 
@@ -765,6 +852,7 @@ class HHbbWWProducer(Module):
 
 
     def fillBranches(self, out):
+	value = -99999
         out.fillBranch("event", self.ievent);
         out.fillBranch("ls", self.luminosityBlock);
         out.fillBranch("run", self.run);
@@ -783,9 +871,9 @@ class HHbbWWProducer(Module):
         out.fillBranch("is_ee", self.which_channel(2) == "ElEl");
         out.fillBranch("is_mm", self.which_channel(2) == "MuMu");
         out.fillBranch("is_em", self.which_channel(2) in ["ElMu", "MuEl"]);
-        out.fillBranch("is_boosted", -999);
-        out.fillBranch("is_semiboosted", -999);
-        out.fillBranch("is_resolved", -999);
+        out.fillBranch("is_boosted", "_HbbFat" in self.category);
+        out.fillBranch("is_resolved","_Res" in self.category);
+        out.fillBranch("is_semiboosted", 0);
 
         ######## Muons ########
         for i in [1, 2]:
@@ -802,7 +890,6 @@ class HHbbWWProducer(Module):
             segmentCompatibility = mu.segmentComp; leptonMVA = mu.mvaTTH; mediumID = mu.mediumId; dpt_div_pt = mu.ptErr/mu.pt;
             isfakeablesel = (mu in self.muons_fakeable); ismvasel = (mu in self.muons_tight); isGenMatched = self.MC_match(mu);
           else:
-            value = -999
             pt = value; conept = value; eta = value; phi = value; mass = value;
             E = value; charge = value;
             miniRelIso = value; PFRelIso04 = value; jetNDauChargedMVASel = value; jetPtRel = value;
@@ -852,7 +939,6 @@ class HHbbWWProducer(Module):
             sigmaEtaEta = ele.sieie; HoE = ele.hoe; OoEminusOoP = ele.eInvMinusPInv;
             isfakeablesel = (ele in self.electrons_fakeable); ismvasel = (ele in self.electrons_tight); isGenMatched = self.MC_match(ele);
           else:
-            value = -9999
             pt = value; conept = value; eta = value; phi = value; mass = value;
             E = value; charge = value;
             miniRelIso = value; PFRelIso04 = value; jetNDauChargedMVASel = value; jetPtRel = value;
@@ -898,7 +984,6 @@ class HHbbWWProducer(Module):
             ak4jet_p4 = ROOT.TLorentzVector(); ak4jet_p4.SetPtEtaPhiM(pt, eta, phi, mass);
             E = ak4jet_p4.E(); CSV = ak4jet.btagDeepFlavB; btagSF = -999;
           else:
-            value = -99999
             pt = value; eta = value; phi = value; mass = value;
             E = value; CSV = value; btagSF = value;
 
@@ -930,7 +1015,6 @@ class HHbbWWProducer(Module):
             sub1_pt = ak8subjet2.pt; sub1_eta = ak8subjet2.eta; sub1_phi = ak8subjet2.phi; sub1_btagDeepB = ak8subjet2.btagDeepB;
 
           else:
-            value = -9999
             pt = value; eta = value; phi = value; mass = value;
             E = value; msoftdrop = value; tau1 = value; tau2 = value;
             sub0_pt = value; sub0_eta = value; sub0_phi = value; sub0_btagDeepB = value;

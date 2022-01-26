@@ -14,13 +14,8 @@ __builtin__.Runyear = 2017
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 
-<<<<<<< Updated upstream
-#sys.path.append('/afs/cern.ch/work/t/tahuang/HHAnalysis/CMSSW_10_2_0/src/HhhAnalysis/python/NanoAOD')
-sys.path.append('/afs/cern.ch/work/d/daebi/diHiggs/CMSSW_10_2_26/src/HhhAnalysis/python/NanoAOD')
-=======
 sys.path.append('/afs/cern.ch/work/t/tahuang/HHAnalysis/CMSSW_10_2_0/src/HhhAnalysis/python/NanoAOD')
 #sys.path.append('/afs/cern.ch/work/d/daebi/diHiggs/CMSSW_10_2_0/src/HhhAnalysis/python/NanoAOD')
->>>>>>> Stashed changes
 #from countHistogramProducer import *
 from genParticleProducer import *
 #from HHbbWWProducer_sync import *
