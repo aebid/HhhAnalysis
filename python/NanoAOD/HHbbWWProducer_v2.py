@@ -263,12 +263,20 @@ class HHbbWWProducer(Module):
         self.electrons_tight = []
         self.jets = []
         self.jets_pre = []
-        self.jets_clean = []
-        self.jets_btagged_medium = []
-        self.jets_btagged_loose = []
+        self.jets_clean = [] #Jets clean depending on SL/DL, this variable is to fill tree NOT FOR CALCULATION
+        self.jets_clean_single = []
+        self.jets_btagged_medium_single = []
+        self.jets_btagged_loose_single = []
+        self.jets_clean_double = []
+        self.jets_btagged_medium_double = []
+        self.jets_btagged_loose_double = []
         self.ak8jets_pre = []
-        self.ak8jets_clean = []
-        self.ak8jets_btagged = []
+        self.ak8jets_clean = [] #Jets clean depending on SL/DL, this variable is to fill tree NOT FOR CALCULATION
+        self.ak8jets_btagged = [] #Jets clean depending on SL/DL, this variable is to fill tree NOT FOR CALCULATION
+        self.ak8jets_clean_single = []
+        self.ak8jets_btagged_single = []
+        self.ak8jets_clean_double = []
+        self.ak8jets_btagged_double = []
         self.ak8subjets = []
         self.met = -1
         self.PU_weight = -1
@@ -318,14 +326,26 @@ class HHbbWWProducer(Module):
         self.electrons_tight = [x for x in self.electrons_fakeable if self.electronTight(x)]
 
         self.jets_pre = [x for x in self.jets if self.ak4jetPreselection(x)]
-        self.jets_clean = [x for x in self.jets_pre if self.jetCleaning(x, 0.4)]
-        self.jets_btagged_medium = [x for x in self.jets_clean if self.ak4jetBtagging(x, "medium")]
-        self.jets_btagged_loose = [x for x in self.jets_clean if self.ak4jetBtagging(x, "loose")]
+        self.jets_clean = [x for x in self.jets_pre if self.jetCleaning(x, 0.4, 99)] #Include all fakeables up to (min(len(fakes), 99))
+
+        self.jets_clean_single = [x for x in self.jets_pre if self.jetCleaning(x, 0.4, 1)]
+        self.jets_btagged_medium_single = [x for x in self.jets_clean_single if self.ak4jetBtagging(x, "medium")]
+        self.jets_btagged_loose_single = [x for x in self.jets_clean_single if self.ak4jetBtagging(x, "loose")]
+
+        self.jets_clean_double = [x for x in self.jets_pre if self.jetCleaning(x, 0.4, 2)]
+        self.jets_btagged_medium_double = [x for x in self.jets_clean_double if self.ak4jetBtagging(x, "medium")]
+        self.jets_btagged_loose_double = [x for x in self.jets_clean_double if self.ak4jetBtagging(x, "loose")]
 
         self.ak8jets_pre = [x for x in ak8jets if self.ak8jetPreselection(x)]
-        self.ak8jets_clean = [x for x in self.ak8jets_pre if self.jetCleaning(x, 0.8)]
-        self.ak8jets_btagged = [x for x in self.ak8jets_clean if self.ak8jetBtagging(x)]
+        self.ak8jets_clean = [x for x in self.ak8jets_pre if self.jetCleaning(x, 0.8, 99)] #Include all fakeables up to (min(len(fakes), 99))
+        self.ak8jets_btagged = [x for x in self.ak8jets_clean if self.ak8jetBtagging(x)] #All fakeables btagged
+        
 
+        self.ak8jets_clean_single = [x for x in self.ak8jets_pre if self.jetCleaning(x, 0.8, 1)]
+        self.ak8jets_btagged_single = [x for x in self.ak8jets_clean_single if self.ak8jetBtagging(x)]
+
+        self.ak8jets_clean_double = [x for x in self.ak8jets_pre if self.jetCleaning(x, 0.8, 2)]
+        self.ak8jets_btagged_double = [x for x in self.ak8jets_clean_double if self.ak8jetBtagging(x)]
 
         self.HLT = Object(event, "HLT")
         self.flag = Object(event, "Flag")
@@ -438,13 +458,13 @@ class HHbbWWProducer(Module):
       #Fakeable object selection, leptonMVA >= 0.80
       return ele.mvaTTH >= 0.30
 
-    def jetCleaning(self, jet, dR): 
+    def jetCleaning(self, jet, dR, nLeps): 
       #Not all fakeables, only leading in SL or DL!!!
       #AK4 jets are removed if they overlap with fakeable muons or electrons within dR < 0.4: AK8 dR < 0.8
       muons_fakeable = self.muons_fakeable; electrons_fakeable = self.electrons_fakeable
       leptons_fakeable = muons_fakeable + electrons_fakeable; leptons_fakeable.sort(key=lambda x:self.conept(x), reverse=True)
 
-      for i in range(min(len(leptons_fakeable), 2)):
+      for i in range(min(len(leptons_fakeable), nLeps)):
         #Single vs Double channels. Florian's code shows only need 1/2 for SL/DL channel (min(length, 2)) and we can check channels by len(leptons_fakeable) later
         lep = leptons_fakeable[i]
         if deltaR(jet.eta, jet.phi, lep.eta, lep.phi) < dR:
@@ -461,14 +481,8 @@ class HHbbWWProducer(Module):
 
     def ak4jetPreselection(self, jet):
       #PF jet ID: 2016 - loose, 2017 - tight, 2018 - tight, pt >= 25, abs(eta) < 2.4, Jet PU ID (loose WP for pt < 50)
-      badevent = False
-      #if self.ievent in [8558, 9513, 11223, 11640, 11999, 185867, 186482, 195813, 64706, 67492, 74559, 150026, 150962, 79914, 96359, 145368, 146583, 165085, 189430, 190426]:
-      #  print "Bad event found, ", self.ievent
-      #  badevent = True
-      if badevent: print "eta = ", jet.eta, " pt = ", jet.pt, " ID = ", jet.jetId
       if not (jet.pt > 50 or jet.puId & 4): #Bit operators!!!
         return False
-      if badevent: print "Pass puID"
       PFJetID = [1, 2, 2] # Jet ID flags bit1 is loose, bit2 is tight, bit3 is tightLepVeto
       return (abs(jet.eta) <= 2.4 and jet.pt >= 25 and jet.jetId & PFJetID[Runyear-2016])
 
@@ -524,24 +538,22 @@ class HHbbWWProducer(Module):
       #Minimal number of jets to construct an Hbb and admit an hadronic W with a missing jet: (#selJetsAK8_b == 0 && #selJetsAK4 >= 3) || (#selJetsAK8_b >= 1 && nJet_that_not_bb >= 1)
       muons_fakeable = self.muons_fakeable; electrons_fakeable = self.electrons_fakeable;
       muons_tight = self.muons_tight; electrons_tight = self.electrons_tight;
-      ak8jets_btagged = self.ak8jets_btagged; jets_btagged = self.jets_btagged_medium;
+      ak8jets_btagged = self.ak8jets_btagged_single; jets_btagged = self.jets_btagged_medium_single;
       jets_pre = self.jets_pre;
 
       fake_leptons = muons_fakeable + electrons_fakeable
       fake_leptons.sort(key=lambda x:self.conept(x), reverse=True)
       tight_leptons = muons_tight + electrons_tight
       tight_leptons.sort(key=lambda x:self.conept(x), reverse=True)
-
+      isMC = self.isMC
 
       if not (len(fake_leptons) >= 1 and self.met_filters(self.flag)): return "None" 
       leading_lepton = fake_leptons[0]
-      lep_type = ""
-      if (leading_lepton in muons_fakeable): lep_type = "muon"
-      if (leading_lepton in electrons_fakeable): lep_type = "ele"
-      HLT = self.HLT
-      if not self.isMC: #Tao says only data uses trigger
-        if not ((lep_type == "muon" and self.single_muon_trigger(HLT)) or (lep_type == "ele" and self.single_electron_trigger(HLT))): return "None"
-      if not ((lep_type == "muon" and self.conept(leading_lepton) > 25) or (lep_type == "ele" and self.conept(leading_lepton) > 32)): return "None"
+      lep_type = self.which_channel(1)
+      if not isMC: #Tao says only data uses trigger
+        HLT = self.HLT
+        if not ((lep_type == "Mu" and self.single_muon_trigger(HLT)) or (lep_type == "El" and self.single_electron_trigger(HLT))): return "None"
+      if not ((lep_type == "Mu" and self.conept(leading_lepton) > 25) or (lep_type == "El" and self.conept(leading_lepton) > 32)): return "None"
       #if not (self.invar_mass_check()): return "None"
       if not ((len(tight_leptons) == 0) or (len(tight_leptons) == 1 and tight_leptons[0] == leading_lepton)): return "None"
       if not (self.tau_veto() and self.Zmass_and_invar_mass_cut()): return "None"
@@ -571,8 +583,9 @@ class HHbbWWProducer(Module):
       if len(tight_leptons) == 1: category_string += "_Signal"
       if len(tight_leptons) == 0: category_string += "_Fake"
       if len(fake_leptons) > 1: return "None" #Only should have 1 fakeable after pT cuts
-      #if self.isMC:
-      #  if not MC_match(): return "None"
+      if isMC:
+        for lep in fake_leptons:
+          if not self.MC_match(lep): return "None"
       return category_string
 
 
@@ -592,72 +605,77 @@ class HHbbWWProducer(Module):
       #Either the leading fakeable lepton, the subleading fakeable lepton or both fail the tight lepton selection criteria
       #In MC, require MC matching of the leading and subleading fakelable lepton
 
-      badevent = False
-      #if self.ievent in [8129, 8903, 184406, 186589, 186735, 187684, 187823, 192682, 193720, 194123, 194144, 194341, 194581, 194834, 195610, 195849, 64695, 64935, 66324, 66755, 67338, 67675, 67869, 72159, 72360, 72506, 73311, 73470, 73791, 74030, 75256, 75592, 148296, 148454, 149800, 149915, 150546, 150552, 150582, 76062, 76413, 76528, 76772, 77641, 78214, 78484, 78999, 79290, 79410, 84294, 84377, 84547, 84955, 85579, 85810, 85982, 86440, 87766, 97426, 97466, 97585, 97950, 98826, 99091, 144722, 89935, 89987, 91151, 91325, 91446, 91921, 146040, 146545, 147249, 147320, 147476, 147895, 151222, 151541, 151612, 151912, 151993, 165342, 165343, 166106, 166467, 167215, 16773, 167952, 188771, 188829, 189366, 189473, 189762, 189911, 189947, 190427, 190454, 190589, 191350, 191998]: #Him not in me
-      #if self.ievent in [8009, 8096, 8271, 8358, 8423, 8474, 8485, 8489, 8500, 8641, 8805, 8904, 9166, 9474, 9544, 9783, 9792, 9817, 9907, 9893, 9896, 10009, 10089, 10114, 10202, 10255, 10362, 10441, 10628, 10730, 10713, 10767, 10785, 10962, 11265, 11321, 11474, 11497, 11538, 11612, 11695, 11723, 11912, 11990, 184018, 184049, 184078, 184110, 184336, 184482, 184493, 184605, 184883, 184888, 184928, 184941, 184910, 184966, 185114, 185356, 185532, 185581, 185630, 185671, 185736, 185822, 185819, 185832, 186113, 186225, 186288, 186318, 186376, 186448, 186524, 186586, 186705, 186731, 186894, 186981, 187133, 187261, 187350, 187398, 187534, 187680, 187739, 187918, 187959, 187965, 164098, 164143, 164296, 164330, 164355, 164358, 164429, 164454, 164463, 164545, 164695, 192061, 192117, 192172, 192214, 192419, 192428, 192568, 192639, 192687, 192685, 192711, 192822, 192832, 192976, 193313, 193369, 193677, 193694, 193736, 193739, 193852, 193878, 193879, 194149, 194261, 194239, 194247, 194275, 194300, 194371, 194440, 194457, 194465, 194470, 194844, 194858, 194923, 194965, 194986, 195243, 195263, 195450, 195470, 195483, 195969, 64019, 64030, 64116, 64287, 64491, 64727, 64889, 64897, 64940, 65020, 65057, 65096, 65226, 65276, 65306, 65341, 65349, 65378, 65406, 65436, 65573, 65695, 65699, 66078, 66077, 66276, 66349, 66546, 66598, 66652, 66720, 66766, 66799, 66817, 66854, 66973, 66976, 67086, 67539, 67683, 67733, 67787, 67813, 67933, 72023, 72101, 72143, 72145, 72200, 72221, 72267, 72317, 72402, 72614, 72767, 72838, 72911, 72981, 73018, 73128, 73182, 73271, 73569, 73605, 73619, 73730, 73809, 73972, 74064, 74117, 74103, 74161, 74293, 74390, 74394, 74454, 74577, 74717, 74724, 74758, 74809, 74821, 74840, 74913, 74980, 75098, 75121, 75147, 75375, 75388, 75438, 75465, 75511, 75571, 75623, 75823, 75813, 75835, 75875, 75989, 148143, 148329, 148355, 148446, 148527, 148535, 148628, 148669, 148696, 148716, 148918, 148993, 149292, 149331, 149433, 149554, 149597, 149600, 149859, 149908, 149910, 149931, 150199, 150216, 150328, 150323, 150543, 150650, 150673, 150785, 150922, 76010, 76099, 76126, 76153, 76195, 76328, 76441, 76474, 76541, 76610, 76721, 77031, 77190, 77280, 77409, 77483, 77682, 77812, 77817, 77836, 77870, 77922, 78030, 78201, 78257, 78414, 78538, 78754, 78792, 78846, 78903, 78966, 79083, 79170, 79176, 79209, 79231, 79262, 79295, 79318, 79361, 79414, 79472, 79474, 79560, 79652, 79667, 79684, 79682, 79714, 79721, 79748, 79865, 79987, 84099, 84128, 84152, 84151, 84194, 84414, 84413, 84531, 84542, 84597, 84605, 84675, 84782, 84820, 84841, 84865, 85139, 85146, 85141, 85173, 85251, 85313, 85393, 85462, 85472, 85589, 85697, 85699, 85710, 85968, 86091, 86090, 86186, 86232, 86316, 86408, 86434, 86585, 86636, 86974, 86982, 87062, 87313, 87345, 87382, 87410, 87437, 87497, 87517, 87602, 87741, 87753, 87752, 87844, 96022, 96093, 96088, 96168, 96257, 96455, 96472, 96537, 96572, 96721, 96722, 96738, 96821, 97184, 97296, 97298, 97531, 97551, 97617, 97724, 97743, 97852, 97843, 97918, 98005, 98076, 98217, 98220, 98267, 98406, 98464, 98544, 98596, 98649, 98676, 98740, 98756, 98817, 98861, 98856, 99014, 99048, 99046, 99123, 99131, 99161, 99308, 99343, 99403, 99550, 99690, 99708, 99960, 144039, 144310, 144526, 144595, 144608, 144604, 144664, 144675, 144920, 89051, 89074, 89173, 89179, 89301, 89516, 89647, 89776, 89847, 90021, 90179, 90354, 90655, 90966, 90995, 91211, 91376, 91440, 91448, 91550, 91668, 91881, 91883, 91898, 91933, 145128, 145306, 145340, 145360, 145431, 145527, 145662, 145741, 145755, 145786, 145903, 145920, 146070, 146103, 146332, 146358, 146379, 146389, 146399, 146562, 146585, 146588, 146615, 146698, 146763, 146772, 146804, 146818, 146941, 147044, 147061, 147181, 147417, 147410, 147459, 147472, 147544, 147553, 147719, 147764, 147840, 147851, 147890, 147946, 88227, 88234, 88317, 88336, 88411, 88446, 88593, 88701, 88736, 88772, 88815, 151021, 151060, 151143, 151150, 151173, 151229, 151386, 151553, 151718, 151944, 165041, 165059, 165097, 165069, 165188, 165244, 165345, 165360, 165505, 165539, 165608, 166007, 166257, 166337, 166502, 166516, 166784, 166797, 166918, 166940, 167149, 167146, 167155, 167309, 167328, 167400, 167478, 167504, 167548, 167556, 167569, 167925, 167957, 188047, 188125, 188189, 188179, 188303, 188368, 188404, 188666, 188672, 188688, 188700, 188880, 189099, 189076, 189090, 189198, 189201, 189347, 189684, 189760, 189848, 189896, 189940, 189950, 190051, 190074, 190062, 190144, 190271, 190385, 190361, 190478, 190658, 190694, 190679, 190714, 190795, 190827, 190877, 190904, 190897, 190963, 190965, 191202, 191360, 191460, 191547, 191557, 191800, 191799, 191960]:
-
-      #if self.ievent in [8263, 11473, 185206, 192910, 64356, 67396, 150373, 84084, 86649, 87316, 89796, 90402, 91337, 91649, 145810, 146329, 167232, 167784, 189906]: #Him not me, fake
-      #if self.ievent in [8044, 8064, 8645, 9019, 11351, 11530, 185022, 185234, 187378, 164481, 164569, 192058, 193346, 193860, 194005, 194259, 194568, 194668, 194662, 195726, 195895, 64664, 66435, 66668, 66793, 67244, 67455, 72218, 73521, 73549, 74489, 74496, 75080, 75352, 75603, 148392, 149679, 149906, 149979, 150635, 150934, 76002, 76847, 77449, 79557, 79976, 84719, 86914, 86926, 87319, 87376, 97109, 97414, 97593, 97839, 98493, 98816, 99223, 90477, 90827, 145074, 145366, 146223, 147002, 88024, 88080, 151007, 151655, 165643, 166672, 167133, 167523, 167724, 167706, 167935, 188238, 189180]: #Me not him, fake
-
-      #  print "This is the bad event ", self.ievent
-      #  badevent = True
-
       muons_fakeable = self.muons_fakeable; electrons_fakeable = self.electrons_fakeable;
       muons_tight = self.muons_tight; electrons_tight = self.electrons_tight;
-      ak8jets_btagged = self.ak8jets_btagged; jets_btagged = self.jets_btagged_medium;
-      jets_pre = self.jets_pre;
+      ak8jets_btagged = self.ak8jets_btagged_double; jets_btagged = self.jets_btagged_medium_double;
+      ak8jets_clean = self.ak8jets_clean_double; jets_clean = self.jets_clean_double;
 
       fake_leptons = muons_fakeable + electrons_fakeable
       fake_leptons.sort(key=lambda x:self.conept(x), reverse=True)
       tight_leptons = muons_tight + electrons_tight
       tight_leptons.sort(key=lambda x:self.conept(x), reverse=True)
-      if badevent:
-        print "This is the bad event, starting"
+      isMC = self.isMC
+
       if not (len(fake_leptons) >= 2 and self.met_filters(self.flag)): return "None"
       leading_lepton = fake_leptons[0]
       subleading_lepton = fake_leptons[1]
-      lep_type = ""
-      if (leading_lepton in muons_fakeable):
-        if (subleading_lepton in muons_fakeable): lep_type = "MuMu"
-        if (subleading_lepton in electrons_fakeable): lep_type = "ElMu"
-      if (leading_lepton in electrons_fakeable):
-        if (subleading_lepton in muons_fakeable): lep_type = "ElMu"
-        if (subleading_lepton in electrons_fakeable): lep_type = "ElEl"
-      if badevent:
-        print "This is the bad event, lep_type ", lep_type
-      HLT = self.HLT
-      if badevent:
-        print "This is the bad event, got HLT"
-      if not self.isMC: #Tao says only data uses trigger
+      lep_type = self.which_channel(2)
+      if not isMC: #Tao says only data uses trigger
+        HLT = self.HLT
         if not (lep_type == "MuMu" and (self.double_muon_trigger(HLT) or self.single_muon_trigger(HLT))): return "None"
         if not (lep_type == "ElEl" and (self.double_electron_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
-        if not (lep_type == "ElMu" and (self.muon_electron_trigger(HLT) or self.single_muon_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
-      if badevent:
-        print "This is the bad event, pass triggers"
+        if not (lep_type in ["ElMu", "MuEl"] and (self.muon_electron_trigger(HLT) or self.single_muon_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
       if not (self.conept(leading_lepton) > 25 and self.conept(subleading_lepton) > 15 and leading_lepton.charge != subleading_lepton.charge): return "None"
-      #if not (self.invar_mass_check()): return "None"
-
-      if badevent:
-        print "This is the bad event, pass conept"
 
       if not ((len(tight_leptons) <= 2)): return "None"
       if not (self.Zmass_and_invar_mass_cut()): return "None"
 
-      if badevent:
-        print "This is the bad event, pass mass cut"
-
       category_string = "Double"
-      if len(ak8jets_btagged) >= 1: category_string += "_Boosted"
-      elif len(jets_pre) >= 2 and len(jets_btagged) >= 1: category_string += "_Resolved"
+      #if len(ak8jets_btagged) >= 1: category_string += "_Boosted"
+      if len(ak8jets_clean) >= 1 and (ak8jets_clean[0] in ak8jets_btagged): category_string += "_Boosted"
+      #elif len(jets_clean) >= 2 and len(jets_btagged) >= 1: category_string += "_Resolved"
+      elif len(jets_clean) >= 2 and (jets_clean[0] in jets_btagged or jets_clean[1] in jets_btagged): category_string += "_Resolved"
+      else: return "None" #If not boosted or resolved then fail whole case
       if ((leading_lepton in tight_leptons) and (subleading_lepton in tight_leptons)): category_string += "_Signal"
       else: category_string += "_Fake"
-      if (("Boosted" not in category_string) and ("Resolved" not in category_string)): return "None"
-
-      if badevent:
-        print "This is the bad event, string is ", category_string
+      if len(fake_leptons) > 2: return "None"
+      if isMC:
+        for lep in fake_leptons:
+          if not self.MC_match(lep): return "None"
 
       return category_string
 
+    def which_channel(self, nLep):
+      muons_fakeable = self.muons_fakeable; electrons_fakeable = self.electrons_fakeable;
+      fake_leptons = muons_fakeable + electrons_fakeable;
+      fake_leptons.sort(key=lambda x:self.conept(x), reverse=True)
+      leading_lepton = 0; subleading_lepton = 0;
+      if len(fake_leptons) >= 1:
+        leading_lepton = fake_leptons[0];
+      else: return "None"
+      if len(fake_leptons) >= 2:
+        subleading_lepton = fake_leptons[1];
+      if nLep >= 1:
+        if (leading_lepton in muons_fakeable):
+          if nLep == 1: return "Mu"
+          if nLep >= 2:
+            if (subleading_lepton in muons_fakeable): return "MuMu"
+            if (subleading_lepton in electrons_fakeable): return "MuEl"
+        if (leading_lepton in electrons_fakeable):
+          if nLep == 1: return "El"
+          if nLep >= 2:
+            if (subleading_lepton in muons_fakeable): return "ElMu"
+            if (subleading_lepton in electrons_fakeable): return "ElEl"
+
+    def MC_match(self, lep):
+      #maxDeltaR < 0.3
+      #| (pt_reco - pt_gen) | / pt_gen < 0.5 for reco electrons matching gen electrons and reco muons matching gen muons;
+      #gen electrons/muons matching to reco electrons/muons are required to be stable (Pythia status code 1);
+      #each generator level object is matched to no more than one reco level object;
+      #the ambiguities are resolved such that the gen matching is first done to reco muons and then reco electrons;
+      #to resolve the ambiguities in a given reco collection, gen matching is performed in decreasing order of reco-pT;
+      #the electrons and muons considered from the matching are required to originate from either a W, a Z or a Higgs boson decay.
+      return lep.genPartFlav in [1, 15] #1 = prompt mu/e, 15 = tau decay
 
     def tau_veto(self):
       #Tau veto: no tau passing pt>20, abs(eta) < 2.3, abs(dxy) <= 1000, abs(dz) <= 0.2, "decayModeFindingNewDMs", decay modes = {0, 1, 2, 10, 11}, and "byMediumDeepTau2017v2VSjet", "byVLooseDeepTau2017v2VSmu", "byVVVLooseDeepTau2017v2VSe". Taus overlapping with fakeable electrons or fakeable muons within dR < 0.3 are not considered for the tau veto
@@ -760,11 +778,11 @@ class HHbbWWProducer(Module):
         out.fillBranch("n_presel_ak4JetVBF", -999);
         out.fillBranch("n_presel_ak8Jet", len(self.ak8jets_btagged));
         #out.fillBranch("n_presel_ak8lsJet", );
-        out.fillBranch("n_loose_ak4BJet", len(self.jets_btagged_loose));
-        out.fillBranch("n_medium_ak4BJet", len(self.jets_btagged_medium));
-        out.fillBranch("is_ee", -999);
-        out.fillBranch("is_mm", -999);
-        out.fillBranch("is_em", -999);
+        out.fillBranch("n_loose_ak4BJet", len(self.jets_btagged_loose_single));
+        out.fillBranch("n_medium_ak4BJet", len(self.jets_btagged_medium_single));
+        out.fillBranch("is_ee", self.which_channel(2) == "ElEl");
+        out.fillBranch("is_mm", self.which_channel(2) == "MuMu");
+        out.fillBranch("is_em", self.which_channel(2) in ["ElMu", "MuEl"]);
         out.fillBranch("is_boosted", -999);
         out.fillBranch("is_semiboosted", -999);
         out.fillBranch("is_resolved", -999);
@@ -776,16 +794,20 @@ class HHbbWWProducer(Module):
             pt = mu.pt; conept = self.conept(mu); eta = mu.eta; phi = mu.phi; mass = mu.mass;
             mu_p4 = ROOT.TLorentzVector(); mu_p4.SetPtEtaPhiM(pt, eta, phi, mass)
             E = mu_p4.E(); charge = mu.charge;
-            miniRelIso = mu.miniPFRelIso_all; PFRelIso04 = -999; jetNDauChargedMVASel = -999; jetPtRel = -999;
-            jetRelIso = -999; jetDeepJet = -999; sip3D = mu.sip3d; dxy = mu.dxy; dxyAbs = abs(mu.dxy); dz = mu.dz;
-            segmentCompatibility = mu.segmentComp; leptonMVA = mu.mvaTTH; mediumID = -999; dpt_div_pt = -999;
-            isfakeablesel = (mu in self.muons_fakeable); ismvasel = (mu in self.muons_tight); isGenMatched = -999;
+            miniRelIso = mu.miniPFRelIso_all; PFRelIso04 = mu.pfRelIso04_all; jetNDauChargedMVASel = -999; jetPtRel = mu.jetPtRelv2;
+            jetRelIso = mu.jetRelIso;
+            if self.get_jet_from_lepton(mu) != 0: jetDeepJet = (self.get_jet_from_lepton(mu)).btagDeepFlavB; 
+            else: jetDeepJet = -999;
+            sip3D = mu.sip3d; dxy = mu.dxy; dxyAbs = abs(mu.dxy); dz = mu.dz;
+            segmentCompatibility = mu.segmentComp; leptonMVA = mu.mvaTTH; mediumID = mu.mediumId; dpt_div_pt = mu.ptErr/mu.pt;
+            isfakeablesel = (mu in self.muons_fakeable); ismvasel = (mu in self.muons_tight); isGenMatched = self.MC_match(mu);
           else:
             value = -999
             pt = value; conept = value; eta = value; phi = value; mass = value;
             E = value; charge = value;
             miniRelIso = value; PFRelIso04 = value; jetNDauChargedMVASel = value; jetPtRel = value;
-            jetRelIso = value; jetDeepJet = value; sip3D = value; dxy = value; dxyAbs = value; dz = value;
+            jetRelIso = value; jetDeepJet = value; 
+            sip3D = value; dxy = value; dxyAbs = value; dz = value;
             segmentCompatibility = value; leptonMVA = value; mediumID = value; dpt_div_pt = value;
             isfakeablesel = value; ismvasel = value; isGenMatched = value;
 
@@ -821,17 +843,22 @@ class HHbbWWProducer(Module):
 	    pt = ele.pt; conept = self.conept(ele); eta = ele.eta; phi = ele.phi; mass = ele.mass;
             ele_p4 = ROOT.TLorentzVector(); ele_p4.SetPtEtaPhiM(pt, eta, phi, mass)
             E = ele_p4.E(); charge = ele.charge;
-            miniRelIso = ele.miniPFRelIso_all; PFRelIso04 = -999; jetNDauChargedMVASel = -999; jetPtRel = -999;
-            jetRelIso = -999; jetDeepJet = -999; sip3D = ele.sip3d; dxy = ele.dxy; dxyAbs = abs(ele.dxy); dz = ele.dz;
+            miniRelIso = ele.miniPFRelIso_all; PFRelIso04 = ele.pfRelIso03_all; jetNDauChargedMVASel = -9999; jetPtRel = ele.jetPtRelv2;
+            jetRelIso = ele.jetRelIso;
+            if self.get_jet_from_lepton(ele) != 0: jetDeepJet = (self.get_jet_from_lepton(ele)).btagDeepFlavB;
+            else: jetDeepJet = -9999; 
+            sip3D = ele.sip3d; dxy = ele.dxy; dxyAbs = abs(ele.dxy); dz = ele.dz;
             ntMVAeleID = -999; leptonMVA = ele.mvaTTH; passesConversionVeto = ele.convVeto; nMissingHits = ele.lostHits;
             sigmaEtaEta = ele.sieie; HoE = ele.hoe; OoEminusOoP = ele.eInvMinusPInv;
-            isfakeablesel = (ele in self.electrons_fakeable); ismvasel = (ele in self.electrons_tight); isGenMatched = -999;
+            isfakeablesel = (ele in self.electrons_fakeable); ismvasel = (ele in self.electrons_tight); isGenMatched = self.MC_match(ele);
           else:
             value = -9999
             pt = value; conept = value; eta = value; phi = value; mass = value;
             E = value; charge = value;
             miniRelIso = value; PFRelIso04 = value; jetNDauChargedMVASel = value; jetPtRel = value;
-            jetRelIso = value; jetDeepJet = value; sip3D = value; dxy = value; dxyAbs = value; dz = value;
+            jetRelIso = value; 
+            jetDeepJet = value; 
+            sip3D = value; dxy = value; dxyAbs = value; dz = value;
             ntMVAeleID = value; leptonMVA = value; passesConversionVeto = value; nMissingHits = value;
             sigmaEtaEta = value; HoE = value; OoEminusOoP = value;
             isfakeablesel = value; ismvasel = value; isGenMatched = value;
