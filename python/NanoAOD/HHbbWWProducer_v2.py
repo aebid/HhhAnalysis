@@ -595,14 +595,14 @@ class HHbbWWProducer(Module):
       muons_tight        = self.muons_tight; 
       electrons_fakeable = self.electrons_fakeable;
       electrons_tight    = self.electrons_tight;
-      jets_clean         = self.jets_clean;
-      jets_btagged       = self.jets_btagged_medium;
-      ak8jets_btagged    = self.ak8jets_btagged; 
-      ak8jets_clean      = self.ak8jets_clean; 
-      #jets_clean         = self.jets_clean_single;
-      #jets_btagged       = self.jets_btagged_medium_single;
-      #ak8jets_btagged    = self.ak8jets_btagged_single; 
-      #ak8jets_clean      = self.ak8jets_clean_single; 
+      #jets_clean         = self.jets_clean;
+      #jets_btagged       = self.jets_btagged_medium;
+      #ak8jets_btagged    = self.ak8jets_btagged; 
+      #ak8jets_clean      = self.ak8jets_clean; 
+      jets_clean         = self.jets_clean_single;
+      jets_btagged       = self.jets_btagged_medium_single;
+      ak8jets_btagged    = self.ak8jets_btagged_single; 
+      ak8jets_clean      = self.ak8jets_clean_single; 
 
       fake_leptons = muons_fakeable + electrons_fakeable
       fake_leptons.sort(key=lambda x:self.conept(x), reverse=True)
