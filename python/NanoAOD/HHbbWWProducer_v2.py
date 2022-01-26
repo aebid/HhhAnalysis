@@ -412,13 +412,13 @@ class HHbbWWProducer(Module):
 	  self.printObject(mu, "muon")
 	  print(" conept ", self.conept(mu), " fakeable ", self.muonFakeable(mu)," tight ", self.muonTight(mu))
 	  if self.debug > 2:
-	    print("  dxy ",mu.dxy, " dz ",mu.dz, " SIP3D ", mu.sip3d," conept ", self.conept(mu)," mvaTTH ", mu.mvaTTH)
+	    print("  dxy ",mu.dxy, " dz ",mu.dz, " SIP3D ", mu.sip3d," charge ", mu.charge," mvaTTH ", mu.mvaTTH)
 
 	for el in self.electrons_pre:
 	  self.printObject(el, "electron")
           print(" conept ", self.conept(el), " fakeable ", self.electronFakeable(el)," tight ", self.electronTight(el))
 	  if self.debug > 2:
-	    print("  dxy ",el.dxy, " dz ",el.dz, " SIP3D ", el.sip3d," conept ", self.conept(el)," mvaTTH ", el.mvaTTH)
+	    print("  dxy ",el.dxy, " dz ",el.dz, " SIP3D ", el.sip3d," charge ", el.charge," mvaTTH ", el.mvaTTH)
 
 	for jet in self.jets:
 	  self.printObject(jet, "ak4jet")
@@ -625,14 +625,14 @@ class HHbbWWProducer(Module):
       if not (self.Zmass_and_invar_mass_cut()): return "None"
       self.single_cutflow += 1
       lep_type = self.which_channel(1)
-      if not isMC: #Tao says only data uses trigger
-        HLT = self.HLT
-        if not ((lep_type == "Mu" and self.single_muon_trigger(HLT)) or (lep_type == "El" and self.single_electron_trigger(HLT))): return "None"
+      #if not isMC: #Tao says only data uses trigger
+      HLT = self.HLT
+      if not ((lep_type == "Mu" and self.single_muon_trigger(HLT)) or (lep_type == "El" and self.single_electron_trigger(HLT))): return "None"
       self.single_cutflow += 1
-      if not ((lep_type == "Mu" and self.conept(leading_lepton) > 25) or (lep_type == "El" and self.conept(leading_lepton) > 32)): return "None"
+      if not ((lep_type == "Mu" and self.conept(leading_lepton) >= 25.0) or (lep_type == "El" and self.conept(leading_lepton) >= 32.0)): return "None"
       self.single_cutflow += 1
-      if len(fake_leptons_ptcut) > 1: return "None" #Only should have 1 fakeable after pT cuts
-      self.single_cutflow += 1
+      #if len(fake_leptons_ptcut) > 1: return "None" #Only should have 1 fakeable after pT cuts
+      #self.single_cutflow += 1
       if isMC and not self.MC_match(leading_lepton): return "None"
       self.single_cutflow += 1
       if not (self.tau_veto()): return "None"
@@ -714,14 +714,14 @@ class HHbbWWProducer(Module):
       if not (self.Zmass_and_invar_mass_cut()): return "None"
       self.double_cutflow += 1
       lep_type = self.which_channel(2)
-      if not isMC: #Tao says only data uses trigger
-        HLT = self.HLT
-        if not (lep_type == "MuMu" and (self.double_muon_trigger(HLT) or self.single_muon_trigger(HLT))): return "None"
-        if not (lep_type == "ElEl" and (self.double_electron_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
-        if not (lep_type in ["ElMu", "MuEl"] and (self.muon_electron_trigger(HLT) or self.single_muon_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
+      #if not isMC: #Tao says only data uses trigger
+      HLT = self.HLT
+      if not (lep_type == "MuMu" and (self.double_muon_trigger(HLT) or self.single_muon_trigger(HLT))): return "None"
+      if not (lep_type == "ElEl" and (self.double_electron_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
+      if not (lep_type in ["ElMu", "MuEl"] and (self.muon_electron_trigger(HLT) or self.single_muon_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
       self.double_cutflow += 1
-      if len(fake_leptons_ptcut) > 2: return "None"
-      self.double_cutflow += 1
+      #if len(fake_leptons_ptcut) > 2: return "None"
+      #self.double_cutflow += 1
       if isMC and not (self.MC_match(leading_lepton) and self.MC_match(subleading_lepton)): return "None"
       self.double_cutflow += 1
       if not ((len(tight_leptons) <= 2)): return "None"
