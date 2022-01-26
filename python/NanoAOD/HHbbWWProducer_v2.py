@@ -61,6 +61,7 @@ class HHbbWWProducer(Module):
         self.jets_clean = []
         self.jets_btagged_medium = []
         self.jets_btagged_loose = []
+        self.ak8jets = []
         self.ak8jets_pre = []
         self.ak8jets_clean = []
         self.ak8jets_btagged = []
@@ -71,7 +72,9 @@ class HHbbWWProducer(Module):
         self.HLT = -1
         self.flag = -1
         self.taus = []
-	self.debug = 0
+        self.single_cutflow=0
+        self.double_cutflow=0
+        self.debug = 0
 
     def beginJob(self, histFile=None, histDirName=None):
         print "BeginJob "
@@ -273,6 +276,7 @@ class HHbbWWProducer(Module):
         self.jets_clean_double = []
         self.jets_btagged_medium_double = []
         self.jets_btagged_loose_double = []
+        self.ak8jets = []
         self.ak8jets_pre = []
         self.ak8jets_clean = [] #Jets clean depending on SL/DL, this variable is to fill tree NOT FOR CALCULATION
         self.ak8jets_btagged = [] #Jets clean depending on SL/DL, this variable is to fill tree NOT FOR CALCULATION
@@ -287,6 +291,7 @@ class HHbbWWProducer(Module):
         self.HLT = -1
         self.flag = -1
         self.taus = []
+        self.debug = 0
 
 
 
@@ -311,7 +316,7 @@ class HHbbWWProducer(Module):
             muon.pt = muon_pt_corrected[imu]
         self.jets = list(Collection(event, "Jet"))
         mht = Object(event, "MHT")
-        ak8jets = list(Collection(event, "FatJet"))
+        self.ak8jets = list(Collection(event, "FatJet"))
         self.ak8subjets = list(Collection(event, "SubJet"))
 
         self.muons_pre = [x for x in muons if self.muonPreselection(x)]
@@ -339,7 +344,7 @@ class HHbbWWProducer(Module):
         self.jets_btagged_medium_double = [x for x in self.jets_clean_double if self.ak4jetBtagging(x, "medium")]
         self.jets_btagged_loose_double = [x for x in self.jets_clean_double if self.ak4jetBtagging(x, "loose")]
 
-        self.ak8jets_pre = [x for x in ak8jets if self.ak8jetPreselection(x)]
+        self.ak8jets_pre = [x for x in self.ak8jets if self.ak8jetPreselection(x)]
         self.ak8jets_clean = [x for x in self.ak8jets_pre if self.jetCleaning(x, 0.8, 99)] #Include all fakeables up to (min(len(fakes), 99))
         self.ak8jets_btagged = [x for x in self.ak8jets_clean if self.ak8jetBtagging(x)] #All fakeables btagged
         
@@ -396,33 +401,34 @@ class HHbbWWProducer(Module):
 
         return True
 
-    def printObject(self, obj):
-	print(" Id ",obj.pdgId, " pt ",obj.pt, " eta ", obj.eta," phi ",obj.phi," type ",type(obj))
+    def printObject(self, obj, typename):
+	print(typename, " pt ",obj.pt, " eta ", obj.eta," phi ",obj.phi)
 
     def printEvent(self):
+	print("Event info ", self.ievent, " lumi ", self.luminosityBlock," run ",self.run, " puweight ", self.PU_weight)
 	for mu in self.muons_pre:
-	  self.printObject(mu)
+	  self.printObject(mu, "muon")
 	  print(" conept ", self.conept(mu), " fakeable ", self.muonFakeable(mu)," tight ", self.muonTight(mu))
 	  if self.debug > 2:
-	    print("\t dxy ",mu.dxy, " dz ",mu.dz, " SIP3D ", muon.sip3d," conept ", self.conept(mu)," mvaTTH ", mu.mvaTTH)
+	    print("  dxy ",mu.dxy, " dz ",mu.dz, " SIP3D ", mu.sip3d," conept ", self.conept(mu)," mvaTTH ", mu.mvaTTH)
 
 	for el in self.electrons_pre:
-	  self.printObject(el)
-	  print(" conept ", self.conept(el), " fakeable ", self.electronFakeable(el)," tight ", self.electronTight(el))
+	  self.printObject(el, "electron")
+          print(" conept ", self.conept(el), " fakeable ", self.electronFakeable(el)," tight ", self.electronTight(el))
 	  if self.debug > 2:
-	    print("\t dxy ",el.dxy, " dz ",el.dz, " SIP3D ", el.sip3d," conept ", self.conept(el)," mvaTTH ", el.mvaTTH)
+	    print("  dxy ",el.dxy, " dz ",el.dz, " SIP3D ", el.sip3d," conept ", self.conept(el)," mvaTTH ", el.mvaTTH)
 
 	for jet in self.jets:
-	  self.printObject(jet)
-          print(" jetcleaning ", self.jetCleaning(jet, 0.4, 99), " medianbtagging ", self.ak4jetBtagging(jet, "medium"))
+	  self.printObject(jet, "ak4jet")
+          print(" Presel ", self.ak4jetPreselection(jet), " jetcleaning ", self.jetCleaning(jet, 0.4, 99), " medianbtagging ", self.ak4jetBtagging(jet, "medium"))
 	  if self.debug > 2:
-	    print("\t jetcleaning Single ", self.jetCleaning(jet, 0.4, 1), " Double ",self.jetCleaning(jet, 0.4, 2))
+	    print("  jetcleaning Single ", self.jetCleaning(jet, 0.4, 1), " Double ",self.jetCleaning(jet, 0.4, 2))
 
 	for fatjet in self.ak8jets:
-	  self.printObject(fatjet)
-          print(" fatjetcleaning ", self.jetCleaning(fatjet, 0.8, 99), " medianbtagging ", self.ak8jetBtagging(fatjet))
+	  self.printObject(fatjet, "ak8jet")
+          print(" Presel ", self.ak8jetPreselection(fatjet), " fatjetcleaning ", self.jetCleaning(fatjet, 0.8, 99), " medianbtagging ", self.ak8jetBtagging(fatjet))
 	  if self.debug > 2:
-	    print("\t fatjetcleaning Single ", self.jetCleaning(fatjet, 0.8, 1), " Double ",self.jetCleaning(fatjet, 0.8, 2))
+	    print("  fatjetcleaning Single ", self.jetCleaning(fatjet, 0.8, 1), " Double ",self.jetCleaning(fatjet, 0.8, 2))
 
     def conept(self, lep):
       """
@@ -533,10 +539,10 @@ class HHbbWWProducer(Module):
 
     def ak4jetPreselection(self, jet):
       #PF jet ID: 2016 - loose, 2017 - tight, 2018 - tight, pt >= 25, abs(eta) < 2.4, Jet PU ID (loose WP for pt < 50)
-      if not (jet.pt > 50.0 or jet.puId & 4): #Bit operators!!!
+      if not (jet.pt > 50.0 or (jet.puId & 4)): #Bit operators!!!
         return False
       PFJetID = [1, 2, 2] # Jet ID flags bit1 is loose, bit2 is tight, bit3 is tightLepVeto
-      return (abs(jet.eta) <= 2.4 and jet.pt >= 25.0 and jet.jetId & PFJetID[Runyear-2016])
+      return (abs(jet.eta) <= 2.4 and jet.pt >= 25.0 and (jet.jetId & PFJetID[Runyear-2016])>0)
 
     def ak4jetBtagging(self, jet, wp):
       #The pfDeepFlavour (DeepJet) algorithm is used.
@@ -560,7 +566,7 @@ class HHbbWWProducer(Module):
       if not ((subjet1.pt >= 20 and abs(subjet1.eta) <= 2.4) and (subjet2.pt >= 20 and abs(subjet2.eta) <= 2.4)):
         return False
       PFJetID = [1, 2, 2] # Jet ID flags bit1 is loose, bit2 is tight, bit3 is tightLepVeto
-      return (jet.jetId & PFJetID[Runyear-2016] and jet.pt >= 200 and abs(jet.eta) <= 2.4 and jet.msoftdrop >= 30 and jet.msoftdrop <= 210 and jet.tau2/jet.tau1 <= 0.75)
+      return ((jet.jetId & PFJetID[Runyear-2016])>0 and jet.pt >= 200 and abs(jet.eta) <= 2.4 and jet.msoftdrop >= 30 and jet.msoftdrop <= 210 and jet.tau2/jet.tau1 <= 0.75)
 
     def ak8jetBtagging(self, jet):
       #The DeepCSV b-tagging algorithm is used. The b-tagging algorithm is applied on the subjets.
@@ -721,7 +727,9 @@ class HHbbWWProducer(Module):
 
       category_string = "Double"
       if len(ak8jets_clean) >= 1 and (ak8jets_clean[0] in ak8jets_btagged): category_string += "_HbbFat"
-      elif len(jets_clean) >= 2 and (jets_clean[0] in jets_btagged or jets_clean[1] in jets_btagged): category_string += "_Res"
+      #elif len(jets_clean) >= 2 and (jets_clean[0] in jets_btagged or jets_clean[1] in jets_btagged): category_string += "_Res"
+      elif len(jets_clean) >= 2 and len(jets_btagged) == 1: category_string += "_Res_1b"
+      elif len(jets_clean) >= 2 and len(jets_btagged) >  1: category_string += "_Res_2b"
       else: return "None" #If not boosted or resolved then fail whole case
       self.double_cutflow += 1
       if ((leading_lepton in tight_leptons) and (subleading_lepton in tight_leptons)): category_string += "_Signal"
