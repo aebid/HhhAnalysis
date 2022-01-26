@@ -335,6 +335,7 @@ class HHbbWWProducer(Module):
         self.electrons_tight = [x for x in self.electrons_fakeable if self.electronTight(x)]
 
         self.jets_pre = [x for x in self.jets if self.ak4jetPreselection(x)]
+        self.jets_pre.sort(key=lambda x: x.pt, reverse=True)
         self.jets_clean = [x for x in self.jets_pre if self.jetCleaning(x, 0.4, 99)] #Include all fakeables up to (min(len(fakes), 99))
         self.jets_btagged_medium = [x for x in self.jets_clean if self.ak4jetBtagging(x, "medium")]
 
@@ -347,6 +348,7 @@ class HHbbWWProducer(Module):
         self.jets_btagged_loose_double = [x for x in self.jets_clean_double if self.ak4jetBtagging(x, "loose")]
 
         self.ak8jets_pre = [x for x in self.ak8jets if self.ak8jetPreselection(x)]
+        self.ak8jets_pre.sort(key=lambda x: x.pt, reverse=True)
         self.ak8jets_clean = [x for x in self.ak8jets_pre if self.jetCleaning(x, 0.8, 99)] #Include all fakeables up to (min(len(fakes), 99))
         self.ak8jets_btagged = [x for x in self.ak8jets_clean if self.ak8jetBtagging(x)] #All fakeables btagged
         
@@ -531,13 +533,6 @@ class HHbbWWProducer(Module):
           return False
       return True
 
-      #for mu in muons_fakeable:
-      #  if deltaR(jet.eta, jet.phi, mu.eta, mu.phi) < 0.4:
-      #    return False
-      #for ele in electrons_fakeable:
-      #  if deltaR(jet.eta, jet.phi, ele.eta, ele.phi) < 0.4:
-      #    return False
-      #return True
 
     def ak4jetPreselection(self, jet):
       #PF jet ID: 2016 - loose, 2017 - tight, 2018 - tight, pt >= 25, abs(eta) < 2.4, Jet PU ID (loose WP for pt < 50)
@@ -716,9 +711,9 @@ class HHbbWWProducer(Module):
       lep_type = self.which_channel(2)
       #if not isMC: #Tao says only data uses trigger
       HLT = self.HLT
-      if not (lep_type == "MuMu" and (self.double_muon_trigger(HLT) or self.single_muon_trigger(HLT))): return "None"
-      if not (lep_type == "ElEl" and (self.double_electron_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
-      if not (lep_type in ["ElMu", "MuEl"] and (self.muon_electron_trigger(HLT) or self.single_muon_trigger(HLT) or self.single_electron_trigger(HLT))): return "None"
+      if lep_type == "MuMu" and not (self.double_muon_trigger(HLT) or self.single_muon_trigger(HLT)): return "None"
+      if lep_type == "ElEl" and not (self.double_electron_trigger(HLT) or self.single_electron_trigger(HLT)): return "None"
+      if lep_type in ["ElMu", "MuEl"] and not (self.muon_electron_trigger(HLT) or self.single_muon_trigger(HLT) or self.single_electron_trigger(HLT)): return "None"
       self.double_cutflow += 1
       #if len(fake_leptons_ptcut) > 2: return "None"
       #self.double_cutflow += 1
@@ -775,7 +770,7 @@ class HHbbWWProducer(Module):
       #Tau veto: no tau passing pt>20, abs(eta) < 2.3, abs(dxy) <= 1000, abs(dz) <= 0.2, "decayModeFindingNewDMs", decay modes = {0, 1, 2, 10, 11}, and "byMediumDeepTau2017v2VSjet", "byVLooseDeepTau2017v2VSmu", "byVVVLooseDeepTau2017v2VSe". Taus overlapping with fakeable electrons or fakeable muons within dR < 0.3 are not considered for the tau veto
       #False -> Gets Removed : True -> Passes veto
       for i in self.taus:
-        if (i.pt > 20 and abs(i.eta) < 2.3 and abs(i.dxy) <= 1000 and abs(i.dz) <= 0.2 and i.idDecayModeNewDMs and i.decayMode in [0,1,2,10,11] and i.idDeepTau2017v2p1VSjet >= 16 and i.idDeepTau2017v2p1VSmu >= 1 and i.idDeepTau2017v2p1VSe >= 1):
+        if (i.pt > 20.0 and abs(i.eta) < 2.3 and abs(i.dxy) <= 1000.0 and abs(i.dz) <= 0.2 and i.idDecayModeNewDMs and i.decayMode in [0,1,2,10,11] and i.idDeepTau2017v2p1VSjet >= 16 and i.idDeepTau2017v2p1VSmu >= 1 and i.idDeepTau2017v2p1VSe >= 1):
           for fake in (self.muons_fakeable + self.electrons_fakeable):
             if deltaR(fake.eta, fake.phi, i.eta, i.phi) > 0.3:
               return False
