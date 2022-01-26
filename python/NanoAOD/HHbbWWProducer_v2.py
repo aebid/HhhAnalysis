@@ -364,6 +364,11 @@ class HHbbWWProducer(Module):
         self.taus = list(Collection(event, "Tau"))
 
 	
+	#debugevents = [8995L, 10973L, 11203L, 185007L, 185436L, 187151L, 164017L, 192143L, 192787L, 192965L, 193605L, 193885L, 195007L, 195043L, 195282L, 64032L, 66920L, 67944L, 73841L, 74220L, 75213L, 148215L, 148228L, 148310L, 149306L, 149453L, 149907L, 150187L, 76563L, 77779L, 78248L, 85003L, 86155L, 86695L, 87833L, 96418L, 96672L, 96706L, 98203L, 98894L, 99513L, 89623L, 90281L, 91562L, 145337L, 145504L, 145545L, 145580L, 146357L, 146547L, 146953L, 88862L, 151007L, 165122L, 165249L, 165561L, 165784L, 189176L, 189878L, 189863L, 190325L]## all events failling tau veto but appeared in Tallinn ntuple for 2017 sync
+	debugevents = []
+	if self.ievent in debugevents:
+	  self.debug = 3
+	  self.printEvent()
         #########################################
 	### Double leptons selections
         #########################################
@@ -395,10 +400,6 @@ class HHbbWWProducer(Module):
           self.fillBranches(self.Single_Fake)
           self.Single_Fake.fill()
 
-	debugevents = []
-	if self.ievent in debugevents:
-	  self.debug = 3
-	  self.printEvent()
         if self.debug > 2:
 	  print("single selection ", single_category, " cutflow ", self.single_cutflow)
 	  print("double selection ", double_category, " cutflow ", self.double_cutflow)
@@ -634,7 +635,7 @@ class HHbbWWProducer(Module):
       #self.single_cutflow += 1
       if isMC and not self.MC_match(leading_lepton): return "None"
       self.single_cutflow += 1
-      if not (self.tau_veto()): return "None"
+      if not (self.tau_veto(fake_leptons)): return "None"
       self.single_cutflow += 1
       ### jet cuts
       if not (len(ak8jets_btagged) >= 1 or len(jets_btagged) >= 1): return "None"
@@ -774,11 +775,23 @@ class HHbbWWProducer(Module):
       #Tau veto: no tau passing pt>20, abs(eta) < 2.3, abs(dxy) <= 1000, abs(dz) <= 0.2, "decayModeFindingNewDMs", decay modes = {0, 1, 2, 10, 11}, and "byMediumDeepTau2017v2VSjet", "byVLooseDeepTau2017v2VSmu", "byVVVLooseDeepTau2017v2VSe". Taus overlapping with fakeable electrons or fakeable muons within dR < 0.3 are not considered for the tau veto
       #False -> Gets Removed : True -> Passes veto
       for i in self.taus:
+	tau_lepton_overlap = False
         if (i.pt > 20.0 and abs(i.eta) < 2.3 and abs(i.dxy) <= 1000.0 and abs(i.dz) <= 0.2 and i.idDecayModeNewDMs and i.decayMode in [0,1,2,10,11] and i.idDeepTau2017v2p1VSjet >= 16 and i.idDeepTau2017v2p1VSmu >= 1 and i.idDeepTau2017v2p1VSe >= 1):
-          #for fake in (self.muons_fakeable + self.electrons_fakeable):
+	  if self.debug >2 :
+	     self.printObject(i, "Tau for tau_veto")
           for fake in (fakeable_leptons):
-            if deltaR(fake.eta, fake.phi, i.eta, i.phi) > 0.3:
-              return False
+	    if self.debug >2 :
+	      self.printObject(fake, "lepton for tau_veto")
+              print("dR ",deltaR(fake.eta, fake.phi, i.eta, i.phi))
+            if deltaR(fake.eta, fake.phi, i.eta, i.phi) < 0.3:
+              tau_lepton_overlap = True
+	      break
+          if tau_lepton_overlap: 
+	    continue
+          else:
+            if self.debug >2 :
+              print("Veto this event by tau!!")
+	    return False
       return True
 
     def Zmass_and_invar_mass_cut(self):
