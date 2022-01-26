@@ -87,13 +87,31 @@ for runyear in [2016, 2017]:
     for i in range(mytree.GetEntries()):
       mytree.GetEntry(i); my_events.append(mytree.event)
     """
+    counter = 0
     for i in range(taltree.GetEntries()):
       taltree.GetEntry(i); 
-      if taltree.n_presel_ak4Jet > 0: tal_events.append(taltree.event)
-    for i in range(mytree.GetEntries()):
-      mytree.GetEntry(i); 
-      if mytree.n_presel_ak4Jet > 0: my_events.append(mytree.event)
-  print "AK4 jet count"
+
+      event_num = taltree.event
+      print "New event ", event_num
+      tmp_counter = counter
+      for i in range(mytree.GetEntries()):
+        mytree.GetEntry(tmp_counter)
+        if mytree.event == event_num:
+          if mytree.ak4Jet1_pt != taltree.ak4Jet1_pt:
+            print "Found same event, evt = ", event_num
+            print "my ak4Jet1_pt  = ", mytree.ak4Jet1_pt, " tal = ", taltree.ak4Jet1_pt
+            print "my ak4Jet1_eta = ", mytree.ak4Jet1_eta, " tal = ", taltree.ak4Jet1_eta
+            print "my ak4Jet1_phi = ", mytree.ak4Jet1_phi, " tal = ", taltree.ak4Jet1_phi
+          counter = tmp_counter
+          break
+        tmp_counter += 1
+        if tmp_counter == mytree.GetEntries():
+          counter = 0
+          print "Failed to find match for evt ", event_num, " moving on"
+          print "tal = ", taltree.ak4Jet1_pt
+          print "tal = ", taltree.ak4Jet1_eta
+          print "tal = ", taltree.ak4Jet1_phi
+          break
 
   #hnm = [x for x in tal_events if x not in my_events]
   #nmh = [x for x in my_events if x not in tal_events]
