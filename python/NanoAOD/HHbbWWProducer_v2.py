@@ -632,7 +632,8 @@ class HHbbWWProducer(Module):
       if not (len(fake_leptons) >= 1 and self.met_filters(self.flag)): return "None" 
       self.single_cutflow += 1
       leading_lepton = fake_leptons[0]
-      if not ((len(tight_leptons) == 0) or (len(tight_leptons) == 1 and tight_leptons[0] == leading_lepton)): return "None"
+      #if not ((len(tight_leptons) == 0) or (len(tight_leptons) == 1 and tight_leptons[0] == leading_lepton)): return "None"
+      if not (len(tight_leptons) <= 1): return "None"
       self.single_cutflow += 1
       if not (self.Zmass_and_invar_mass_cut()): return "None"
       self.single_cutflow += 1
@@ -675,8 +676,10 @@ class HHbbWWProducer(Module):
           category_string += "_MissWJet"
           if len(jets_btagged) >= 1: category_string += "_2b"
           else: category_string += "_1b"
-      if len(tight_leptons) == 1: category_string += "_Signal"
-      if len(tight_leptons) == 0: category_string += "_Fake"
+      #if len(tight_leptons) == 1: category_string += "_Signal"
+      #if len(tight_leptons) == 0: category_string += "_Fake"
+      if len(tight_leptons) == 1 and  tight_leptons[0] == leading_lepton: category_string += "_Signal"
+      else: category_string += "_Fake"
       return category_string
 
 
