@@ -13,6 +13,8 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import * #deltaR, matching e
 import sys
 #sys.path.append('...')
 
+import math
+
 import __builtin__
 
 if hasattr(__builtin__, "Runyear"):
@@ -45,7 +47,7 @@ class HHbbWWProducer(Module):
         #self.runyear = Runyear
 
         #Self variables
-	self.category = "None"
+        self.category = "None"
         self.ievent = -1
         self.luminosityBlock = -1
         self.run = -1
@@ -296,7 +298,6 @@ class HHbbWWProducer(Module):
 
 
 
-
         self.ievent =  getattr(event,"event", False)
         self.luminosityBlock = getattr(event, "luminosityBlock", False)
         self.run = getattr(event, "run", False)
@@ -319,6 +320,7 @@ class HHbbWWProducer(Module):
         mht = Object(event, "MHT")
         self.ak8jets = list(Collection(event, "FatJet"))
         self.ak8subjets = list(Collection(event, "SubJet"))
+        genParticles = list(Collection(event, "GenPart"))
 
         self.muons_pre = [x for x in muons if self.muonPreselection(x)]
 
@@ -327,6 +329,14 @@ class HHbbWWProducer(Module):
 
         self.muons_pre.sort(key=lambda x:self.conept(x), reverse=True)
         self.electrons_cleaned.sort(key=lambda x:self.conept(x), reverse=True)
+
+
+        if len(self.muons_pre) > 0: self.get_lepton_SF(self.muons_pre[0])
+        if len(self.electrons_pre) > 0: self.get_lepton_SF(self.electrons_pre[0])
+        #self.get_top_SF(genParticles)
+        return True
+
+
 
         self.muons_fakeable = [x for x in self.muons_pre if self.muonFakeable(x)]
         self.muons_tight = [x for x in self.muons_fakeable if self.muonTight(x)]
@@ -363,20 +373,20 @@ class HHbbWWProducer(Module):
         self.flag = Object(event, "Flag")
         self.taus = list(Collection(event, "Tau"))
 
-	
-	#debugevents = [8995L, 10973L, 11203L, 185007L, 185436L, 187151L, 164017L, 192143L, 192787L, 192965L, 193605L, 193885L, 195007L, 195043L, 195282L, 64032L, 66920L, 67944L, 73841L, 74220L, 75213L, 148215L, 148228L, 148310L, 149306L, 149453L, 149907L, 150187L, 76563L, 77779L, 78248L, 85003L, 86155L, 86695L, 87833L, 96418L, 96672L, 96706L, 98203L, 98894L, 99513L, 89623L, 90281L, 91562L, 145337L, 145504L, 145545L, 145580L, 146357L, 146547L, 146953L, 88862L, 151007L, 165122L, 165249L, 165561L, 165784L, 189176L, 189878L, 189863L, 190325L]## all events failling tau veto but appeared in Tallinn ntuple for 2017 sync
-	debugevents = []
-	if self.ievent in debugevents:
-	  self.debug = 3
-	  self.printEvent()
+
+        #debugevents = [8995L, 10973L, 11203L, 185007L, 185436L, 187151L, 164017L, 192143L, 192787L, 192965L, 193605L, 193885L, 195007L, 195043L, 195282L, 64032L, 66920L, 67944L, 73841L, 74220L, 75213L, 148215L, 148228L, 148310L, 149306L, 149453L, 149907L, 150187L, 76563L, 77779L, 78248L, 85003L, 86155L, 86695L, 87833L, 96418L, 96672L, 96706L, 98203L, 98894L, 99513L, 89623L, 90281L, 91562L, 145337L, 145504L, 145545L, 145580L, 146357L, 146547L, 146953L, 88862L, 151007L, 165122L, 165249L, 165561L, 165784L, 189176L, 189878L, 189863L, 190325L]## all events failling tau veto but appeared in Tallinn ntuple for 2017 sync
+        debugevents = []
+        if self.ievent in debugevents:
+          self.debug = 3
+          self.printEvent()
         #########################################
-	### Double leptons selections
+        ### Double leptons selections
         #########################################
         #category = "None"
         double_category = self.double_lepton()
 
-	if double_category != "None":
-	  self.category = double_category
+        if double_category != "None":
+          self.category = double_category
         if (("Double" in double_category) and ("Signal" in double_category)):
           self.fillBranches(self.Double_Signal)
           self.Double_Signal.fill()
@@ -386,12 +396,12 @@ class HHbbWWProducer(Module):
 
 
         #########################################
-	### Single lepton selections
+        ### Single lepton selections
         #########################################
         single_category = self.single_lepton()
 
         if single_category != "None":
-	  self.category = single_category
+          self.category = single_category
         self.fillBranches(self.out)
         if (("Single" in single_category) and ("Signal" in single_category)):
           self.fillBranches(self.Single_Signal)
@@ -401,42 +411,44 @@ class HHbbWWProducer(Module):
           self.Single_Fake.fill()
 
         if self.debug > 2:
-	  print("single selection ", single_category, " cutflow ", self.single_cutflow)
-	  print("double selection ", double_category, " cutflow ", self.double_cutflow)
+          print("single selection ", single_category, " cutflow ", self.single_cutflow)
+          print("double selection ", double_category, " cutflow ", self.double_cutflow)
+
+
 
         return True
 
     def printObject(self, obj, typename):
-	print(typename, " pt ",obj.pt, " eta ", obj.eta," phi ",obj.phi)
+       print(typename, " pt ",obj.pt, " eta ", obj.eta," phi ",obj.phi)
 
     def printEvent(self):
-	print("Event info ", self.ievent, " lumi ", self.luminosityBlock," run ",self.run, " puweight ", self.PU_weight)
-	for mu in self.muons_pre:
-	  self.printObject(mu, "muon")
-	  print(" conept ", self.conept(mu), " fakeable ", self.muonFakeable(mu)," tight ", self.muonTight(mu))
-	  if self.debug > 2:
-	    print("  dxy ",mu.dxy, " dz ",mu.dz, " SIP3D ", mu.sip3d," charge ", mu.charge," mvaTTH ", mu.mvaTTH)
+      print("Event info ", self.ievent, " lumi ", self.luminosityBlock," run ",self.run, " puweight ", self.PU_weight)
+      for mu in self.muons_pre:
+        self.printObject(mu, "muon")
+        print(" conept ", self.conept(mu), " fakeable ", self.muonFakeable(mu)," tight ", self.muonTight(mu))
+        if self.debug > 2:
+          print("  dxy ",mu.dxy, " dz ",mu.dz, " SIP3D ", mu.sip3d," charge ", mu.charge," mvaTTH ", mu.mvaTTH)
 
-	for el in self.electrons_pre:
-	  self.printObject(el, "electron")
-          print(" conept ", self.conept(el), " fakeable ", self.electronFakeable(el)," tight ", self.electronTight(el))
-	  if self.debug > 2:
-	    print("  dxy ",el.dxy, " dz ",el.dz, " SIP3D ", el.sip3d," charge ", el.charge," mvaTTH ", el.mvaTTH)
+      for el in self.electrons_pre:
+        self.printObject(el, "electron")
+        print(" conept ", self.conept(el), " fakeable ", self.electronFakeable(el)," tight ", self.electronTight(el))
+        if self.debug > 2:
+          print("  dxy ",el.dxy, " dz ",el.dz, " SIP3D ", el.sip3d," charge ", el.charge," mvaTTH ", el.mvaTTH)
 
-	for jet in self.jets:
-	  self.printObject(jet, "ak4jet")
-          print(" Presel ", self.ak4jetPreselection(jet), " jetcleaning ", self.jetCleaning(jet, 0.4, 99), " medianbtagging ", self.ak4jetBtagging(jet, "medium"))
-	  if self.debug > 2:
-	    print("  jetcleaning Single ", self.jetCleaning(jet, 0.4, 1), " Double ",self.jetCleaning(jet, 0.4, 2))
+      for jet in self.jets:
+        self.printObject(jet, "ak4jet")
+        print(" Presel ", self.ak4jetPreselection(jet), " jetcleaning ", self.jetCleaning(jet, 0.4, 99), " medianbtagging ", self.ak4jetBtagging(jet, "medium"))
+        if self.debug > 2:
+          print("  jetcleaning Single ", self.jetCleaning(jet, 0.4, 1), " Double ",self.jetCleaning(jet, 0.4, 2))
 
-	for fatjet in self.ak8jets:
-	  self.printObject(fatjet, "ak8jet")
-          print(" Presel ", self.ak8jetPreselection(fatjet), " fatjetcleaning ", self.jetCleaning(fatjet, 0.8, 99), " medianbtagging ", self.ak8jetBtagging(fatjet))
-	  if self.debug > 2:
-	    print("  fatjetcleaning Single ", self.jetCleaning(fatjet, 0.8, 1), " Double ",self.jetCleaning(fatjet, 0.8, 2))
-	for tau in self.taus:
-	  self.printObject(tau, "Tau")
-          print(" dxy ",tau.dxy, " dz ",tau.dz," decaymode ",tau.decayMode," VSjet ",tau.idDeepTau2017v2p1VSjet," VSe ",tau.idDeepTau2017v2p1VSe," VSmu ",tau.idDeepTau2017v2p1VSmu)
+      for fatjet in self.ak8jets:
+        self.printObject(fatjet, "ak8jet")
+        print(" Presel ", self.ak8jetPreselection(fatjet), " fatjetcleaning ", self.jetCleaning(fatjet, 0.8, 99), " medianbtagging ", self.ak8jetBtagging(fatjet))
+        if self.debug > 2:
+          print("  fatjetcleaning Single ", self.jetCleaning(fatjet, 0.8, 1), " Double ",self.jetCleaning(fatjet, 0.8, 2))
+      for tau in self.taus:
+        self.printObject(tau, "Tau")
+        print(" dxy ",tau.dxy, " dz ",tau.dz," decaymode ",tau.decayMode," VSjet ",tau.idDeepTau2017v2p1VSjet," VSe ",tau.idDeepTau2017v2p1VSe," VSmu ",tau.idDeepTau2017v2p1VSmu)
 
 
     def conept(self, lep):
@@ -775,23 +787,23 @@ class HHbbWWProducer(Module):
       #Tau veto: no tau passing pt>20, abs(eta) < 2.3, abs(dxy) <= 1000, abs(dz) <= 0.2, "decayModeFindingNewDMs", decay modes = {0, 1, 2, 10, 11}, and "byMediumDeepTau2017v2VSjet", "byVLooseDeepTau2017v2VSmu", "byVVVLooseDeepTau2017v2VSe". Taus overlapping with fakeable electrons or fakeable muons within dR < 0.3 are not considered for the tau veto
       #False -> Gets Removed : True -> Passes veto
       for i in self.taus:
-	tau_lepton_overlap = False
+        tau_lepton_overlap = False
         if (i.pt > 20.0 and abs(i.eta) < 2.3 and abs(i.dxy) <= 1000.0 and abs(i.dz) <= 0.2 and i.idDecayModeNewDMs and i.decayMode in [0,1,2,10,11] and i.idDeepTau2017v2p1VSjet >= 16 and i.idDeepTau2017v2p1VSmu >= 1 and i.idDeepTau2017v2p1VSe >= 1):
-	  if self.debug >2 :
-	     self.printObject(i, "Tau for tau_veto")
+          if self.debug >2 :
+            self.printObject(i, "Tau for tau_veto")
           for fake in (fakeable_leptons):
-	    if self.debug >2 :
-	      self.printObject(fake, "lepton for tau_veto")
+            if self.debug >2 :
+              self.printObject(fake, "lepton for tau_veto")
               print("dR ",deltaR(fake.eta, fake.phi, i.eta, i.phi))
             if deltaR(fake.eta, fake.phi, i.eta, i.phi) < 0.3:
               tau_lepton_overlap = True
-	      break
+              break
           if tau_lepton_overlap: 
-	    continue
+            continue
           else:
             if self.debug >2 :
               print("Veto this event by tau!!")
-	    return False
+            return False
       return True
 
     def Zmass_and_invar_mass_cut(self):
@@ -808,11 +820,11 @@ class HHbbWWProducer(Module):
           pre2.SetPtEtaPhiM(j.pt, j.eta, j.phi, j.mass)
           pre_pair = pre1 + pre2
           if (pre_pair.M() <= 12.0): #Include 12 here to remove separate invar mass check
-	    return False
+            return False
           if not ((i in muons_pre and j in muons_pre) or (i in electrons_pre and j in electrons_pre)): continue
           if (i.charge == j.charge): continue
           #if (abs(pre_pair.M() - Z_mass) < 10 or pre_pair.M() < 12): #Include 12 here to remove separate invar mass check
-	  if (abs(pre_pair.M() - Z_mass) < 10.0):
+          if (abs(pre_pair.M() - Z_mass) < 10.0):
             return False
       return True
 
@@ -874,8 +886,92 @@ class HHbbWWProducer(Module):
       return (flag.goodVertices and flag.globalSuperTightHalo2016Filter and flag.HBHENoiseFilter and flag.HBHENoiseIsoFilter and flag.EcalDeadCellTriggerPrimitiveFilter and flag.BadPFMuonFilter)
 
 
+
+
+    def get_top_SF(self, genParticles):
+      genTops = []
+      for genParticle in genParticles:
+        """
+        if abs(genParticle.pdgId) == 6:
+          if abs(genParticle[genParticle.genPartIdxMother].pdgId) == 6:
+          print "Came from a top!!!"
+          genTops.append(genParticle)
+        """
+        if abs(genParticle.pdgId) == 24:
+          if abs(genParticles[genParticle.genPartIdxMother].pdgId) == 6:
+            genTops.append(genParticles[genParticle.genPartIdxMother])
+
+      if len(genTops) < 2:
+        print "Failed, less than 2 tops"
+        return 1.0
+      if len(genTops) > 2:
+        print "More than 2 tops! Found ", len(genTops), " using first 2"
+      weight1 = math.exp(0.0615-0.0005*(genTops[0].pt))
+      weight2 = math.exp(0.0615-0.0005*(genTops[1].pt))
+      SF = math.sqrt(weight1 * weight2)
+      return SF
+
+    def get_lepton_SF(self, lepton):
+      if lepton in self.electrons_pre:
+        print "Electron"
+        #Electron Case!
+        #Electron ID efficiency scale factors for loose lepton ID
+        #Note: Two separate SF for electron reconstruction efficiency and loose muon ID need to be applied. The scale factors for electron reconstruction efficiency are splitted into low and high pT files
+        #Reco efficiency for electrons of pT < 20 GeV (2016 and 2017)
+        #2016, /afs/cern.ch/user/v/veelken/public/ttHAnalysis/leptonSF/2016/el_scaleFactors_gsf_ptLt20.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
+        #2017, /eos/user/o/odysei/shared/ttH/leptons/data/2017/SF/ID/el_scaleFactors_gsf_ptLt20.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
+        #Reco efficiency for electrons of pT > 20 GeV (2016 and 2017)
+        #2016, /afs/cern.ch/user/v/veelken/public/ttHAnalysis/leptonSF/2016/el_scaleFactors_gsf_ptGt20.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
+        #2017, /eos/user/o/odysei/shared/ttH/leptons/data/2017/SF/ID/el_scaleFactors_gsf_ptGt20.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
+        #Reco efficiency for electrons of all pT (2018)
+        #2018, /afs/cern.ch/user/v/veelken/public/ttHAnalysis/leptonSF/2018/el_scaleFactors_gsf.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
+
+        #Loose efficiency for electrons
+        #Note: Scale factor split in two scale factors, one from reco to loose and second scale factor from loose to loose ttH
+        #2016, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_ele_2016.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2017, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_ele_2017.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2018, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_ele_2018.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+
+        #2016, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loosettH_ele_2016.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2017, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loosettH_ele_2017.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2018, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loosettH_ele_2018.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+
+        eta = lepton.eta
+        pT = lepton.pt
+        print "pT is ", pT, " eta is ", eta
+        if Runyear == 2017:
+          if pT < 20:
+            lepSF_reco = ROOT.TFile("/eos/user/o/odysei/shared/ttH/leptons/data/2017/SF/ID/el_scaleFactors_gsf_ptLt20.root")
+          else:
+            lepSF_reco = ROOT.TFile("/eos/user/o/odysei/shared/ttH/leptons/data/2017/SF/ID/el_scaleFactors_gsf_ptGt20.root")
+          hist = lepSF_reco.Get("EGamma_SF2D")
+          xbin = hist.GetXaxis().FindBin(eta)
+          ybin = hist.GetYaxis().FindBin(pT)
+          ele_reco_SF = hist.GetBinContent(xbin, ybin)
+
+          lepSF_reco_to_loose = ROOT.TFile("/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_ele_2017.root")
+          hist = lepSF_reco_to_loose.Get("EGamma_SF2D")
+          xbin = hist.GetXaxis().FindBin(abs(eta))
+          ybin = hist.GetYaxis().FindBin(pT)
+          ele_reco_to_loose_SF = hist.GetBinContent(xbin, ybin)
+
+          lepSF_loose_to_loosettH = ROOT.TFile("/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loosettH_ele_2017.root")
+          hist = lepSF_loose_to_loosettH.Get("EGamma_SF2D")
+          xbin = hist.GetXaxis().FindBin(abs(eta))
+          ybin = hist.GetYaxis().FindBin(pT)
+          ele_loose_to_loosettH_SF = hist.GetBinContent(xbin, ybin)
+
+          print "All ele SF!"
+          print "Reco = ", ele_reco_SF, " Reco->Loose ", ele_reco_to_loose_SF, " Loose->LoosettH ", ele_loose_to_loosettH_SF
+
+      if lepton in self.muons_pre:
+        print "Muon"
+      return 1.0
+
+
+
     def fillBranches(self, out):
-	value = -99999
+        value = -99999
         out.fillBranch("event", self.ievent);
         out.fillBranch("ls", self.luminosityBlock);
         out.fillBranch("run", self.run);
@@ -950,7 +1046,7 @@ class HHbbWWProducer(Module):
         for i in [1, 2]:
           if (i <= len(self.electrons_cleaned)):
             ele = self.electrons_cleaned[i-1]
-	    pt = ele.pt; conept = self.conept(ele); eta = ele.eta; phi = ele.phi; mass = ele.mass;
+            pt = ele.pt; conept = self.conept(ele); eta = ele.eta; phi = ele.phi; mass = ele.mass;
             ele_p4 = ROOT.TLorentzVector(); ele_p4.SetPtEtaPhiM(pt, eta, phi, mass)
             E = ele_p4.E(); charge = ele.charge;
             miniRelIso = ele.miniPFRelIso_all; PFRelIso04 = ele.pfRelIso03_all; jetNDauChargedMVASel = -9999; jetPtRel = ele.jetPtRelv2;
