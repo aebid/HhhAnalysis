@@ -1099,6 +1099,33 @@ class HHbbWWProducer(Module):
 
       return trigger_eff_SF
 
+    def get_jet_to_lepton_fake_rate_SF(self, lepton):
+      #*** Files are on github, download them? ***
+      #2016, https://github.com/sscruz/cmgtools-lite/blob/44ce731fa4b2ed90f9b70f5db5afb33256ed6d2e/TTHAnalysis/data/fakerate/fr_2016.root
+      #2016, https://github.com/sscruz/cmgtools-lite/blob/44ce731fa4b2ed90f9b70f5db5afb33256ed6d2e/TTHAnalysis/data/fakerate/fr_2017.root
+      #2016, https://github.com/sscruz/cmgtools-lite/blob/44ce731fa4b2ed90f9b70f5db5afb33256ed6d2e/TTHAnalysis/data/fakerate/fr_2018.root
+      #Muons
+      #FR_mva090_mu_data_comb, TH2D (X:pT, Y:abs(eta)) X[10., 15., 20., 32., 45., 65., 100.]  Y[0., 1.2, 2.4]
+      #Electrons
+      #FR_mva090_el_data_comb_NC, TH2D (X:pT, Y:abs(eta)) X[15., 25., 35., 45., 65., 100.]  Y[0., 1.479., 2.5]
+
+      jet_to_lepton_fake_rate_SF = 1.0
+
+      pT = lepton.pt
+      eta = lepton.eta
+      filelist = ['2016_file', '2017_file', '2018_file']
+      jet_to_lepton_fake_rate_SF_file = ROOT.TFile(filelist[Runyear-2016])
+      if lepton in self.muons_pre:
+        hist = jet_to_lepton_fake_rate_SF_file.Get("FR_mva090_mu_data_comb")
+      if lepton in self.electrons_pre:
+        hist = jet_to_lepton_fake_rate_SF_file.Get("FR_mva090_el_data_comb_NC")
+      xbin = hist.GetXaxis().FindBin(pT); ybin = hist.GetYaxis().FindBin(abs(eta))
+      jet_to_lepton_fake_rate_SF = hist.GetBinContent(xbin, ybin)
+      print "Found jet to lepton fake rate SF = ", jet_to_lepton_fake_rate_SF
+
+      return jet_to_lepton_fake_rate_SF
+
+
     def fillBranches(self, out):
         value = -99999
         out.fillBranch("event", self.ievent);
