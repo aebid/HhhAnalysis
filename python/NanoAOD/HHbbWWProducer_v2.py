@@ -684,6 +684,8 @@ class HHbbWWProducer(Module):
       self.lepton_IDSF_recoToLoose = SF[0]
       self.lepton_IDSF_looseToTight = SF[1]
       self.lepton_IDSF = self.lepton_IDSF_recoToLoose*self.lepton_IDSF_looseToTight
+
+      print "Single got lepton IDSF ", SF
       return category_string
 
 
@@ -762,6 +764,7 @@ class HHbbWWProducer(Module):
       self.lepton_IDSF_recoToLoose = SF1[0]*SF2[0]
       self.lepton_IDSF_looseToTight = SF1[1]*SF2[1]
       self.lepton_IDSF = self.lepton_IDSF_recoToLoose*self.lepton_IDSF_looseToTight
+      print "Double got lepton IDSF ", SF1, SF2
 
       self.get_trigger_eff_SF(lep_type, fake_leptons)
       return category_string
@@ -937,57 +940,46 @@ class HHbbWWProducer(Module):
         #Electron ID efficiency scale factors for loose lepton ID
         #Note: Two separate SF for electron reconstruction efficiency and loose muon ID need to be applied. The scale factors for electron reconstruction efficiency are splitted into low and high pT files
         #Reco efficiency for electrons of pT < 20 GeV (2016 and 2017)
-        #2016, /afs/cern.ch/user/v/veelken/public/ttHAnalysis/leptonSF/2016/el_scaleFactors_gsf_ptLt20.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
-        #2017, /eos/user/o/odysei/shared/ttH/leptons/data/2017/SF/ID/el_scaleFactors_gsf_ptLt20.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
+        #2016, ./scale_factor_files/2016/leptonSF/el_scaleFactors_gsf_ptLt20.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
+        #2017, ./scale_factor_files/2017/leptonSF/el_scaleFactors_gsf_ptLt20.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
         #Reco efficiency for electrons of pT > 20 GeV (2016 and 2017)
-        #2016, /afs/cern.ch/user/v/veelken/public/ttHAnalysis/leptonSF/2016/el_scaleFactors_gsf_ptGt20.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
-        #2017, /eos/user/o/odysei/shared/ttH/leptons/data/2017/SF/ID/el_scaleFactors_gsf_ptGt20.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
+        #2016, ./scale_factor_files/2016/leptonSF/el_scaleFactors_gsf_ptGt20.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
+        #2017, ./scale_factor_files/2017/leptonSF/el_scaleFactors_gsf_ptGt20.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
         #Reco efficiency for electrons of all pT (2018)
-        #2018, /afs/cern.ch/user/v/veelken/public/ttHAnalysis/leptonSF/2018/el_scaleFactors_gsf.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
+        #2018, ./scale_factor_files/2018/leptonSF/el_scaleFactors_gsf.root, EGamma_SF2D, TH2D (X:eta, Y:pT)
 
         #Loose efficiency for electrons
         #Note: Scale factor split in two scale factors, one from reco to loose and second scale factor from loose to loose ttH
-        #2016, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_ele_2016.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
-        #2017, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_ele_2017.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
-        #2018, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_ele_2018.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2016, ./scale_factor_files/2016/leptonSF/TnP_loose_ele_2016.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2017, ./scale_factor_files/2017/leptonSF/TnP_loose_ele_2017.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2018, ./scale_factor_files/2018/leptonSF/TnP_loose_ele_2018.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
 
-        #2016, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loosettH_ele_2016.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
-        #2017, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loosettH_ele_2017.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
-        #2018, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loosettH_ele_2018.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2016, ./scale_factor_files/2016/leptonSF/TnP_loosettH_ele_2016.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2017, ./scale_factor_files/2017/leptonSF/TnP_loosettH_ele_2017.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2018, ./scale_factor_files/2018/leptonSF/TnP_loosettH_ele_2018.root, EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
 
         #Lepton ID efficiency scale factors for tight lepton ID
         #2 leptons (lepton selection with tight charge cut)
-        #2016, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_ttH_ele_2016_2lss/passttH/egammaEffi.txt_EGM2D.root (SF), EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
-        #2016, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/error/SFttbar_2016_ele_pt.root (error), histo_eff_data, TH1F (X:pT)
-        #2016, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/error/SFttbar_2016_ele_eta.root (error), histo_eff_data, TH1F (X:abs(eta))
-        #2017, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_ttH_ele_2017_2lss/passttH/egammaEffi.txt_EGM2D.root (SF), EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
-        #2017, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/error/SFttbar_2017_ele_pt.root (error), histo_eff_data, TH1F (X:pT)
-        #2017, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/error/SFttbar_2017_ele_eta.root (error), histo_eff_data, TH1F (X:abs(eta))
-        #2018, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_ttH_ele_2018_2lss/passttH/egammaEffi.txt_EGM2D.root (SF), EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
-        #2018, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/error/SFttbar_2018_ele_pt.root (error), histo_eff_data, TH1F (X:pT)
-        #2018, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/error/SFttbar_2018_ele_eta.root (error), histo_eff_data, TH1F (X:abs(eta))
+        #2016, ./scale_factor_files/2016/leptonSF/egammaEffi.txt_EGM2D_Electron.root (SF), EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2016, ./scale_factor_files/2016/leptonSF/SFttbar_2016_ele_pt.root (error), histo_eff_data, TH1F (X:pT)
+        #2016, ./scale_factor_files/2016/leptonSF/SFttbar_2016_ele_eta.root (error), histo_eff_data, TH1F (X:abs(eta))
+        #2017, ./scale_factor_files/2017/leptonSF/egammaEffi.txt_EGM2D_Electron.root (SF), EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2017, ./scale_factor_files/2017/leptonSF/SFttbar_2017_ele_pt.root (error), histo_eff_data, TH1F (X:pT)
+        #2017, ./scale_factor_files/2017/leptonSF/SFttbar_2017_ele_eta.root (error), histo_eff_data, TH1F (X:abs(eta))
+        #2018, ./scale_factor_files/2018/leptonSF/egammaEffi.txt_EGM2D_Electron.root (SF), EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2018, ./scale_factor_files/2018/leptonSF/SFttbar_2018_ele_pt.root (error), histo_eff_data, TH1F (X:pT)
+        #2018, ./scale_factor_files/2018/leptonSF/SFttbar_2018_ele_eta.root (error), histo_eff_data, TH1F (X:abs(eta))
 
         reco_file = ""
-        reco_to_loose_file = ""
-        loose_to_loosettH_file = ""
-        tight_file = ""
-        if Runyear == 2016:
-          if pT < 20: reco_file = "/afs/cern.ch/user/v/veelken/public/ttHAnalysis/leptonSF/2016/el_scaleFactors_gsf_ptLt20.root"
-          else: reco_file = "/afs/cern.ch/user/v/veelken/public/ttHAnalysis/leptonSF/2016/el_scaleFactors_gsf_ptGt20.root"
-          reco_to_loose_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_ele_2016.root"
-          loose_to_loosettH_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loosettH_ele_2016.root"
-          tight_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_ttH_ele_2016_2lss/passttH/egammaEffi.txt_EGM2D.root"
-        if Runyear == 2017:
-          if pT < 20: reco_file = "/eos/user/o/odysei/shared/ttH/leptons/data/2017/SF/ID/el_scaleFactors_gsf_ptLt20.root"
-          else: reco_file = "/eos/user/o/odysei/shared/ttH/leptons/data/2017/SF/ID/el_scaleFactors_gsf_ptGt20.root"
-          reco_to_loose_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_ele_2017.root"
-          loose_to_loosettH_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loosettH_ele_2017.root"
-          tight_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_ttH_ele_2017_2lss/passttH/egammaEffi.txt_EGM2D.root"
-        if Runyear == 2018:
-          reco_file = "/afs/cern.ch/user/v/veelken/public/ttHAnalysis/leptonSF/2018/el_scaleFactors_gsf.root"
-          reco_to_loose_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_ele_2018.root"
-          loose_to_loosettH_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loosettH_ele_2018.root"
-          tight_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_ttH_ele_2018_2lss/passttH/egammaEffi.txt_EGM2D.root"
+        local_path = "./scale_factor_files/{Runyear}/leptonSF/".format(Runyear = Runyear)
+        if Runyear == 2016 or Runyear == 2017:
+          if pT < 20: reco_file = local_path+"el_scaleFactors_gsf_ptLt20.root"
+          else: reco_file = local_path+"el_scaleFactors_gsf_ptGt20.root"
+        else:
+          reco_file = local_path+"el_scaleFactors_gsf.root"
+        reco_to_loose_file = local_path+"TnP_loose_ele_{Runyear}.root".format(Runyear = Runyear)
+        loose_to_loosettH_file = local_path+"TnP_loosettH_ele_{Runyear}.root".format(Runyear = Runyear)
+        tight_file = local_path+"egammaEffi.txt_EGM2D_Electron.root"
 
         lepSF_reco = ROOT.TFile(reco_file); lepSF_reco_to_loose = ROOT.TFile(reco_to_loose_file); lepSF_loose_to_loosettH = ROOT.TFile(loose_to_loosettH_file); lepSF_tight = ROOT.TFile(tight_file)
         hist = lepSF_reco.Get("EGamma_SF2D"); xbin = hist.GetXaxis().FindBin(eta); ybin = hist.GetYaxis().FindBin(pT)
@@ -1006,33 +998,25 @@ class HHbbWWProducer(Module):
         #Muon Case!
         #Muon ID efficiency scale factors for loose lepton ID
         #Note: One SF that combines loose muon ID and muon isolation
-        #2016, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_muon_2016.root, EGamma_SF2D, TH2D (X:abs(eta), Y:pT)
-        #2017, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_muon_2017.root, EGamma_SF2D, TH2D (X:abs(eta), Y:pT)
-        #2018, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_muon_2018.root, EGamma_SF2D, TH2D (X:abs(eta), Y:pT)
+        #2016, ./scale_factor_files/2016/leptonSF/TnP_loose_muon_2016.root, EGamma_SF2D, TH2D (X:abs(eta), Y:pT)
+        #2017, ./scale_factor_files/2017/leptonSF/TnP_loose_muon_2017.root, EGamma_SF2D, TH2D (X:abs(eta), Y:pT)
+        #2018, ./scale_factor_files/2018/leptonSF/TnP_loose_muon_2018.root, EGamma_SF2D, TH2D (X:abs(eta), Y:pT)
 
         #Lepton ID efficiency scale factors for tight lepton ID
         #2 leptons (lepton selection with tight charge cut)
-        #2016, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_ttH_muon_2016_2lss/passttH/egammaEffi.txt_EGM2D.root (SF), EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
-        #2016, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/error/SFttbar_2016_muon_pt.root (error), histo_eff_data, TH1F (X:pT)
-        #2016, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/error/SFttbar_2016_muon_eta.root (error), histo_eff_data, TH1F (X:abs(eta))
-        #2017, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_ttH_muon_2017_2lss/passttH/egammaEffi.txt_EGM2D.root (SF), EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
-        #2017, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/error/SFttbar_2017_muon_pt.root (error), histo_eff_data, TH1F (X:pT)
-        #2017, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/error/SFttbar_2017_muon_eta.root (error), histo_eff_data, TH1F (X:abs(eta))
-        #2018, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_ttH_muon_2018_2lss/passttH/egammaEffi.txt_EGM2D.root (SF), EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
-        #2018, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/error/SFttbar_2018_muon_pt.root (error), histo_eff_data, TH1F (X:pT)
-        #2018, /afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/error/SFttbar_2018_muon_eta.root (error), histo_eff_data, TH1F (X:abs(eta))
+        #2016, ./scale_factor_files/2016/leptonSF/egammaEffi.txt_EGM2D_Muon.root (SF), EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2016, ./scale_factor_files/2016/leptonSF/SFttbar_2016_muon_pt.root (error), histo_eff_data, TH1F (X:pT)
+        #2016, ./scale_factor_files/2016/leptonSF/SFttbar_2016_muon_eta.root (error), histo_eff_data, TH1F (X:abs(eta))
+        #2017, ./scale_factor_files/2017/leptonSF/egammaEffi.txt_EGM2D_Muon.root (SF), EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2017, ./scale_factor_files/2017/leptonSF/SFttbar_2017_muon_pt.root (error), histo_eff_data, TH1F (X:pT)
+        #2017, ./scale_factor_files/2017/leptonSF/SFttbar_2017_muon_eta.root (error), histo_eff_data, TH1F (X:abs(eta))
+        #2018, ./scale_factor_files/2018/leptonSF/egammaEffi.txt_EGM2D_Muon.root (SF), EGamma_SF2D, TH2F (X:abs(eta), Y:pT)
+        #2018, ./scale_factor_files/2018/leptonSF/SFttbar_2018_muon_pt.root (error), histo_eff_data, TH1F (X:pT)
+        #2018, ./scale_factor_files/2018/leptonSF/SFttbar_2018_muon_eta.root (error), histo_eff_data, TH1F (X:abs(eta))
 
-        loose_file = ""
-        tight = ""
-        if Runyear == 2016:
-          loose_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_muon_2016.root"
-          tight_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_ttH_muon_2016_2lss/passttH/egammaEffi.txt_EGM2D.root"
-        if Runyear == 2017:
-          loose_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_muon_2017.root"
-          tight_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_ttH_muon_2017_2lss/passttH/egammaEffi.txt_EGM2D.root"
-        if Runyear == 2018:
-          loose_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_loose_muon_2018.root"
-          tight_file = "/afs/cern.ch/user/b/balvarez/work/public/ttHAnalysis/TnP_ttH_muon_2018_2lss/passttH/egammaEffi.txt_EGM2D.root"
+        local_path = "./scale_factor_files/{Runyear}/leptonSF/".format(Runyear = Runyear)
+        loose_file = local_path+"TnP_loose_muon_{Runyear}.root".format(Runyear = Runyear)
+        tight_file = local_path+"egammaEffi.txt_EGM2D_Muon.root"
 
         lepSF_loose = ROOT.TFile(loose_file); lepSF_tight = ROOT.TFile(tight_file)
         hist = lepSF_loose.Get("EGamma_SF2D"); xbin = hist.GetXaxis().FindBin(abs(eta)); ybin = hist.GetYaxis().FindBin(pT)
@@ -1060,8 +1044,15 @@ class HHbbWWProducer(Module):
       #                                            |  ^^    | > 40 GeV           | 1.00  +/- 1%  | * NB! Use the cone-pT of the leading lepton! #
       ###########################################################################################################################################
       #Trigger efficiency scale factors (1 lepton)
-      #2016
-      #Muons:  The single-lepton files are confusing? They just show efficiency curves not SF 
+      #2016      |
+      #Muons     | ./scale_factor_files/2016/single_lepton_trigger_efficiency_SF/Muon_Run2016_legacy_IsoMu22.root
+      #Electrons | ./scale_factor_files/2016/single_lepton_trigger_efficiency_SF/Electron_Run2016_legacy_Ele25.root
+      #2017      |
+      #Muons     | ./scale_factor_files/2016/single_lepton_trigger_efficiency_SF/Muon_IsoMu24orIsoMu27_eff.root
+      #Electrons | ./scale_factor_files/2016/single_lepton_trigger_efficiency_SF/Electron_Ele32orEle35_eff.root
+      #2018      |
+      #Muons     | ./scale_factor_files/2016/single_lepton_trigger_efficiency_SF/Muon_Run2018_IsoMu24orIsoMu27.root
+      #Electrons | ./scale_factor_files/2016/single_lepton_trigger_efficiency_SF/Electron_Run2018_Ele32orEle35.root
 
       trigger_eff_SF = [1.0, 0.0]
       shortlist = [] #This could be smarter by having 3 channels in one more dimmension on the list, but that was too confusing
@@ -1078,25 +1069,35 @@ class HHbbWWProducer(Module):
 [ [ [15.0, 40.0], [0.98, 0.01] ], [ [40.0, 10000.0], [1.00, 0.01] ] ], #Runyear 2017
 [ [ [15.0, 25.0], [0.98, 0.01] ], [ [25.0, 10000.0], [1.00, 0.01] ] ] ] #Runyear 2018
 
+
+      local_path = "./scale_factor_files/{Runyear}/single_lepton_trigger_efficiency_SF/".format(Runyear = Runyear)
+      muon_file_list = [local_path+"Muon_Run2016_legacy_IsoMu22.root", local_path+"Muon_IsoMu24orIsoMu27_eff.root", local_path+"Muon_Run2018_IsoMu24orIsoMu27.root"]
+      electron_file_list = [local_path+"Electron_Run2016_legacy_Ele25.root", local_path+"Electron_Ele32orEle35_eff.root", local_path+"Electron_Run2018_Ele32orEle35.root"]
+      #Single Channel binning is HORRIBLE, best to just make 2D hists myself
       
       pT = leptons[0].pt 
-      if channel == "MuMu":
-        if Runyear == 2018: pT = leptons[1].pt
-        shortlist = mumu_SF_list[Runyear-2016]
-      if channel == "ElMu" or channel == "MuEl":
-        shortlist = muel_SF_list[Runyear-2016]
-      if channel == "ElEl":
-        shortlist = elel_SF_list[Runyear-2016]
-      print "Starting channel ", channel
-      for n in range(len(shortlist)):
-        lowbound = shortlist[n][0][0]
-        highbound = shortlist[n][0][1]
-        if pT > lowbound and pT < highbound:
-          print "Found the bin"
-          trigger_eff_SF = shortlist[n][1]
+      eta = leptons[0].eta
+
+      if channel == "Mu" or channel == "El":
+        print "Single channel"
+
+      else:
+        if channel == "MuMu":
+          if Runyear == 2018: pT = leptons[1].pt
+          shortlist = mumu_SF_list[Runyear-2016]
+        if channel == "ElMu" or channel == "MuEl":
+          shortlist = muel_SF_list[Runyear-2016]
+        if channel == "ElEl":
+          shortlist = elel_SF_list[Runyear-2016]
+        print "Starting channel ", channel
+        for n in range(len(shortlist)):
+          lowbound = shortlist[n][0][0]
+          highbound = shortlist[n][0][1]
+          if pT > lowbound and pT < highbound:
+            print "Found the bin"
+            trigger_eff_SF = shortlist[n][1]
 
       print "Found SF = ", trigger_eff_SF
-
       return trigger_eff_SF
 
     def get_jet_to_lepton_fake_rate_SF(self, lepton):
