@@ -1,6 +1,6 @@
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
-print "ROOT version ", ROOT.gROOT.GetVersion()
+print("ROOT version ", ROOT.gROOT.GetVersion())
 from math import sqrt, cos
 import copy
 import random
@@ -41,7 +41,7 @@ class HHbbWWProducer(Module):
     ## data or MC, which L! trigger, HLT?
     ###kwargs: triggertype, verbose, run_lumi
     def __init__(self, isMC, **kwargs):
-        print "init HHbbWWProducer"
+        print("init HHbbWWProducer")
         self.writeHistFile = True
         self.isMC = isMC
         #self.runyear = Runyear
@@ -83,13 +83,13 @@ class HHbbWWProducer(Module):
         self.debug = 0
 
     def beginJob(self, histFile=None, histDirName=None):
-        print "BeginJob "
+        print("BeginJob ")
 
     def endJob(self):
         pass
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
-        print "BeginFiles "
+        print("BeginFiles ")
         self.out = wrappedOutputTree
         self.Single_Signal = copy.deepcopy(wrappedOutputTree)
         self.Single_Signal._tree.SetName("syncTree_hhbb1l_SR")
@@ -328,7 +328,7 @@ class HHbbWWProducer(Module):
         self.btagSF = -1.0
         if self.isMC:
           self.btagSF = event.Jet_btagSF_deepjet_M[0]
-          #print "btag SF is = ", event.Jet_btagSF_deepjet_M
+          #print("btag SF is = ", event.Jet_btagSF_deepjet_M)
         mht = Object(event, "MHT")
         self.ak8jets = list(Collection(event, "FatJet"))
         self.ak8subjets = list(Collection(event, "SubJet"))
@@ -664,7 +664,7 @@ class HHbbWWProducer(Module):
       if len(ak8jets_btagged) > 0:
         #for i in range(len(ak8jets_btagged)): #Maybe 'leading ak8' isn't by pt, but by btag?
         #ak8jets_btagged.sort(key=lambda x:x.btagDeepB, reverse=True) #Nope, btag didn't change anything
-        #  if (len(ak8jets_btagged) >= 2): print i, ak8jets_btagged[i].pt, ak8jets_btagged[i].btagDeepB
+        #  if (len(ak8jets_btagged) >= 2): print(i, ak8jets_btagged[i].pt, ak8jets_btagged[i].btagDeepB)
         Jet_that_not_bb = [x for x in jets_clean if deltaR(x.eta, x.phi, ak8jets_btagged[0].eta, ak8jets_btagged[0].phi) > 1.2]
       if not ((len(ak8jets_btagged) == 0 and len(jets_clean) >= 3) or (len(ak8jets_btagged) >= 1 and len(Jet_that_not_bb) >= 1)): return "None"
       self.single_cutflow += 1
@@ -918,7 +918,7 @@ class HHbbWWProducer(Module):
         """
         if abs(genParticle.pdgId) == 6:
           if abs(genParticle[genParticle.genPartIdxMother].pdgId) == 6:
-          print "Came from a top!!!"
+          print("Came from a top!!!")
           genTops.append(genParticle)
         """
         if abs(genParticle.pdgId) == 24:
@@ -926,10 +926,10 @@ class HHbbWWProducer(Module):
             genTops.append(genParticles[genParticle.genPartIdxMother])
 
       if len(genTops) < 2:
-        print "Failed, less than 2 tops"
+        print("Failed, less than 2 tops")
         return 1.0
       if len(genTops) > 2:
-        print "More than 2 tops! Found ", len(genTops), " using first 2"
+        print("More than 2 tops! Found ", len(genTops), " using first 2")
       weight1 = math.exp(0.0615-0.0005*(genTops[0].pt))
       weight2 = math.exp(0.0615-0.0005*(genTops[1].pt))
       SF = math.sqrt(weight1 * weight2)
@@ -1099,9 +1099,9 @@ class HHbbWWProducer(Module):
         SF_file = ROOT.TFile(SF_file_path)
         hist = SF_file.Get("{ch_name}_SF".format(ch_name = ch_name)); xbin = hist.GetXaxis().FindBin(abs(eta)); ybin = hist.GetYaxis().FindBin(pT)
         trigger_eff_SF = [hist.GetBinContent(xbin, ybin), 0.0] #No error info yet
-        print "new SF, channel is ", channel
-        print "Single lep SF ", trigger_eff_SF
-        print "Used pT ", leptons[0].pt, " and eta ", eta
+        print("new SF, channel is ", channel)
+        print("Single lep SF ", trigger_eff_SF)
+        print("Used pT ", leptons[0].pt, " and eta ", eta)
 
       else:
         if channel == "MuMu":
@@ -1141,7 +1141,7 @@ class HHbbWWProducer(Module):
         hist = jet_to_lepton_fake_rate_SF_file.Get("FR_mva090_el_data_comb_NC")
       xbin = hist.GetXaxis().FindBin(pT); ybin = hist.GetYaxis().FindBin(abs(eta))
       jet_to_lepton_fake_rate_SF = hist.GetBinContent(xbin, ybin)
-      print "Found jet to lepton fake rate SF = ", jet_to_lepton_fake_rate_SF
+      print("Found jet to lepton fake rate SF = ", jet_to_lepton_fake_rate_SF)
 
       return jet_to_lepton_fake_rate_SF
 

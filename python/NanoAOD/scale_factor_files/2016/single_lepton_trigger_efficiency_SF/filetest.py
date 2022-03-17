@@ -1,17 +1,16 @@
 import ROOT
 import array
 
-el_file = ROOT.TFile("Electron_Run2016_legacy_Ele25.root")
-mu_file = ROOT.TFile("Muon_Run2016_legacy_IsoMu22.root")
+el_file = ROOT.TFile("Electron_Ele32orEle35_eff.root")
+mu_file = ROOT.TFile("Muon_IsoMu24orIsoMu27_eff.root")
 
 
 def find_binning(input_file):
   eta_binlist = []
   pt_binlist = []
   for key in input_file.GetListOfKeys():
-    print key.GetName()
-
     name = key.GetName()
+    print(name)
     if "etaBinsH" in name: continue
     if "MC" in name: continue
 
@@ -41,25 +40,25 @@ def find_binning(input_file):
 
     if "Lt" in name:
       t = key.ReadObj()
-      #print "entries = ", t.GetN()
+      #print("entries = ", t.GetN())
       nEntries = t.GetN()
       for i in range(nEntries):
-        #print "x = ", t.GetX()[i]
-        #print "y = ", t.GetY()[i]
-        #print "error = ", t.GetErrorX(i)
+        #print("x = ", t.GetX()[i])
+        #print("y = ", t.GetY()[i])
+        #print("error = ", t.GetErrorX(i))
         pt_binlist.append(t.GetX()[i]-t.GetErrorX(i))
       pt_binlist.append(t.GetX()[nEntries-1]+t.GetErrorX(nEntries-1))
 
 
   eta_binlist.append(2.5) #Upper limit
-  print "eta_binlist = ", eta_binlist
-  print "pt_binlist = ", pt_binlist
+  print("eta_binlist = ", eta_binlist)
+  print("pt_binlist = ", pt_binlist)
 
   return eta_binlist, pt_binlist
 
 
 def fill_profile(input_file, hist):
-  print "Starting to fill hist"
+  print("Starting to fill hist")
   SF = 0.0 #Will fill later
   for key in input_file.GetListOfKeys():
     name_MC = key.GetName()
@@ -69,22 +68,22 @@ def fill_profile(input_file, hist):
     name_Data = name_MC[:-2]+"Data"
     for key2 in input_file.GetListOfKeys():
       if key2.GetName() == name_Data:
-        print "Found Match"
-        print name_MC, name_Data
+        print("Found Match")
+        print(name_MC, name_Data)
 
         if "Lt" in name_MC:
           eta_bin_finder = name_MC.split("Lt")[1]
           eta_bin_finder_high = (eta_bin_finder.split("_")[0]).split("p")
           eta_bin_finder_value_high = int(eta_bin_finder_high[0])+int(eta_bin_finder_high[1])*0.1**(len(eta_bin_finder_high[1]))
           eta_bin_finder_value_low = 0
-          print "Eta bin values are ", eta_bin_finder_value_low, eta_bin_finder_value_high
+          print("Eta bin values are ", eta_bin_finder_value_low, eta_bin_finder_value_high)
 
         elif "Gt" in name_MC:
           eta_bin_finder = name_MC.split("Gt")[1]
           eta_bin_finder_low = (eta_bin_finder.split("_")[0]).split("p")
           eta_bin_finder_value_low = int(eta_bin_finder_low[0])+int(eta_bin_finder_low[1])*0.1**(len(eta_bin_finder_low[1]))
           eta_bin_finder_value_high = 2.5
-          print "Eta bin values are ", eta_bin_finder_value_low, eta_bin_finder_value_high
+          print("Eta bin values are ", eta_bin_finder_value_low, eta_bin_finder_value_high)
 
         elif "to" in name_MC:
           eta_bin_finder = name_MC.split("to")
@@ -94,11 +93,11 @@ def fill_profile(input_file, hist):
           eta_bin_finder_high = (eta_bin_finder[1].split("_")[0]).split("p")
           eta_bin_finder_value_high = int(eta_bin_finder_high[0])+int(eta_bin_finder_high[1])*0.1**(len(eta_bin_finder_high[1]))
 
-          print "Eta bin values are ", eta_bin_finder_value_low, eta_bin_finder_value_high
+          print("Eta bin values are ", eta_bin_finder_value_low, eta_bin_finder_value_high)
 
 
         eta = (eta_bin_finder_value_low + eta_bin_finder_value_high)/2.0
-        print "Eta chosen = ", eta
+        print("Eta chosen = ", eta)
         pT = 0.0 #Initial pT to fill, will find real value
         t_MC = key.ReadObj()
         t_Data = key2.ReadObj()
@@ -106,10 +105,10 @@ def fill_profile(input_file, hist):
         nEntries_Data = t_Data.GetN()
         for i in range(nEntries_MC):
           pT = t_MC.GetX()[i]
-          print "pT chosen = ", pT
+          print("pT chosen = ", pT)
           MC_efficiency = t_MC.Eval(pT)
           Data_efficiency = t_Data.Eval(pT)
-          print MC_efficiency, Data_efficiency
+          print(MC_efficiency, Data_efficiency)
           if MC_efficiency != 0: SF = Data_efficiency/MC_efficiency
           if MC_efficiency == 0 and Data_efficiency == 0: SF = 1
           if "El" in input_file and eta > 2.1: SF = 1
@@ -120,14 +119,14 @@ def fill_profile(input_file, hist):
           #Finally putting the info into the hist
           xBin = hist.GetXaxis().FindBin(eta)
           yBin = hist.GetYaxis().FindBin(pT)
-          print "eta, pT = ", eta, pT
-          print "Filling ", xBin, yBin, " with ", SF
+          print("eta, pT = ", eta, pT)
+          print("Filling ", xBin, yBin, " with ", SF)
           hist.SetBinContent(xBin, yBin, SF)
 
 
-f_new = ROOT.TFile("ele_and_mu_SF_2016.root", "recreate")
+f_new = ROOT.TFile("ele_and_mu_SF_2017.root", "recreate")
 c1 = ROOT.TCanvas("", "", 1280, 800)
-print "Electron file"
+print("Electron file")
 ele_bins = find_binning(el_file)
 eta_bins = len(ele_bins[0])-1
 eta_array = array.array('d', ele_bins[0])
@@ -139,7 +138,7 @@ SF_ele.SetStats(0)
 SF_ele.Draw("colz")
 c1.SaveAs("Ele_SF.png")
 
-print "Muon file"
+print("Muon file")
 mu_bins = find_binning(mu_file)
 eta_bins = len(mu_bins[0])-1
 eta_array = array.array('d', mu_bins[0])
