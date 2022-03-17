@@ -71,6 +71,7 @@ class HHbbWWProducer(Module):
         self.met = -1
         self.PU_weight = -1.0
         self.MC_weight = -1.0
+        self.btagSF = -1.0
         self.lepton_IDSF = -1.0
         self.lepton_IDSF_recoToLoose = -1.0
         self.lepton_IDSF_looseToTight = -1.0
@@ -294,6 +295,10 @@ class HHbbWWProducer(Module):
         self.met = -1
         self.PU_weight = -1
         self.MC_weight = -1
+        self.btagSF = -1
+        self.lepton_IDSF = -1.0
+        self.lepton_IDSF_recoToLoose = -1.0
+        self.lepton_IDSF_looseToTight = -1.0
         self.HLT = -1
         self.flag = -1
         self.taus = []
@@ -320,6 +325,10 @@ class HHbbWWProducer(Module):
             imu = muons.index(muon)
             muon.pt = muon_pt_corrected[imu]
         self.jets = list(Collection(event, "Jet"))
+        self.btagSF = -1.0
+        if self.isMC:
+          self.btagSF = event.Jet_btagSF_deepjet_M[0]
+          #print "btag SF is = ", event.Jet_btagSF_deepjet_M
         mht = Object(event, "MHT")
         self.ak8jets = list(Collection(event, "FatJet"))
         self.ak8subjets = list(Collection(event, "SubJet"))
@@ -685,7 +694,7 @@ class HHbbWWProducer(Module):
       self.lepton_IDSF_looseToTight = SF[1]
       self.lepton_IDSF = self.lepton_IDSF_recoToLoose*self.lepton_IDSF_looseToTight
 
-      print "Single got lepton IDSF ", SF
+      self.get_trigger_eff_SF(lep_type, fake_leptons)
       return category_string
 
 
@@ -764,7 +773,6 @@ class HHbbWWProducer(Module):
       self.lepton_IDSF_recoToLoose = SF1[0]*SF2[0]
       self.lepton_IDSF_looseToTight = SF1[1]*SF2[1]
       self.lepton_IDSF = self.lepton_IDSF_recoToLoose*self.lepton_IDSF_looseToTight
-      print "Double got lepton IDSF ", SF1, SF2
 
       self.get_trigger_eff_SF(lep_type, fake_leptons)
       return category_string
@@ -1053,6 +1061,12 @@ class HHbbWWProducer(Module):
       #2018      |
       #Muons     | ./scale_factor_files/2016/single_lepton_trigger_efficiency_SF/Muon_Run2018_IsoMu24orIsoMu27.root
       #Electrons | ./scale_factor_files/2016/single_lepton_trigger_efficiency_SF/Electron_Run2018_Ele32orEle35.root
+      ###########################################################################################################################################
+      # I made the SF histogram myself, found here
+      #2016      | ./scale_factor_files/2016/single_lepton_trigger_efficiency_SF/ele_and_mu_SF_2016.root   | Electron ele_SF | Muon mu_SF | Binning: eta, pT
+
+
+
 
       trigger_eff_SF = [1.0, 0.0]
       shortlist = [] #This could be smarter by having 3 channels in one more dimmension on the list, but that was too confusing
@@ -1077,9 +1091,19 @@ class HHbbWWProducer(Module):
       
       pT = leptons[0].pt 
       eta = leptons[0].eta
+      if pT > 100: pT = 99 #Max pT is 100
 
       if channel == "Mu" or channel == "El":
-        print "Single channel"
+        ch_name = ""
+        if channel == "Mu": ch_name = "mu"
+        if channel == "El": ch_name = "ele"
+        SF_file_path = "./scale_factor_files/{Runyear}/single_lepton_trigger_efficiency_SF/ele_and_mu_SF_{Runyear}.root".format(Runyear = Runyear)
+        SF_file = ROOT.TFile(SF_file_path)
+        hist = SF_file.Get("{ch_name}_SF".format(ch_name = ch_name)); xbin = hist.GetXaxis().FindBin(abs(eta)); ybin = hist.GetYaxis().FindBin(pT)
+        trigger_eff_SF = [hist.GetBinContent(xbin, ybin), 0.0] #No error info yet
+        print "new SF, channel is ", channel
+        print "Single lep SF ", trigger_eff_SF
+        print "Used pT ", leptons[0].pt, " and eta ", eta
 
       else:
         if channel == "MuMu":
@@ -1089,16 +1113,13 @@ class HHbbWWProducer(Module):
           shortlist = muel_SF_list[Runyear-2016]
         if channel == "ElEl":
           shortlist = elel_SF_list[Runyear-2016]
-        print "Starting channel ", channel
         for n in range(len(shortlist)):
           lowbound = shortlist[n][0][0]
           highbound = shortlist[n][0][1]
           if pT > lowbound and pT < highbound:
-            print "Found the bin"
             trigger_eff_SF = shortlist[n][1]
 
-      print "Found SF = ", trigger_eff_SF
-      return trigger_eff_SF
+      return trigger_eff_SF #Returns[value, +- error]
 
     def get_jet_to_lepton_fake_rate_SF(self, lepton):
       #*** Files are on github, download them? ***
@@ -1329,7 +1350,7 @@ class HHbbWWProducer(Module):
         out.fillBranch("PU_jetID_SF", -999);
         out.fillBranch("MC_weight", self.MC_weight);
         out.fillBranch("topPt_wgt", -999);
-        out.fillBranch("btag_SF", -999);
+        out.fillBranch("btag_SF", self.btagSF);
         out.fillBranch("trigger_SF", -999);
         out.fillBranch("lepton_IDSF", self.lepton_IDSF);
         out.fillBranch("lepton_IDSF_recoToLoose", self.lepton_IDSF_recoToLoose);
