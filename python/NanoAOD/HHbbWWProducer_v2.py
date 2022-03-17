@@ -382,12 +382,10 @@ class HHbbWWProducer(Module):
         self.flag = Object(event, "Flag")
         self.taus = list(Collection(event, "Tau"))
 
-
-        #debugevents = [8995L, 10973L, 11203L, 185007L, 185436L, 187151L, 164017L, 192143L, 192787L, 192965L, 193605L, 193885L, 195007L, 195043L, 195282L, 64032L, 66920L, 67944L, 73841L, 74220L, 75213L, 148215L, 148228L, 148310L, 149306L, 149453L, 149907L, 150187L, 76563L, 77779L, 78248L, 85003L, 86155L, 86695L, 87833L, 96418L, 96672L, 96706L, 98203L, 98894L, 99513L, 89623L, 90281L, 91562L, 145337L, 145504L, 145545L, 145580L, 146357L, 146547L, 146953L, 88862L, 151007L, 165122L, 165249L, 165561L, 165784L, 189176L, 189878L, 189863L, 190325L]## all events failling tau veto but appeared in Tallinn ntuple for 2017 sync
-        debugevents = []
-        if self.ievent in debugevents:
-          self.debug = 3
-          self.printEvent()
+	debugevents = []
+	if self.ievent in debugevents:
+	  self.debug = 3
+	  self.printEvent()
         #########################################
         ### Double leptons selections
         #########################################
