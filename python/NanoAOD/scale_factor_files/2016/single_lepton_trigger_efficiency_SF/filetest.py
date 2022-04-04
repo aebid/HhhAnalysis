@@ -1,8 +1,8 @@
 import ROOT
 import array
 
-el_file = ROOT.TFile("Electron_Ele32orEle35_eff.root")
-mu_file = ROOT.TFile("Muon_IsoMu24orIsoMu27_eff.root")
+el_file = ROOT.TFile("Electron_Run2016_legacy_Ele25.root")
+mu_file = ROOT.TFile("Muon_Run2016_legacy_IsoMu22.root")
 
 
 def find_binning(input_file):
@@ -60,6 +60,7 @@ def find_binning(input_file):
 def fill_profile(input_file, hist):
   print("Starting to fill hist")
   SF = 0.0 #Will fill later
+  error = 0.0 #Will fill later
   for key in input_file.GetListOfKeys():
     name_MC = key.GetName()
     if "MC" not in name_MC: continue
@@ -106,12 +107,29 @@ def fill_profile(input_file, hist):
         for i in range(nEntries_MC):
           pT = t_MC.GetX()[i]
           print("pT chosen = ", pT)
-          MC_efficiency = t_MC.Eval(pT)
-          Data_efficiency = t_Data.Eval(pT)
-          print(MC_efficiency, Data_efficiency)
-          if MC_efficiency != 0: SF = Data_efficiency/MC_efficiency
-          if MC_efficiency == 0 and Data_efficiency == 0: SF = 1
-          if "El" in input_file and eta > 2.1: SF = 1
+          MC_efficiency = t_MC.Eval(pT)			#CMSSW 10 does not include GetPointY(i)
+          Data_efficiency = t_Data.Eval(pT)		#Must use Eval(pT) instead
+          #MC_efficiency = t_MC.GetPointY(i)
+          #Data_efficiency = t_Data.GetPointY(i)
+          MC_error = t_MC.GetErrorY(i)
+          Data_error = t_Data.GetErrorY(i)
+          print("MC   eff:err", MC_efficiency, MC_error)
+          print("Data eff:err", Data_efficiency, Data_error)
+
+          if MC_efficiency != 0: 
+            SF = Data_efficiency/MC_efficiency
+            if Data_efficiency == 0:
+              error = 0 #???
+            else:
+              error = ((Data_error/Data_efficiency)**2 + (MC_error/MC_efficiency)**2)**(0.5)*SF
+          if MC_efficiency == 0 and Data_efficiency == 0: 
+            SF = 1
+            error = 0 #???
+            #error = ((Data_error/Data_efficiency)**2 + (MC_error/MC_efficiency)**2)**(0.5)*SF
+          if "El" in input_file and eta > 2.1: 
+            SF = 1
+            error = 0 #???
+            #error = ((Data_error/Data_efficiency)**2 + (MC_error/MC_efficiency)**2)**(0.5)*SF
 
 
 
@@ -120,11 +138,12 @@ def fill_profile(input_file, hist):
           xBin = hist.GetXaxis().FindBin(eta)
           yBin = hist.GetYaxis().FindBin(pT)
           print("eta, pT = ", eta, pT)
-          print("Filling ", xBin, yBin, " with ", SF)
+          print("Filling ", xBin, yBin, " with ", SF, " and error ", error)
           hist.SetBinContent(xBin, yBin, SF)
+          hist.SetBinError(xBin, yBin, error)
 
 
-f_new = ROOT.TFile("ele_and_mu_SF_2017.root", "recreate")
+f_new = ROOT.TFile("ele_and_mu_SF_2016.root", "recreate")
 c1 = ROOT.TCanvas("", "", 1280, 800)
 print("Electron file")
 ele_bins = find_binning(el_file)
@@ -135,7 +154,7 @@ pT_array = array.array('d', ele_bins[1])
 SF_ele = ROOT.TH2F("ele_SF", "ele_SF", eta_bins, eta_array, pT_bins, pT_array) #x = eta, y = pT
 fill_profile(el_file, SF_ele)
 SF_ele.SetStats(0)
-SF_ele.Draw("colz")
+SF_ele.Draw("colz text")
 c1.SaveAs("Ele_SF.png")
 
 print("Muon file")
@@ -147,7 +166,7 @@ pT_array = array.array('d', mu_bins[1])
 SF_mu = ROOT.TH2F("mu_SF", "mu_SF", eta_bins, eta_array, pT_bins, pT_array) #x = eta, y = pT
 fill_profile(mu_file, SF_mu)
 SF_mu.SetStats(0)
-SF_mu.Draw("colz")
+SF_mu.Draw("colz text")
 c1.SaveAs("Mu_SF.png")
 
 

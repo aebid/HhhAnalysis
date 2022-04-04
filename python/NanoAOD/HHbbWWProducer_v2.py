@@ -1098,7 +1098,7 @@ class HHbbWWProducer(Module):
         SF_file_path = "./scale_factor_files/{Runyear}/single_lepton_trigger_efficiency_SF/ele_and_mu_SF_{Runyear}.root".format(Runyear = Runyear)
         SF_file = ROOT.TFile(SF_file_path)
         hist = SF_file.Get("{ch_name}_SF".format(ch_name = ch_name)); xbin = hist.GetXaxis().FindBin(abs(eta)); ybin = hist.GetYaxis().FindBin(pT)
-        trigger_eff_SF = [hist.GetBinContent(xbin, ybin), 0.0] #No error info yet
+        trigger_eff_SF = [hist.GetBinContent(xbin, ybin), hist.GetBinError(xbin, ybin)]
         print("new SF, channel is ", channel)
         print("Single lep SF ", trigger_eff_SF)
         print("Used pT ", leptons[0].pt, " and eta ", eta)
