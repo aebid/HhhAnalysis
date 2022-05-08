@@ -71,7 +71,7 @@ class HHbbWWProducer(Module):
         self.met = -1
         self.PU_weight = -1.0
         self.MC_weight = -1.0
-        self.btagSF = -1.0
+        self.btag_SF = -1.0
         self.lepton_IDSF = -1.0
         self.lepton_IDSF_recoToLoose = -1.0
         self.lepton_IDSF_looseToTight = -1.0
@@ -81,6 +81,11 @@ class HHbbWWProducer(Module):
         self.single_cutflow=0
         self.double_cutflow=0
         self.debug = 0
+
+        self.lepton_systematics_names = ["trigger_SF", "IDSF", "IDSF_recoToLoose", "IDSF_looseToTight"]                  #["Isosf","IDsf","trgsf","trackingsf","HLTsafeIDsf"]
+        self.lepton1_systematics_values = {}
+        self.lepton2_systematics_values = {}
+
 
     def beginJob(self, histFile=None, histDirName=None):
         print("BeginJob ")
@@ -254,6 +259,20 @@ class HHbbWWProducer(Module):
         out.branch("vbf_m_jj", "F");	#mass of the VBF jet pair (filled only in the event categories)
         out.branch("vbf_dEta_jj", "F");	#difference in eta of the VBF jet pair (filled only in the event categories)
 
+        ######## SF Nom/Up/Down ########             #Adding the systematics
+        ######## Leptons ########
+        for branchname in self.lepton_systematics_names:
+          out.branch("lepton1_{branchname}_nominal", "F")
+          out.branch("lepton1_{branchname}_up", "F")
+          out.branch("lepton1_{branchname}_down", "F")
+          out.branch("lepton2_{branchname}_nominal", "F")
+          out.branch("lepton2_{branchname}_up", "F")
+          out.branch("lepton2_{branchname}_down", "F")
+
+
+
+
+
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.Single_Signal.write()
         self.Single_Fake.write()
@@ -295,7 +314,7 @@ class HHbbWWProducer(Module):
         self.met = -1
         self.PU_weight = -1
         self.MC_weight = -1
-        self.btagSF = -1
+        self.btag_SF = -1
         self.lepton_IDSF = -1.0
         self.lepton_IDSF_recoToLoose = -1.0
         self.lepton_IDSF_looseToTight = -1.0
@@ -325,9 +344,9 @@ class HHbbWWProducer(Module):
             imu = muons.index(muon)
             muon.pt = muon_pt_corrected[imu]
         self.jets = list(Collection(event, "Jet"))
-        self.btagSF = -1.0
+        self.btag_SF = -1.0
         if self.isMC:
-          self.btagSF = event.Jet_btagSF_deepjet_M[0]
+          self.btag_SF = event.Jet_btagSF_deepjet_M[0]
           #print("btag SF is = ", event.Jet_btagSF_deepjet_M)
         mht = Object(event, "MHT")
         self.ak8jets = list(Collection(event, "FatJet"))
@@ -370,7 +389,7 @@ class HHbbWWProducer(Module):
         self.ak8jets_pre.sort(key=lambda x: x.pt, reverse=True)
         self.ak8jets_clean = [x for x in self.ak8jets_pre if self.jetCleaning(x, 0.8, 99)] #Include all fakeables up to (min(len(fakes), 99))
         self.ak8jets_btagged = [x for x in self.ak8jets_clean if self.ak8jetBtagging(x)] #All fakeables btagged
-        
+
 
         self.ak8jets_clean_single = [x for x in self.ak8jets_pre if self.jetCleaning(x, 0.8, 1)]
         self.ak8jets_btagged_single = [x for x in self.ak8jets_clean_single if self.ak8jetBtagging(x)]
@@ -382,10 +401,21 @@ class HHbbWWProducer(Module):
         self.flag = Object(event, "Flag")
         self.taus = list(Collection(event, "Tau"))
 
-	debugevents = []
-	if self.ievent in debugevents:
-	  self.debug = 3
-	  self.printEvent()
+        debugevents = []
+        if self.ievent in debugevents:
+          self.debug = 3
+          self.printEvent()
+
+
+        #########################################
+        ### Initialize the lepton SF
+        #########################################
+        #["trigger_SF", "IDSF", "IDSF_recoToLoose", "IDSF_looseToTight"]
+        for name in self.lepton_systematics_names:
+          self.lepton1_systematics_values[name] = [1.0, 1.0, 1.0]
+          self.lepton2_systematics_values[name] = [1.0, 1.0, 1.0]
+
+
         #########################################
         ### Double leptons selections
         #########################################
@@ -400,7 +430,6 @@ class HHbbWWProducer(Module):
         if (("Double" in double_category) and ("Fake" in double_category)):
           self.fillBranches(self.Double_Fake)
           self.Double_Fake.fill()
-
 
         #########################################
         ### Single lepton selections
@@ -500,7 +529,7 @@ class HHbbWWProducer(Module):
       jet = self.get_jet_from_lepton(muon)
       #JetRelIso < 0.8 *** Changed https://github.com/FlorianBury/HHbbWWAnalysis/blob/84204a8d8c31eb67d7f1a8e4bd77ce00d7232bd6/BaseHHtobbWW.py#L1033
       #return self.conept(muon) >= 10 and jet.btagDeepFlavB <= jetDeepJet_MedWP[Runyear - 2016] and (muon.mvaTTH > 0.5 or (muon.jetRelIso < 0.5 and jet.btagDeepFlavB <= self.jetDeepJetUpper(muon)))
-      #If no associated jet, skip jet cuts *** 
+      #If no associated jet, skip jet cuts ***
       if jet == 0: return self.conept(muon) >= 10 and (muon.mvaTTH > 0.5 or muon.jetRelIso < 0.8)
       else: return self.conept(muon) >= 10 and jet.btagDeepFlavB <= jetDeepJet_MedWP[Runyear - 2016] and (muon.mvaTTH > 0.5 or (muon.jetRelIso < 0.8 and jet.btagDeepFlavB <= self.jetDeepJetUpper(muon)))
 
@@ -544,7 +573,7 @@ class HHbbWWProducer(Module):
       #Fakeable object selection, leptonMVA >= 0.80
       return ele.mvaTTH >= 0.30
 
-    def jetCleaning(self, jet, dR, nLeps): 
+    def jetCleaning(self, jet, dR, nLeps):
       #Not all fakeables, only leading in SL or DL!!!
       #AK4 jets are removed if they overlap with fakeable muons or electrons within dR < 0.4: AK8 dR < 0.8
       muons_fakeable = self.muons_fakeable; electrons_fakeable = self.electrons_fakeable
@@ -615,18 +644,18 @@ class HHbbWWProducer(Module):
       #No pair of same-flavor, opposite sign preselected leptons within 10 GeV of the Z mass
       #At least 1 medium btag (that can be on a AK8 jet): (#selJetsAK8_b >= 1 || #b-medium >= 1)
       #Minimal number of jets to construct an Hbb and admit an hadronic W with a missing jet: (#selJetsAK8_b == 0 && #selJetsAK4 >= 3) || (#selJetsAK8_b >= 1 && nJet_that_not_bb >= 1)
-      muons_fakeable     = self.muons_fakeable; 
-      muons_tight        = self.muons_tight; 
+      muons_fakeable     = self.muons_fakeable;
+      muons_tight        = self.muons_tight;
       electrons_fakeable = self.electrons_fakeable;
       electrons_tight    = self.electrons_tight;
       #jets_clean         = self.jets_clean;
       #jets_btagged       = self.jets_btagged_medium;
-      #ak8jets_btagged    = self.ak8jets_btagged; 
-      #ak8jets_clean      = self.ak8jets_clean; 
+      #ak8jets_btagged    = self.ak8jets_btagged;
+      #ak8jets_clean      = self.ak8jets_clean;
       jets_clean         = self.jets_clean_single;
       jets_btagged       = self.jets_btagged_medium_single;
-      ak8jets_btagged    = self.ak8jets_btagged_single; 
-      ak8jets_clean      = self.ak8jets_clean_single; 
+      ak8jets_btagged    = self.ak8jets_btagged_single;
+      ak8jets_clean      = self.ak8jets_clean_single;
 
       fake_leptons = muons_fakeable + electrons_fakeable
       fake_leptons.sort(key=lambda x:self.conept(x), reverse=True)
@@ -634,9 +663,9 @@ class HHbbWWProducer(Module):
       tight_leptons = muons_tight + electrons_tight
       tight_leptons.sort(key=lambda x:self.conept(x), reverse=True)
       isMC = self.isMC
-      
+
       self.single_cutflow = 0
-      if not (len(fake_leptons) >= 1 and self.met_filters(self.flag)): return "None" 
+      if not (len(fake_leptons) >= 1 and self.met_filters(self.flag)): return "None"
       self.single_cutflow += 1
       leading_lepton = fake_leptons[0]
       #if not ((len(tight_leptons) == 0) or (len(tight_leptons) == 1 and tight_leptons[0] == leading_lepton)): return "None"
@@ -693,6 +722,10 @@ class HHbbWWProducer(Module):
       self.lepton_IDSF = self.lepton_IDSF_recoToLoose*self.lepton_IDSF_looseToTight
 
       self.get_trigger_eff_SF(lep_type, fake_leptons)
+
+      if "Fake" in category_string:
+        print("Is fake single, testing jet->lepton fakerate")
+        #self.get_jet_to_lepton_fake_rate_SF(leading_lepton)
       return category_string
 
 
@@ -712,18 +745,18 @@ class HHbbWWProducer(Module):
       #Either the leading fakeable lepton, the subleading fakeable lepton or both fail the tight lepton selection criteria
       #In MC, require MC matching of the leading and subleading fakelable lepton
 
-      muons_fakeable     = self.muons_fakeable; 
-      muons_tight        = self.muons_tight; 
+      muons_fakeable     = self.muons_fakeable;
+      muons_tight        = self.muons_tight;
       electrons_fakeable = self.electrons_fakeable;
       electrons_tight    = self.electrons_tight;
       jets_clean         = self.jets_clean;
       jets_btagged       = self.jets_btagged_medium;
-      ak8jets_btagged    = self.ak8jets_btagged; 
-      ak8jets_clean      = self.ak8jets_clean; 
+      ak8jets_btagged    = self.ak8jets_btagged;
+      ak8jets_clean      = self.ak8jets_clean;
       #jets_clean         = self.jets_clean_double;
       #jets_btagged       = self.jets_btagged_medium_double;
-      #ak8jets_clean      = self.ak8jets_clean_double; 
-      #ak8jets_btagged    = self.ak8jets_btagged_double; 
+      #ak8jets_clean      = self.ak8jets_clean_double;
+      #ak8jets_btagged    = self.ak8jets_btagged_double;
 
       fake_leptons = muons_fakeable + electrons_fakeable
       fake_leptons.sort(key=lambda x:self.conept(x), reverse=True)
@@ -765,14 +798,34 @@ class HHbbWWProducer(Module):
       if ((leading_lepton in tight_leptons) and (subleading_lepton in tight_leptons)): category_string += "_Signal"
       else: category_string += "_Fake"
 
+
+
+
+
       SF1 = self.get_lepton_SF(leading_lepton)
       SF2 = self.get_lepton_SF(subleading_lepton)
+      self.lepton1_systematics_values["IDSF_recoToLoose"] = [SF1[0], 1.0, 1.0]
+      self.lepton2_systematics_values["IDSF_recoToLoose"] = [SF2[0], 1.0, 1.0]
+      self.lepton1_systematics_values["IDSF_looseToTight"] = [SF1[1], 1.0, 1.0]
+      self.lepton2_systematics_values["IDSF_looseToTight"] = [SF2[1], 1.0, 1.0]
+      self.lepton1_systematics_values["IDSF"] = [SF1[0]*SF1[1], 1.0, 1.0]
+      self.lepton2_systematics_values["IDSF"] = [SF2[0]*SF2[1], 1.0, 1.0]
+
+
+
+
 
       self.lepton_IDSF_recoToLoose = SF1[0]*SF2[0]
       self.lepton_IDSF_looseToTight = SF1[1]*SF2[1]
       self.lepton_IDSF = self.lepton_IDSF_recoToLoose*self.lepton_IDSF_looseToTight
 
       self.get_trigger_eff_SF(lep_type, fake_leptons)
+
+      if "Fake" in category_string:
+        print("Is fake double, testing jet->lepton fakerate")
+        #self.get_jet_to_lepton_fake_rate_SF(leading_lepton)
+        #self.get_jet_to_lepton_fake_rate_SF(subleading_lepton)
+
       return category_string
 
     def which_channel(self, nLep):
@@ -822,7 +875,7 @@ class HHbbWWProducer(Module):
             if deltaR(fake.eta, fake.phi, i.eta, i.phi) < 0.3:
               tau_lepton_overlap = True
               break
-          if tau_lepton_overlap: 
+          if tau_lepton_overlap:
             continue
           else:
             if self.debug >2 :
@@ -1068,15 +1121,15 @@ class HHbbWWProducer(Module):
 
       trigger_eff_SF = [1.0, 0.0]
       shortlist = [] #This could be smarter by having 3 channels in one more dimmension on the list, but that was too confusing
-      mumu_SF_list =[ 
+      mumu_SF_list =[
 [ [ [0.0, 10000.0], [0.99, 0.01] ] ], #Runyear 2016
 [ [ [15.0, 40.0], [0.97, 0.02] ], [ [40.0, 55.0], [0.995, 0.02] ], [ [55.0, 70.0], [0.96, 0.02] ], [ [70.0, 10000.0], [0.94, 0.02] ] ], #Runyear 2017
 [ [ [15.0, 40.0], [1.01, 0.01] ], [ [40.0, 70.0], [0.995, 0.01] ], [ [70.0, 10000.0], [0.98, 0.01] ] ] ] #Runyear 2018
-      muel_SF_list = [ 
+      muel_SF_list = [
 [ [ [0.0, 10000.0], [1.00, 0.01] ] ], #Runyear 2016
 [ [ [15.0, 40.0], [0.98, 0.01] ], [ [40.0, 10000.0], [0.99, 0.01] ] ], #Runyear 2017
 [ [ [15.0, 25.0], [0.98, 0.01] ], [ [25.0, 10000.0], [1.00, 0.01] ] ] ] #Runyear 2018
-      elel_SF_list = [ 
+      elel_SF_list = [
 [ [ [15.0, 25.0], [0.98, 0.02] ], [ [25.0, 10000.0], [1.00, 0.02] ] ], #Runyear 2016
 [ [ [15.0, 40.0], [0.98, 0.01] ], [ [40.0, 10000.0], [1.00, 0.01] ] ], #Runyear 2017
 [ [ [15.0, 25.0], [0.98, 0.01] ], [ [25.0, 10000.0], [1.00, 0.01] ] ] ] #Runyear 2018
@@ -1086,8 +1139,8 @@ class HHbbWWProducer(Module):
       muon_file_list = [local_path+"Muon_Run2016_legacy_IsoMu22.root", local_path+"Muon_IsoMu24orIsoMu27_eff.root", local_path+"Muon_Run2018_IsoMu24orIsoMu27.root"]
       electron_file_list = [local_path+"Electron_Run2016_legacy_Ele25.root", local_path+"Electron_Ele32orEle35_eff.root", local_path+"Electron_Run2018_Ele32orEle35.root"]
       #Single Channel binning is HORRIBLE, best to just make 2D hists myself
-      
-      pT = leptons[0].pt 
+
+      pT = leptons[0].pt
       eta = leptons[0].eta
       if pT > 100: pT = 99 #Max pT is 100
 
@@ -1120,25 +1173,28 @@ class HHbbWWProducer(Module):
       return trigger_eff_SF #Returns[value, +- error]
 
     def get_jet_to_lepton_fake_rate_SF(self, lepton):
-      #*** Files are on github, download them? ***
-      #2016, https://github.com/sscruz/cmgtools-lite/blob/44ce731fa4b2ed90f9b70f5db5afb33256ed6d2e/TTHAnalysis/data/fakerate/fr_2016.root
-      #2016, https://github.com/sscruz/cmgtools-lite/blob/44ce731fa4b2ed90f9b70f5db5afb33256ed6d2e/TTHAnalysis/data/fakerate/fr_2017.root
-      #2016, https://github.com/sscruz/cmgtools-lite/blob/44ce731fa4b2ed90f9b70f5db5afb33256ed6d2e/TTHAnalysis/data/fakerate/fr_2018.root
-      #Muons
+      #Jet to lepton fakerate SF
+      #Muons Hist and Binning
       #FR_mva090_mu_data_comb, TH2D (X:pT, Y:abs(eta)) X[10., 15., 20., 32., 45., 65., 100.]  Y[0., 1.2, 2.4]
-      #Electrons
+      #Electrons Hist and Binning
       #FR_mva090_el_data_comb_NC, TH2D (X:pT, Y:abs(eta)) X[15., 25., 35., 45., 65., 100.]  Y[0., 1.479., 2.5]
+      #2016      | ./scale_factor_files/2016/jet_to_lepton_fakerate/jet_to_lepton_fakerate_SF_2016.root
+      #2017      | ./scale_factor_files/2017/jet_to_lepton_fakerate/jet_to_lepton_fakerate_SF_2017.root
+      #2018      | ./scale_factor_files/2018/jet_to_lepton_fakerate/jet_to_lepton_fakerate_SF_2018.root
+
 
       jet_to_lepton_fake_rate_SF = 1.0
 
       pT = lepton.pt
       eta = lepton.eta
-      filelist = ['2016_file', '2017_file', '2018_file']
-      jet_to_lepton_fake_rate_SF_file = ROOT.TFile(filelist[Runyear-2016])
+      local_path = "./scale_factor_files/{Runyear}/jet_to_lepton_fakerate/".format(Runyear = Runyear)
+      SF_file_path = local_path+'jet_to_lepton_fakerate_SF_{Runyear}.root'.format(Runyear = Runyear)
+      jet_to_lepton_fake_rate_SF_file = ROOT.TFile(SF_file_path)
+      hist = ROOT.TH2D()
       if lepton in self.muons_pre:
-        hist = jet_to_lepton_fake_rate_SF_file.Get("FR_mva090_mu_data_comb")
+        hist = jet_to_lepton_fake_rate_SF_file.Get("FR_mva085_mu_data_comb") #SHOULD BE mva090!!!
       if lepton in self.electrons_pre:
-        hist = jet_to_lepton_fake_rate_SF_file.Get("FR_mva090_el_data_comb_NC")
+        hist = jet_to_lepton_fake_rate_SF_file.Get("FR_mva085_el_data_comb_NC") #SHOULD BE mva090!!!
       xbin = hist.GetXaxis().FindBin(pT); ybin = hist.GetYaxis().FindBin(abs(eta))
       jet_to_lepton_fake_rate_SF = hist.GetBinContent(xbin, ybin)
       print("Found jet to lepton fake rate SF = ", jet_to_lepton_fake_rate_SF)
@@ -1179,7 +1235,7 @@ class HHbbWWProducer(Module):
             E = mu_p4.E(); charge = mu.charge;
             miniRelIso = mu.miniPFRelIso_all; PFRelIso04 = mu.pfRelIso04_all; jetNDauChargedMVASel = -999; jetPtRel = mu.jetPtRelv2;
             jetRelIso = mu.jetRelIso;
-            if self.get_jet_from_lepton(mu) != 0: jetDeepJet = (self.get_jet_from_lepton(mu)).btagDeepFlavB; 
+            if self.get_jet_from_lepton(mu) != 0: jetDeepJet = (self.get_jet_from_lepton(mu)).btagDeepFlavB;
             else: jetDeepJet = -999;
             sip3D = mu.sip3d; dxy = mu.dxy; dxyAbs = abs(mu.dxy); dz = mu.dz;
             segmentCompatibility = mu.segmentComp; leptonMVA = mu.mvaTTH; mediumID = mu.mediumId; dpt_div_pt = mu.ptErr/mu.pt;
@@ -1188,7 +1244,7 @@ class HHbbWWProducer(Module):
             pt = value; conept = value; eta = value; phi = value; mass = value;
             E = value; charge = value;
             miniRelIso = value; PFRelIso04 = value; jetNDauChargedMVASel = value; jetPtRel = value;
-            jetRelIso = value; jetDeepJet = value; 
+            jetRelIso = value; jetDeepJet = value;
             sip3D = value; dxy = value; dxyAbs = value; dz = value;
             segmentCompatibility = value; leptonMVA = value; mediumID = value; dpt_div_pt = value;
             isfakeablesel = value; ismvasel = value; isGenMatched = value;
@@ -1228,7 +1284,7 @@ class HHbbWWProducer(Module):
             miniRelIso = ele.miniPFRelIso_all; PFRelIso04 = ele.pfRelIso03_all; jetNDauChargedMVASel = -9999; jetPtRel = ele.jetPtRelv2;
             jetRelIso = ele.jetRelIso;
             if self.get_jet_from_lepton(ele) != 0: jetDeepJet = (self.get_jet_from_lepton(ele)).btagDeepFlavB;
-            else: jetDeepJet = -9999; 
+            else: jetDeepJet = -9999;
             sip3D = ele.sip3d; dxy = ele.dxy; dxyAbs = abs(ele.dxy); dz = ele.dz;
             ntMVAeleID = -999; leptonMVA = ele.mvaTTH; passesConversionVeto = ele.convVeto; nMissingHits = ele.lostHits;
             sigmaEtaEta = ele.sieie; HoE = ele.hoe; OoEminusOoP = ele.eInvMinusPInv;
@@ -1237,8 +1293,8 @@ class HHbbWWProducer(Module):
             pt = value; conept = value; eta = value; phi = value; mass = value;
             E = value; charge = value;
             miniRelIso = value; PFRelIso04 = value; jetNDauChargedMVASel = value; jetPtRel = value;
-            jetRelIso = value; 
-            jetDeepJet = value; 
+            jetRelIso = value;
+            jetDeepJet = value;
             sip3D = value; dxy = value; dxyAbs = value; dz = value;
             ntMVAeleID = value; leptonMVA = value; passesConversionVeto = value; nMissingHits = value;
             sigmaEtaEta = value; HoE = value; OoEminusOoP = value;
@@ -1333,7 +1389,7 @@ class HHbbWWProducer(Module):
           out.fillBranch("ak8Jet{i}_subjet1_CSV".format(i = i), sub1_btagDeepB);
 
 
-        
+
         ######## MET ########
         met_p4 = ROOT.TLorentzVector()
         met_p4.SetPtEtaPhiM(self.met.pt, 0., self.met.phi, 0.)
@@ -1348,7 +1404,7 @@ class HHbbWWProducer(Module):
         out.fillBranch("PU_jetID_SF", -999);
         out.fillBranch("MC_weight", self.MC_weight);
         out.fillBranch("topPt_wgt", -999);
-        out.fillBranch("btag_SF", self.btagSF);
+        out.fillBranch("btag_SF", self.btag_SF);
         out.fillBranch("trigger_SF", -999);
         out.fillBranch("lepton_IDSF", self.lepton_IDSF);
         out.fillBranch("lepton_IDSF_recoToLoose", self.lepton_IDSF_recoToLoose);
@@ -1359,3 +1415,12 @@ class HHbbWWProducer(Module):
         out.fillBranch("vbf_dEta_jj", -999);
 
 
+        ######## SF Nom/Up/Down ########
+        ######## Leptons ########
+        for branchname in self.lepton_systematics_names:
+          out.fillBranch("lepton1_{branchname}_nominal", self.lepton1_systematics_values[branchname][0])
+          out.fillBranch("lepton1_{branchname}_up", self.lepton1_systematics_values[branchname][1])
+          out.fillBranch("lepton1_{branchname}_down", self.lepton1_systematics_values[branchname][2])
+          out.fillBranch("lepton2_{branchname}_nominal", self.lepton2_systematics_values[branchname][0])
+          out.fillBranch("lepton2_{branchname}_up", self.lepton2_systematics_values[branchname][1])
+          out.fillBranch("lepton2_{branchname}_down", self.lepton2_systematics_values[branchname][2])
