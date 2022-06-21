@@ -1,9 +1,9 @@
 import ROOT
 
 
-runyear = 2017
-myfilelist = ["/eos/user/t/tahuang/2021NtupleProduceTest/sync_2016_m750_Friend.root", "/eos/user/t/tahuang/2021NtupleProduceTest/sync_2017_m750_Friend.root"]
-tallinfilelist = ["/afs/cern.ch/user/k/kaehatah/public/sync_legacy_bbww/era_2016/sync_bbww_Tallinn_2016_v21.root", "/afs/cern.ch/user/k/kaehatah/public/sync_legacy_bbww/era_2017/sync_bbww_Tallinn_2017_v13.root"]
+runyearlist = [2018]
+myfilelist = ["/eos/user/t/tahuang/2021NtupleProduceTest/sync_2016_m750_Friend.root", "/eos/user/t/tahuang/2021NtupleProduceTest/sync_2017_m750_Friend_20220126v6.root","/eos/user/t/tahuang/2021NtupleProduceTest/sync_2018_m750_Friend.root"]
+tallinfilelist = ["/afs/cern.ch/user/k/kaehatah/public/sync_legacy_bbww/era_2016/sync_bbww_Tallinn_2016_v21.root", "/afs/cern.ch/user/k/kaehatah/public/sync_legacy_bbww/era_2017/sync_bbww_Tallinn_2017_v13.root","/afs/cern.ch/user/k/kaehatah/public/sync_legacy_bbww/era_2018/sync_bbww_Tallinn_2018_v10.root"]
 
 def printEvent(tree):
   print("Treename: ", tree.GetName())
@@ -44,7 +44,7 @@ def compareTree(mytree, taltree, mytreename, taltreename):
       printEvent(taltree)
 
 
-for runyear in [2017]:
+for runyear in runyearlist:
   f = ROOT.TFile(myfilelist[runyear-2016])
   tree = f.Get("syncTree")
   tree_1l_SR = f.Get("syncTree_hhbb1l_SR")
@@ -112,20 +112,19 @@ for runyear in [2017]:
 
   my_events = []; tal_events = []
   #mytree = tree_2l_Fake; taltree = tree_2l_Fake_Tall
-  mytree = tree_2l_SR; taltree = tree_2l_SR_Tall
-  #mytree = tree_1l_Fake; taltree = tree_1l_Fake_Tall
+  #mytree = tree_2l_SR; taltree = tree_2l_SR_Tall
+  mytree = tree_1l_Fake; taltree = tree_1l_Fake_Tall
   #mytree = tree_1l_SR; taltree = tree_1l_SR_Tall
   #mytree = tree; taltree = tree2
 
-  if runyear == 2017:
-    for i in range(taltree.GetEntries()):
-      taltree.GetEntry(i); tal_events.append(taltree.event)
-    for i in range(mytree.GetEntries()):
-      mytree.GetEntry(i); my_events.append(mytree.event)
-    #compareTree(mytree, taltree, "TAMU", "Tallinn")
-    #compareTree(taltree, mytree, "Tallinn", "TAMU")
+  for i in range(taltree.GetEntries()):
+    taltree.GetEntry(i); tal_events.append(taltree.event)
+  for i in range(mytree.GetEntries()):
+    mytree.GetEntry(i); my_events.append(mytree.event)
+  #compareTree(mytree, taltree, "TAMU", "Tallinn")
+  #compareTree(taltree, mytree, "Tallinn", "TAMU")
   hnm = [x for x in tal_events if x not in my_events]
   nmh = [x for x in my_events if x not in tal_events]
-  print "double Lepton Signal Region"
+  print "double Lepton Signal Region, Runyear ", runyear
   print "Him not in me ", len(hnm), hnm
   print "Me not in him ", len(nmh), nmh
