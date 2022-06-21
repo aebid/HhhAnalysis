@@ -27,7 +27,8 @@ process.source = cms.Source("PoolSource",
 	#'file:/fdata/hepx/store/user/tahuang/TEST_LOCALLY/GravitonM400-02DF7FEF-74D9-E611-956A-02163E013746.root'
 	#'file:/fdata/hepx/store/user/tahuang/TEST_LOCALLY/RadionM400-3217F073-EF25-E611-862F-A0369F7FC210.root'
 	#'/store/data/Run2017C/DoubleMuon/MINIAOD/PromptReco-v3/000/300/742/00000/00CE998C-717E-E711-AD9B-02163E019CB5.root'
-	'/store/data/Run2017C/DoubleMuon/MINIAOD/PromptReco-v2/000/300/636/00000/FC587F5C-E57D-E711-830B-02163E01A3C2.root'
+	#'/store/data/Run2017C/DoubleMuon/MINIAOD/PromptReco-v2/000/300/636/00000/FC587F5C-E57D-E711-830B-02163E01A3C2.root'
+	'/store/mc/RunIISummer16MiniAODv3/GluGluToRadionToHHTo2B2WToLNu2J_M-270_narrow_13TeV-madgraph/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v2/270000/60F34423-2E3F-E911-B900-0CC47A6C17FC.root'
     )
 )
 
@@ -35,9 +36,9 @@ from HhhAnalysis.MCProduction.InputFileHelpers import *
 #inputdir = ['/fdata/hepx/store/user/tahuang/xSM_HeavyHiggs2DiHiggs2bbWW_B3_leptonW_CMSSW80X_13TeV_1M/xSM_HeavyHiggs2DiHiggs2bbWW_B3_leptonW_CMSSW80X_13TeV_1M/170329_023747/0000/']
 #inputdir = ['/fdata/hepx/store/user/tahuang/xSM_HeavyHiggs2DiHiggs2bbWW_B3_leptonW_CMSSW80X_13TeV_10k/xSM_HeavyHiggs2DiHiggs2bbWW_B3_leptonW_CMSSW80X_13TeV_10k/170330_023219/0000/']
 #process = useInputDir(process, inputdir)
-
+nEvents = 1000
 process.maxEvents = cms.untracked.PSet( 
-    input = cms.untracked.int32(-1) 
+    input = cms.untracked.int32(nEvents) 
 )
 
 process.MessageLogger = cms.Service("MessageLogger", 
@@ -75,10 +76,11 @@ process.hltfilter = cms.EDFilter( "TriggerResultsFilter",
 
 
 muonPOGSFdir = os.getenv( "CMSSW_BASE" ) +"/src/HhhAnalysis/CutFlowAnalyzer/test/MuonEffAndSF_2016Data/"
-process.DiHiggsWWBBAna = cms.EDAnalyzer('DiHiggsWWBBAnalyzer',
+process.DiHiggsWWBBAna = cms.EDAnalyzer('DiHiggsWWBBSLAnalyzer',
   verbose = cms.untracked.int32(0),
   #enum {Data = 0,TTbar, DYJets, DY0Jets, DY1Jets, DY2Jets, ZZTo2L2Q, ZZTo2L2Nu, ZZTo4L, WWToLNuQQ, WWTo2L2Nu, WZTo2L2Q, WZTo1L3Nu, WZTo1L1Nu2Q, WZTo3LNu, ST_tchannel_top, ST_tchannel_antitop, ST_schannel, ST_tW_antitop, ST_tW_top, WJetsToLNu, WJetsToLNu_HT100To200, WJetsToLNu_HT200To400, WJetsToLNu_HT400To600, WJetsToLNu_HT600To800, WJetsToLNu_HT800To1200, WJetsToLNu_HT1200To2500, WJetsToLNu_HT2500ToInf, TTWJetsToQQ, TTWJetsToLNu, TTZToQQ, TTZToLLNuNu };//add other background
-  SampleType = cms.untracked.int32(0),
+  #enum {Rad_260=100, Rad_270, Rad_300, Rad_350, Rad_400, Rad_450, Rad_500, Rad_550, Rad_600, Rad_650, Rad_750, Rad_800, Rad_900,  Rad_1000, Grav_260, Grav_270, Grav_300, Grav_350, Grav_400, Grav_450, Grav_500, Grav_550, Grav_600, Grav_650, Grav_750, Grav_800, Grav_900,  Grav_1000};
+  SampleType = cms.untracked.int32(100),
   #############gen level
   #genParticles = cms.InputTag("genParticles"),
   genParticles = cms.InputTag("prunedGenParticles"),#minAOD

@@ -455,6 +455,12 @@ class DiHiggsWWBBSLAnalyzer : public edm::EDAnalyzer {
     float dphi_genllbb;
     float dphi_genllmet;
     float mass_gentrans;
+    //Wtoqq
+    float mass_genq1q2;
+    float energy_genq1q2;
+    float pt_genq1q2;
+    float phi_genq1q2;
+    float eta_genq1q2;
     //reco leve
     unsigned int numOfVertices;
     int numberOfmuon1;
@@ -615,16 +621,17 @@ DiHiggsWWBBSLAnalyzer::DiHiggsWWBBSLAnalyzer(const edm::ParameterSet& iConfig){
   //                 SET GEN LEVEL VARIABLES AND MATCHING                      
   //****************************************************************************
   genParticlesToken_    = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticles"));
+  genjetToken_          = consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("genjets"));
   jetsDeltaR_ = iConfig.getUntrackedParameter<double>("jetsDeltaR",0.4);
-  leptonsDeltaR_ = iConfig.getUntrackedParameter<double>("leptonsDeltaR",0.1);
+  //leptonsDeltaR_ = iConfig.getUntrackedParameter<double>("leptonsDeltaR",0.1);
 
   //****************************************************************************
   //                 SET RECO LEVEL VARIABLES AND COUNTERS                       
   //****************************************************************************
+  /*
   muonToken_            = consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
   electronToken_        = consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"));
   jetToken_             = consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
-  genjetToken_          = consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("genjets"));
   metToken_             = consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
 
   triggerBitsToken_     = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("TriggerResults"));
@@ -636,15 +643,11 @@ DiHiggsWWBBSLAnalyzer::DiHiggsWWBBSLAnalyzer(const edm::ParameterSet& iConfig){
   //trajToken_            = consumes< std::vector<Trajectory> >(iConfig.getParameter<edm::InputTag>("Traj"));
   primaryVerticesToken_ = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("primaryVertices"));
 
-  sampleType_           = iConfig.getUntrackedParameter<int>("SampleType",0);
-  debug_                = iConfig.getUntrackedParameter<bool>("debug",false);
-  verbose_              = iConfig.getUntrackedParameter<int>("verbose",0);
   mu_eta_               = iConfig.getUntrackedParameter<double>("mu_eta",2.4);
   mu_PFIso_             = iConfig.getUntrackedParameter<double>("mu_PFIso", 0.25);
   mu_id_                = iConfig.getUntrackedParameter<std::string>("mu_id","2016Medium");
   el_eta_               = iConfig.getUntrackedParameter<double>("el_eta",2.5);
   el_Iso_               = iConfig.getUntrackedParameter<double>("el_Iso",0.04);
-  /*
   leadingpt_mumu_       = iConfig.getUntrackedParameter<double>("leadingpt_mumu",20);
   trailingpt_mumu_      = iConfig.getUntrackedParameter<double>("trailingpt_mumu",10);
   leadingpt_muel_       = iConfig.getUntrackedParameter<double>("leadingpt_muel",25);
@@ -666,7 +669,6 @@ DiHiggsWWBBSLAnalyzer::DiHiggsWWBBSLAnalyzer(const edm::ParameterSet& iConfig){
   deltaPtRel_trigger_   = iConfig.getUntrackedParameter<double>("deltaPtRel_trigger",0.5);
   deltaR_trigger_       = iConfig.getUntrackedParameter<double>("deltaR_trigger",0.1);
 
-  onlyGenLevel_         = iConfig.getParameter<bool>("onlyGenLevel");
   triggerSFFile_        = iConfig.getParameter<std::string>("triggerSFFile");
   isoSFFile_            = iConfig.getParameter<std::string>("isoSFFile");
   idSFFile_             = iConfig.getParameter<std::string>("idSFFile");
@@ -676,6 +678,10 @@ DiHiggsWWBBSLAnalyzer::DiHiggsWWBBSLAnalyzer(const edm::ParameterSet& iConfig){
   idSFhist_             = iConfig.getParameter<std::string>("idSFhist");
   trackingSFhist_       = iConfig.getParameter<std::string>("trackingSFhist");
   */
+  sampleType_           = iConfig.getUntrackedParameter<int>("SampleType",0);
+  onlyGenLevel_         = iConfig.getParameter<bool>("onlyGenLevel");
+  debug_                = iConfig.getUntrackedParameter<bool>("debug",false);
+  verbose_              = iConfig.getUntrackedParameter<int>("verbose",0);
   //runMMC_               = iConfig.getParameter<bool>("runMMC");
   /*
      iterations_ = iConfig.getUntrackedParameter<int>("iterations",100000);
@@ -940,6 +946,12 @@ void DiHiggsWWBBSLAnalyzer::initBranches(){
   dphi_genllmet = -10;
   mass_gentrans = -1;
 
+  //wtoqq
+  mass_genq1q2 = -1.0;
+  energy_genq1q2 = -1;
+  pt_genq1q2 = -1;
+  phi_genq1q2 = -9;
+  eta_genq1q2 = -9;
   //reco level
   numOfVertices = 0;
   numberOfmuon1 = -1;
@@ -1814,6 +1826,12 @@ void DiHiggsWWBBSLAnalyzer::beginJob(){
   evtree->Branch("dphi_genllbb",&dphi_genllbb, "dphi_genllbb/F");
   evtree->Branch("dphi_genllmet",&dphi_genllmet, "dphi_genllmet/F");
   evtree->Branch("mass_gentrans",&mass_gentrans, "mass_gentrans/F");
+  //Wtoqq
+  evtree->Branch("mass_genq1q2",    &mass_genq1q2,   "mass_genq1q2/F");
+  evtree->Branch("energy_genq1q2",&energy_genq1q2, "energy_genq1q2/F");
+  evtree->Branch("pt_genq1q2",        &pt_genq1q2,     "pt_genq1q2/F");
+  evtree->Branch("phi_genq1q2",      &phi_genq1q2,    "phi_genq1q2/F");
+  evtree->Branch("eta_genq1q2",      &eta_genq1q2,    "eta_genq1q2/F");
   //reco level
   evtree->Branch("numOfVertices",&numOfVertices, "numOfVertices/I");
   evtree->Branch("muon1_px",&muon1_px, "muon1_px/F");
@@ -2988,7 +3006,7 @@ DiHiggsWWBBSLAnalyzer::fillbranches(){
       w2_pz = w2cand->pz();
       w2_mass = w2cand->mass();
     }
-    if ((sampleType_>Data  and sampleType_>=Rad_260) and htoWW){
+    if (sampleType_>=Rad_260 and htoWW){
       htoWW_energy = htoWWcand->energy();
       htoWW_px = htoWWcand->px();
       htoWW_py = htoWWcand->py();
@@ -3015,7 +3033,6 @@ DiHiggsWWBBSLAnalyzer::fillbranches(){
       t2_px = t2cand->px();
       t2_py = t2cand->py();
       t2_pz = t2cand->pz();
-    //}else if (sampleType_ >= Rad_260_ZZbb){
     }else if (sampleType_ >= Rad_260_ZZbb and htoZZ){
       z1_energy = z1cand->energy();
       z1_pt = z1cand->pt();
@@ -3081,33 +3098,37 @@ DiHiggsWWBBSLAnalyzer::fillbranches(){
   }
 
     TLorentzVector lep1_p4(lep1cand->px(), lep1cand->py(), lep1cand->pz(), lep1cand->energy());
-    TLorentzVector lep2_p4(lep2cand->px(), lep2cand->py(), lep2cand->pz(), lep2cand->energy());
-    TLorentzVector diNeutrinos_p4(nu1cand->px()+nu2cand->px(), nu1cand->py()+nu2cand->py(), nu1cand->pz()+nu2cand->pz(), nu1cand->energy()+nu2cand->energy());
-    genmet_neutrinos_px = diNeutrinos_p4.Px();
-    genmet_neutrinos_py = diNeutrinos_p4.Py();
-    genmet_neutrinos_pt = diNeutrinos_p4.Pt();
-    genmet_neutrinos_phi = diNeutrinos_p4.Phi();
-    mass_gennu1nu2 = diNeutrinos_p4.M();
+    //TLorentzVector lep2_p4(lep2cand->px(), lep2cand->py(), lep2cand->pz(), lep2cand->energy());
+    //TLorentzVector diNeutrinos_p4(nu1cand->px()+nu2cand->px(), nu1cand->py()+nu2cand->py(), nu1cand->pz()+nu2cand->pz(), nu1cand->energy()+nu2cand->energy());
+    //genmet_neutrinos_px = diNeutrinos_p4.Px();
+    //genmet_neutrinos_py = diNeutrinos_p4.Py();
+    //genmet_neutrinos_pt = diNeutrinos_p4.Pt();
+    //genmet_neutrinos_phi = diNeutrinos_p4.Phi();
+    //mass_gennu1nu2 = diNeutrinos_p4.M();
 
     TLorentzVector b1_p4(b1cand->px(), b1cand->py(), b1cand->pz(), b1cand->energy());
     TLorentzVector b2_p4(b2cand->px(), b2cand->py(), b2cand->pz(), b2cand->energy());
-    dR_genbl   = (b1_p4.Pt()>b2_p4.Pt()) ? (b1_p4.DeltaR( (lep1_p4.Pt()>lep2_p4.Pt()) ? lep1_p4 : lep2_p4 )) : (b2_p4.DeltaR( (lep1_p4.Pt()>lep2_p4.Pt()) ? lep1_p4 : lep2_p4 ));
+    TLorentzVector q1_p4(q1cand->px(), q1cand->py(), q1cand->pz(), q1cand->energy());
+    TLorentzVector q2_p4(q2cand->px(), q2cand->py(), q2cand->pz(), q2cand->energy());
+    //dR_genbl   = (b1_p4.Pt()>b2_p4.Pt()) ? (b1_p4.DeltaR( (lep1_p4.Pt()>lep2_p4.Pt()) ? lep1_p4 : lep2_p4 )) : (b2_p4.DeltaR( (lep1_p4.Pt()>lep2_p4.Pt()) ? lep1_p4 : lep2_p4 ));
     dR_genb1l1 = b1_p4.DeltaR(lep1_p4);
-    dR_genb1l2 = b1_p4.DeltaR(lep2_p4);
+    //dR_genb1l2 = b1_p4.DeltaR(lep2_p4);
     dR_genb2l1 = b2_p4.DeltaR(lep1_p4);
-    dR_genb2l2 = b2_p4.DeltaR(lep2_p4);
+    //dR_genb2l2 = b2_p4.DeltaR(lep2_p4);
     dR_genb1b2 = b1_p4.DeltaR(b2_p4);
-    dR_genl1l2 = lep1_p4.DeltaR(lep2_p4);
-    dR_genl1l2b1b2 = (lep1_p4+lep2_p4).DeltaR(b1_p4+b2_p4);
-    dphi_genl1l2b1b2 = TVector2::Phi_mpi_pi( (lep1_p4+lep2_p4).Phi()-(b1_p4+b2_p4).Phi() );
-    TLorentzVector genll_p4 = lep1_p4+lep2_p4;
+    //dR_genl1l2 = lep1_p4.DeltaR(lep2_p4);
+    //dR_genl1l2b1b2 = (lep1_p4+lep2_p4).DeltaR(b1_p4+b2_p4);
+    //dphi_genl1l2b1b2 = TVector2::Phi_mpi_pi( (lep1_p4+lep2_p4).Phi()-(b1_p4+b2_p4).Phi() );
+    //TLorentzVector genll_p4 = lep1_p4+lep2_p4;
     TLorentzVector genbb_p4 = b1_p4+b2_p4;
-    dR_genminbl = min(min(dR_genb1l1,dR_genb1l2),min(dR_genb2l1,dR_genb2l2));
-    dphi_genllbb = TVector2::Phi_mpi_pi(genll_p4.Phi()-genbb_p4.Phi());
-    dphi_genllmet = TVector2::Phi_mpi_pi(genll_p4.Phi()-genmet_phi);
-    mass_genl1l2 = genll_p4.M(); energy_genl1l2 = genll_p4.Energy(); pt_genl1l2 = genll_p4.Pt(); eta_genl1l2 = genll_p4.Eta(); phi_genl1l2 = genll_p4.Phi();
+    TLorentzVector genqq_p4 = q1_p4+q2_p4;
+    //dR_genminbl = min(min(dR_genb1l1,dR_genb1l2),min(dR_genb2l1,dR_genb2l2));
+    //dphi_genllbb = TVector2::Phi_mpi_pi(genll_p4.Phi()-genbb_p4.Phi());
+    //dphi_genllmet = TVector2::Phi_mpi_pi(genll_p4.Phi()-genmet_phi);
+    //mass_genl1l2 = genll_p4.M(); energy_genl1l2 = genll_p4.Energy(); pt_genl1l2 = genll_p4.Pt(); eta_genl1l2 = genll_p4.Eta(); phi_genl1l2 = genll_p4.Phi();
     mass_genb1b2 = genbb_p4.M(); energy_genb1b2 = genbb_p4.Energy(); pt_genb1b2 = genbb_p4.Pt(); eta_genb1b2 = genbb_p4.Eta(); phi_genb1b2 = genbb_p4.Phi();
-    mass_gentrans = sqrt(2*genll_p4.Pt()*genmet_pt*(1-cos(dphi_genllmet)));
+    mass_genq1q2 = genqq_p4.M(); energy_genq1q2 = genqq_p4.Energy(); pt_genq1q2 = genqq_p4.Pt(); eta_genq1q2 = genqq_p4.Eta(); phi_genq1q2 = genqq_p4.Phi();
+    //mass_gentrans = sqrt(2*genll_p4.Pt()*genmet_pt*(1-cos(dphi_genllmet)));
   }
 }
 
