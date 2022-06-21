@@ -10,6 +10,12 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+### DL sample
+#/store/mc/RunIISummer16MiniAODv3/GluGluToRadionToHHTo2B2VTo2L2Nu_M-350_narrow_13TeV-madgraph-v2/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v2/70000/3A6D44E6-913D-E911-AD45-AC1F6B1AF224.root
+### SL sample
+#/store/mc/RunIISummer16MiniAODv3/GluGluToRadionToHHTo2B2WToLNu2J_M-270_narrow_13TeV-madgraph/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v2/270000/60F34423-2E3F-E911-B900-0CC47A6C17FC.root
+#
+
 
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),

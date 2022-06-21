@@ -51,8 +51,7 @@ using namespace reco;
 //  return (-(cand->vx()-point->x())*cand->py()+(cand->vy()+point->y())*cand->px())/cand->pt();
 //};
 //float dz(const reco::Candidate *cand, const reco::Vertex *point){
-//  return ((cand->vz() - point->z()) - ((cand->vx() - point->x()) * cand->px() + (cand->vy() - point->y()) * cand->py()) /cand->pt()) * cand->pz() /cand->pt();
-//};
+
 
 //class MMC;
 //#define WMass 80.385   // W mass
