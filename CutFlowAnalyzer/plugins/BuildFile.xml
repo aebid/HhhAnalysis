@@ -10,8 +10,6 @@
 <use   name="DataFormats/SiPixelDetId"/>
 <use   name="DataFormats/SiStripDetId"/>
 <use   name="SimDataFormats/GeneratorProducts"/>
-<use   name="HhhAnalysis/DataFormats"/>
-<use   name="HhhAnalysis/AnalysisTools"/>
 <use   name="HhhAnalysis/CutFlowAnalyzer"/>
 <use   name="root"/>
 <flags EDM_PLUGIN="1" />
