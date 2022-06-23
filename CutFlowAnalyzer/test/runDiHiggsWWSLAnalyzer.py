@@ -115,7 +115,7 @@ process.DiHiggsWWBBAna = cms.EDAnalyzer('DiHiggsWWBBSLAnalyzer',
 
   #electrons = cms.InputTag("slimmedElectrons"),
   #jets = cms.InputTag("slimmedJets"),
-  #mets = cms.InputTag("slimmedMETs"),
+  mets = cms.InputTag("slimmedMETs"),
   #primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
   ##beamSpot = cms.InputTag("offlineBeamSpot"),
   ##tracks = cms.InputTag("generalTracks"),

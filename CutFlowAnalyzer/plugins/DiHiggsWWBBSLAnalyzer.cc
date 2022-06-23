@@ -624,6 +624,7 @@ DiHiggsWWBBSLAnalyzer::DiHiggsWWBBSLAnalyzer(const edm::ParameterSet& iConfig){
   genjetToken_          = consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("genjets"));
   jetsDeltaR_ = iConfig.getUntrackedParameter<double>("jetsDeltaR",0.4);
   //leptonsDeltaR_ = iConfig.getUntrackedParameter<double>("leptonsDeltaR",0.1);
+  metToken_             = consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
 
   //****************************************************************************
   //                 SET RECO LEVEL VARIABLES AND COUNTERS                       
@@ -632,7 +633,6 @@ DiHiggsWWBBSLAnalyzer::DiHiggsWWBBSLAnalyzer(const edm::ParameterSet& iConfig){
   muonToken_            = consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
   electronToken_        = consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"));
   jetToken_             = consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
-  metToken_             = consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
 
   triggerBitsToken_     = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("TriggerResults"));
   triggerObjectsToken_  = consumes<std::vector<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("TriggerObjects"));
@@ -1244,7 +1244,7 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       std::cout <<"doTriggerMatching_ but size of matched tigger objects is " << matchedTriggerObjects.size() << std::endl;
       std::cout <<"Skip this Event !!! "<< std::endl;
       return ;
-  }
+  }*/
 
   //****************************************************************************
   //                MET
@@ -1265,6 +1265,8 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   //                Di-Leptons selection
   //                Medium ID + loose PF-based combined relative isolation with detaB correction
   //****************************************************************************
+  //
+  /*
   edm::Handle<pat::MuonCollection> muons;
   edm::Handle<pat::ElectronCollection> electrons;
   iEvent.getByToken(muonToken_, muons);
@@ -1401,10 +1403,12 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	printf("subleadlepton: pt %5.1f, eta %+4.2f, pogSF %+2.4f\n", muon2_pt, muon2_eta, muon2_pogSF);
     }
   }
+  */
 
   //****************************************************************************
   //                Di-Jets selection
   //****************************************************************************
+  /*
   //std::cout <<"diJet "<< std::endl;
   edm::Handle<pat::JetCollection> jets;
   iEvent.getByToken(jetToken_, jets);
