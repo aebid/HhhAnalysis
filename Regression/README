@@ -1,4 +1,0 @@
-root -b .x TMVARegression_new.C+
-root
-.L TMVARegGui.C+
-TMVA::TMVARegGui("TMVAReg.root")
