@@ -1,4 +1,7 @@
 from CRABClient.UserUtilities import config
+username = "tahuang"
+storesite = "/eos/user/t/tahuang/"
+outfolder = "MC_Hhh_analysis_20220719"
 config = config()
 
 config.section_("General")
@@ -9,19 +12,21 @@ config.section_("JobType")
 config.JobType.pluginName   = 'Analysis'
 config.JobType.outputFiles  = ['out_ana.root']
 config.JobType.psetName     = "runDiHiggsWWAnalyzer.py"
-config.JobType.inputFiles   = ["Files/EfficienciesAndSF_BCDEFGH_Tracking.root","Files/EfficienciesAndSF_BCDEF_Tracking.root","Files/EfficienciesAndSF_GH_ISO.root","Files/EfficienciesAndSF_BCDEF_ID.root","Files/EfficienciesAndSF_BCDEF_trigger.root","Files/EfficienciesAndSF_GH_Tracking.root","Files/EfficienciesAndSF_BCDEF_ISO.root","Files/EfficienciesAndSF_GH_ID.root","Files/EfficienciesAndSF_GH_trigger.root"]
+config.JobType.pyCfgParams  = ["sampleType=100"]
+#config.JobType.inputFiles   = ["Files/EfficienciesAndSF_BCDEFGH_Tracking.root","Files/EfficienciesAndSF_BCDEF_Tracking.root","Files/EfficienciesAndSF_GH_ISO.root","Files/EfficienciesAndSF_BCDEF_ID.root","Files/EfficienciesAndSF_BCDEF_trigger.root","Files/EfficienciesAndSF_GH_Tracking.root","Files/EfficienciesAndSF_BCDEF_ISO.root","Files/EfficienciesAndSF_GH_ID.root","Files/EfficienciesAndSF_GH_trigger.root"]
+config.JobType.inputFiles   = ["Files/"]
 
 config.section_("Data")
 config.Data.inputDBS        = 'global'
 config.Data.splitting       = 'FileBased'
-config.Data.unitsPerJob     = 10
-config.Data.outLFNDirBase   =  '/store/user/lpernie/MC_Hhh_analysis'
+config.Data.unitsPerJob     = 1
+config.Data.outLFNDirBase   = '/store/user/%s/'%(username) + outfolder
 config.Data.publication     = False
 
 config.section_("Site")
-config.Site.storageSite     = 'T3_US_TAMU'
+config.Site.storageSite     =  'T3_CH_CERNBOX' ## or T3_US_FNALLPC, 'T3_US_TAMU'
 # Submit or write the Plotter files
-OnlySubmitCRAB = False
+OnlySubmitCRAB = True
 
 import os
 import glob
@@ -36,22 +41,22 @@ def findNewestDir(directory):
   return lister[-1][0]
 
 datasets  = []; NumSample = []; sampleN_short = []
-#doTT=False; doDY=False; doVV=False; doSingleT=False; doWjets=False; dottV=False; doRadion=True; doGravition=True;
-doTT=True; doDY=True; doVV=True; doSingleT=True; doWjets=True; dottV=True; doRadion=True; doGravition=True;
+doTT=False; doDY=False; doVV=False; doSingleT=False; doWjets=False; dottV=False; doRadion=True; doGravition=False;
+#doTT=True; doDY=True; doVV=True; doSingleT=True; doWjets=True; dottV=True; doRadion=True; doGravition=True;
 # SIGNAL
 if doRadion:
-  datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-260_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM')
-  NumSample.append('100'); sampleN_short.append('Rad_260')
-  datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-270_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM') 
-  NumSample.append('101'); sampleN_short.append('Rad_270')
-  datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-300_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM')
-  NumSample.append('102'); sampleN_short.append('Rad_300')
-  datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-350_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM')
-  NumSample.append('103'); sampleN_short.append('Rad_350')
-  datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-400_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM')
-  NumSample.append('104'); sampleN_short.append('Rad_400')
-  datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-450_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM')
-  NumSample.append('105'); sampleN_short.append('Rad_450')
+  #datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-260_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM')
+  #NumSample.append('100'); sampleN_short.append('Rad_260')
+  #datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-270_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM') 
+  #NumSample.append('101'); sampleN_short.append('Rad_270')
+  #datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-300_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM')
+  #NumSample.append('102'); sampleN_short.append('Rad_300')
+  #datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-350_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM')
+  #NumSample.append('103'); sampleN_short.append('Rad_350')
+  #datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-400_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM')
+  #NumSample.append('104'); sampleN_short.append('Rad_400')
+  #datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-450_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM')
+  #NumSample.append('105'); sampleN_short.append('Rad_450')
   datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-500_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM')
   NumSample.append('106'); sampleN_short.append('Rad_500')
   datasets.append('/GluGluToRadionToHHTo2B2VTo2L2Nu_M-550_narrow_13TeV-madgraph-v2/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM')
@@ -178,8 +183,19 @@ check_f   = open("check_crab.sh",'w')
 check_f.write("#!/bin/bash\n")
 if __name__ == '__main__':
   from CRABAPI.RawCommand import crabCommand
+  from multiprocessing import Process
+  from CRABClient.ClientExceptions import ClientException
+  from httplib import HTTPException
+  def submit(config):
+    try:
+        crabCommand('submit', config = config)
+    except HTTPException as hte:
+        print("Failed submitting task: %s" % (hte.headers))
+    except ClientException as cle:
+        print("Failed submitting task: %s" % (cle))
   i=0
   args = []; args.append("-99")
+  configlist = []
   lastSampleShort="NOSAMPLESHORT"
   for dataset in datasets:
     # To check the status
@@ -187,25 +203,31 @@ if __name__ == '__main__':
     # To plot easily the datasets
     if not OnlySubmitCRAB:
       sampleN   = dataset.split('/')[1].split('_')[0]+dataset.split('/')[1].split('_')[1]
-      path      = "/fdata/hepx/store/user/lpernie/MC_Hhh_analysis/" + dataset.split('/')[1] + "/crab_" + dataset.split('/')[1] + "/"
+      path      = storesite + outfolder + dataset.split('/')[1] + "/crab_" + dataset.split('/')[1] + "/"
       NewestDir = findNewestDir(path)
       path      = path + NewestDir
       newSample = True
       if(sampleN_short[i]==lastSampleShort): newSample = False
       if((newSample and lastSampleShort!="NOSAMPLESHORT") or i==int(len(NumSample)-1) ):
         plotter_f.write('  this_cat      = "cat HADD/' + sampleN_short[i-1] + '_*' ' > HADD/' + sampleN_short[i-1] + '.txt"\n')
-        plotter_f.write('  this_hadd     = "hadd -T -f -k /fdata/hepx/store/user/lpernie/MC_Hhh_analysis/' + oldDataset + '/crab_' + oldDataset + '.root @HADD/' + sampleN_short[i-1] + '.txt"\n')
-        plotter_f.write('  this_NtotPath = "/fdata/hepx/store/user/lpernie/MC_Hhh_analysis/' + oldDataset + '/crab_' + oldDataset + '.root"\n')
+        plotter_f.write('  this_hadd     = "hadd -T -f -k ' + storesite + outfolder + oldDataset + '/crab_' + oldDataset + '.root @HADD/' + sampleN_short[i-1] + '.txt"\n')
+        plotter_f.write('  this_NtotPath = " ' + storesite + outfolder + oldDataset + '/crab_' + oldDataset + '.root"\n')
       if(newSample):
         plotter_f.write('if( whichSample == "' + sampleN_short[i] + '" ):\n')
-      plotter_f.write('  Find_str.append("find ' + path + ' | grep root | grep -v failed > HADD/' + sampleN_short[i] + "_" + sampleN + '.txt")\n')
+        plotter_f.write('  Find_str.append("find ' + path + ' | grep root | grep -v failed > HADD/' + sampleN_short[i] + "_" + sampleN + '.txt")\n')
       lastSampleShort = sampleN_short[i]
     if OnlySubmitCRAB:
+      #os.system("cp runDiHiggsWWAnalyzer.py runDiHiggsWWAnalyzer_%s.py"%sampleN_short[i])
+      #config.JobType.psetName  = "runDiHiggsWWAnalyzer_%s.py"%sampleN_short[i]
       config.Data.inputDataset = dataset
       config.General.requestName = dataset.split('/')[1]
-      args[0] = NumSample[i]
+      args[0] = "sampleType=%s"%NumSample[i]
       config.JobType.pyCfgParams = args
-      crabCommand('submit', config = config)
+      #crabCommand('submit', config = config)
+      #p = Process(target=crabCommand('submit', config=config),  args=())
+      p = Process(target=submit, args=(config,))
+      p.start()
+      p.join()
     i=i+1
     oldDataset = dataset.split('/')[1]
 print "bash check_crab.sh > RESULTS.txt"
