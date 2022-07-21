@@ -14,7 +14,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
 options = VarParsing('analysis')
 options.register("sampleType", 0, VarParsing.multiplicity.singleton, VarParsing.varType.int)
 options.parseArguments()
-#print("sys.argv ", sys.argv, " sampleType ", options.sampleType)
+print("sys.argv ", sys.argv, " sampleType ", options.sampleType)
 
 process.source = cms.Source("PoolSource",
   secondaryFileNames = cms.untracked.vstring(),
@@ -30,10 +30,10 @@ process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(100) 
 )
 
-process.MessageLogger = cms.Service("MessageLogger", 
-    destinations = cms.untracked.vstring("cout"), 
-    cout = cms.untracked.PSet(threshold = cms.untracked.string("ERROR"))
-)
+#process.MessageLogger = cms.Service("MessageLogger", 
+#    destinations = cms.untracked.vstring("cout"), 
+#    cout = cms.untracked.PSet(threshold = cms.untracked.string("ERROR"))
+#)
 
 process.eventCounterFilter = cms.EDFilter("EventCounterFilter")
 
@@ -62,7 +62,11 @@ process.hltfilter = cms.EDFilter( "TriggerResultsFilter",
 	throw = cms.bool(True)    
 )
 
-scalefactor_file = "Files/"
+scalefactor_folder = "./"
+#if os.path.isdir("Files/"):
+#  scalefactor_folder = "Files/"
+#if not os.path.isfile(scalefactor_folder + "EfficienciesAndSF_BCDEFGH_Tracking.root"):
+#  sys.exit("root file not found: "+ scalefactor_folder + "EfficienciesAndSF_BCDEFGH_Tracking.root")    
 #scalefactor_file = ""
 
 process.DiHiggsWWBBAna = cms.EDAnalyzer('DiHiggsWWBBAnalyzer',
@@ -87,10 +91,10 @@ process.DiHiggsWWBBAna = cms.EDAnalyzer('DiHiggsWWBBAnalyzer',
   #2016data: Run BCDEF use 2016Medium, GH use Medium
   mu_id           = cms.untracked.string("2016Medium"),
   mu_PFIso        = cms.untracked.double(0.15),#tight iso
-  triggerSFFile   = cms.string(scalefactor_file + "EfficienciesAndSF_BCDEF_trigger.root"),
-  isoSFFile       = cms.string(scalefactor_file + "EfficienciesAndSF_BCDEF_ISO.root"),
-  idSFFile        = cms.string(scalefactor_file + "EfficienciesAndSF_BCDEF_ID.root"),
-  trackingSFFile  = cms.string(scalefactor_file + "EfficienciesAndSF_BCDEFGH_Tracking.root"),
+  triggerSFFile   = cms.string(scalefactor_folder + "EfficienciesAndSF_BCDEF_trigger.root"),
+  isoSFFile       = cms.string(scalefactor_folder + "EfficienciesAndSF_BCDEF_ISO.root"),
+  idSFFile        = cms.string(scalefactor_folder + "EfficienciesAndSF_BCDEF_ID.root"),
+  trackingSFFile  = cms.string(scalefactor_folder + "EfficienciesAndSF_BCDEFGH_Tracking.root"),
   triggerSFhist   = cms.string("IsoMu24_OR_IsoTkMu24_PtEtaBins/abseta_pt_ratio"),
   isoSFhist       = cms.string("TightISO_MediumID_pt_eta/abseta_pt_ratio"),
   idSFhist        = cms.string("MC_NUM_MediumID2016_DEN_genTracks_PAR_pt_eta/abseta_pt_ratio"),

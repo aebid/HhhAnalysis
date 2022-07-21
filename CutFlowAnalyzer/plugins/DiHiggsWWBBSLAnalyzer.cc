@@ -2494,7 +2494,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesHbbWW2J2Nu(edm::Handle<reco::GenPar
       findAllGenParticles = true;
     }else{
       findAllGenParticles = false;
-      std::cout <<"failed to two leptons from  W decay and two quarks from the other W "<< std::endl;
+      std::cout <<"failed to one lepton from  W decay and two quarks from the other W "<< std::endl;
     }
     if (debug_){
       std::cout <<" w1 " ; printCandidate(w1cand);
@@ -3102,6 +3102,7 @@ DiHiggsWWBBSLAnalyzer::fillbranches(){
   }
 
     TLorentzVector lep1_p4(lep1cand->px(), lep1cand->py(), lep1cand->pz(), lep1cand->energy());
+    TLorentzVector nu1_p4(nu1cand->px(), nu1cand->py(), nu1cand->pz(), nu1cand->energy());
     //TLorentzVector lep2_p4(lep2cand->px(), lep2cand->py(), lep2cand->pz(), lep2cand->energy());
     //TLorentzVector diNeutrinos_p4(nu1cand->px()+nu2cand->px(), nu1cand->py()+nu2cand->py(), nu1cand->pz()+nu2cand->pz(), nu1cand->energy()+nu2cand->energy());
     //genmet_neutrinos_px = diNeutrinos_p4.Px();
@@ -3114,6 +3115,11 @@ DiHiggsWWBBSLAnalyzer::fillbranches(){
     TLorentzVector b2_p4(b2cand->px(), b2cand->py(), b2cand->pz(), b2cand->energy());
     TLorentzVector q1_p4(q1cand->px(), q1cand->py(), q1cand->pz(), q1cand->energy());
     TLorentzVector q2_p4(q2cand->px(), q2cand->py(), q2cand->pz(), q2cand->energy());
+    TLorentzVector hbb_p4 = b1_p4 + b2_p4;
+    TLorentzVector hww_p4 = lep1_p4 + nu1_p4 + q1_p4 + q2_p4;
+    TLorentzVector Xhh_p4 = hbb_p4 + hww_p4;
+    std::cout<<"hbb  mass "<< hbb_p4.M() << " hww mass "<< hww_p4.M() <<" Xhh mass "<< Xhh_p4.M() << std::endl;
+    
     //dR_genbl   = (b1_p4.Pt()>b2_p4.Pt()) ? (b1_p4.DeltaR( (lep1_p4.Pt()>lep2_p4.Pt()) ? lep1_p4 : lep2_p4 )) : (b2_p4.DeltaR( (lep1_p4.Pt()>lep2_p4.Pt()) ? lep1_p4 : lep2_p4 ));
     dR_genb1l1 = b1_p4.DeltaR(lep1_p4);
     //dR_genb1l2 = b1_p4.DeltaR(lep2_p4);

@@ -1,7 +1,7 @@
 from CRABClient.UserUtilities import config
 username = "tahuang"
 storesite = "/eos/user/t/tahuang/"
-outfolder = "MC_Hhh_analysis_20220719"
+outfolder = "MC_Hhh_analysis_Run2016_20220720"
 config = config()
 
 config.section_("General")
@@ -13,8 +13,8 @@ config.JobType.pluginName   = 'Analysis'
 config.JobType.outputFiles  = ['out_ana.root']
 config.JobType.psetName     = "runDiHiggsWWAnalyzer.py"
 config.JobType.pyCfgParams  = ["sampleType=100"]
-#config.JobType.inputFiles   = ["Files/EfficienciesAndSF_BCDEFGH_Tracking.root","Files/EfficienciesAndSF_BCDEF_Tracking.root","Files/EfficienciesAndSF_GH_ISO.root","Files/EfficienciesAndSF_BCDEF_ID.root","Files/EfficienciesAndSF_BCDEF_trigger.root","Files/EfficienciesAndSF_GH_Tracking.root","Files/EfficienciesAndSF_BCDEF_ISO.root","Files/EfficienciesAndSF_GH_ID.root","Files/EfficienciesAndSF_GH_trigger.root"]
-config.JobType.inputFiles   = ["Files/"]
+config.JobType.inputFiles   = ["Files/EfficienciesAndSF_BCDEFGH_Tracking.root","Files/EfficienciesAndSF_BCDEF_Tracking.root","Files/EfficienciesAndSF_GH_ISO.root","Files/EfficienciesAndSF_BCDEF_ID.root","Files/EfficienciesAndSF_BCDEF_trigger.root","Files/EfficienciesAndSF_GH_Tracking.root","Files/EfficienciesAndSF_BCDEF_ISO.root","Files/EfficienciesAndSF_GH_ID.root","Files/EfficienciesAndSF_GH_trigger.root"]
+#config.JobType.inputFiles   = ["Files/"]
 
 config.section_("Data")
 config.Data.inputDBS        = 'global'

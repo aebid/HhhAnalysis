@@ -2,14 +2,15 @@ import os, sys, random
 import ROOT
 from ROOT import TFile,TChain,TH1F,TH2F,TLegend
 from math import *
-from HeavyMassEstimator import *
 import argparse
 import numpy as np
 ROOT.gROOT.SetBatch(1)
 #sys.argv.append( '-b' ) 
 from array import array
-import mt2_bisect
+#import mt2_bisect
 
+sys.path.append(os.path.join(os.path.abspath('..'), 'HeavyMassEstimator/python'))
+from HeavyMassEstimator import *
 import Samplelist_2016Run as Samplelist
 import warnings
 sys.argv.append( '-b' )
@@ -23,7 +24,7 @@ execfile("start.py")
 execfile("functions.py")
 
 
-sys.path.append('/home/taohuang/DiHiggsAnalysis/CMSSW_9_4_0_pre1/src/HhhAnalysis/python/NanoAOD')
+#sys.path.append('/home/taohuang/DiHiggsAnalysis/CMSSW_9_4_0_pre1/src/HhhAnalysis/python/NanoAOD')
 from localSamplelist import *
 #Creating folders and parameters
 def AddFiles(chain, inputDir):
@@ -81,7 +82,7 @@ elif args.dataname == None:
      print "error!!! no dataname is found "
      sys.exit()
 
-maxn = 10 
+maxn = 2
 #DY_BDT_flat                 = array( 'f', maxn*[ 0. ] ) #np.zeros(1, dtype=float) 
 #dy_nobtag_to_btagM_weight   = array( 'f', maxn*[ 0. ] ) #np.zeros(1, dtype=float) 
 passCC                      = array( 'f', maxn*[ 0. ] ) #np.zeros(1, dtype=float)
@@ -152,32 +153,32 @@ TCha2 = TCha.CloneTree(0)
 
 #TCha2.Branch("DY_BDT_flat",                   DY_BDT_flat,                  "DY_BDT_flat/F")
 #TCha2.Branch("dy_nobtag_to_btagM_weight",     dy_nobtag_to_btagM_weight,    "dy_nobtag_to_btagM_weight/F")
-TCha2.Branch("passCC",                        passCC,                       "passCC/F")
-TCha2.Branch("passpre",                       passpre,                      "passpre/F")
-TCha2.Branch("mt2",                           mt2,                          "mt2/F")
-TCha2.Branch("mt2_bb",                        mt2_bb,                       "mt2_bb/F")
-TCha2.Branch("mt2_ll",                        mt2_ll,                       "mt2_ll/F")
-TCha2.Branch("hme_h2mass_gen",                hme_h2mass_gen,               "hme_h2mass_gen/F")
-TCha2.Branch("hme_h2mass_reco",               hme_h2mass_reco,              "hme_h2mass_reco/F")
-TCha2.Branch("hme_mean_reco",                 hme_mean_reco,                "hme_mean_reco/F")
-TCha2.Branch("hme_stddev_reco",               hme_stddev_reco,              "hme_stddev_reco/F")
-TCha2.Branch("hme_entries_reco",              hme_entries_reco,             "hme_entries_reco/F")
-TCha2.Branch("hme_entry_peak_reco",           hme_entry_peak_reco,          "hme_entry_peak_reco/F")
-TCha2.Branch("hme_h2mass_weight2_gen",        hme_h2mass_weight2_gen,       "hme_h2mass_weight2_gen/F")
-TCha2.Branch("hme_h2mass_weight2_reco",       hme_h2mass_weight2_reco,      "hme_h2mass_weight2_reco/F")
-TCha2.Branch("hme_mean_weight2_reco",         hme_mean_weight2_reco,        "hme_mean_weight2_reco/F")
-TCha2.Branch("hme_stddev_weight2_reco",        hme_stddev_weight2_reco,      "hme_stddev_weight2_reco/F")
-TCha2.Branch("hme_entries_weight2_reco",      hme_entries_weight2_reco,     "hme_entries_weight2_reco/F")
-TCha2.Branch("hme_entry_peak_weight2_reco",   hme_entry_peak_weight2_reco,  "hme_entry_peak_weight2_reco/F")
-TCha2.Branch("hme_mostprob_offshellWmass_reco",   hme_mostprob_offshellWmass_reco,  "hme_mostprob_offshellWmass_reco/F")
-TCha2.Branch("hme_mean_offshellWmass_reco",   hme_mean_offshellWmass_reco,  "hme_mean_offshellWmass_reco/F")
-TCha2.Branch("hme_stddev_offshellWmass_reco", hme_stddev_offshellWmass_reco,"hme_stddev_offshellWmass_reco/F")
-TCha2.Branch("hme_mean_offshellWmass_weight2_reco",   hme_mean_offshellWmass_weight2_reco,  "hme_mean_offshellWmass_weight2_reco/F")
-TCha2.Branch("hme_mostprob_offshellWmass_weight2_reco",   hme_mostprob_offshellWmass_weight2_reco,  "hme_mostprob_offshellWmass_weight2_reco/F")
-TCha2.Branch("hme_stddev_offshellWmass_weight2_reco", hme_stddev_offshellWmass_weight2_reco,"hme_stddev_offshellWmass_weight2_reco/F")
-TCha2.Branch("hmecputime",                    hmecputime,                   "hmecputime/F")
-TCha2.Branch("cross_section",                 cross_section,                "cross_section/F")
-TCha2.Branch("event_weight_sum",              event_weight_sum,             "event_weight_sum/F")
+#TCha2.Branch("passCC",                        passCC,                       "passCC/F")
+#TCha2.Branch("passpre",                       passpre,                      "passpre/F")
+#TCha2.Branch("mt2",                           mt2,                          "mt2/F")
+#TCha2.Branch("mt2_bb",                        mt2_bb,                       "mt2_bb/F")
+#TCha2.Branch("mt2_ll",                        mt2_ll,                       "mt2_ll/F")
+TCha2.Branch("newhme_h2mass_gen",                hme_h2mass_gen,               "hme_h2mass_gen/F")
+TCha2.Branch("newhme_h2mass_reco",               hme_h2mass_reco,              "hme_h2mass_reco/F")
+TCha2.Branch("newhme_mean_reco",                 hme_mean_reco,                "hme_mean_reco/F")
+TCha2.Branch("newhme_stddev_reco",               hme_stddev_reco,              "hme_stddev_reco/F")
+TCha2.Branch("newhme_entries_reco",              hme_entries_reco,             "hme_entries_reco/F")
+TCha2.Branch("newhme_entry_peak_reco",           hme_entry_peak_reco,          "hme_entry_peak_reco/F")
+TCha2.Branch("newhme_h2mass_weight2_gen",        hme_h2mass_weight2_gen,       "hme_h2mass_weight2_gen/F")
+TCha2.Branch("newhme_h2mass_weight2_reco",       hme_h2mass_weight2_reco,      "hme_h2mass_weight2_reco/F")
+TCha2.Branch("newhme_mean_weight2_reco",         hme_mean_weight2_reco,        "hme_mean_weight2_reco/F")
+TCha2.Branch("newhme_stddev_weight2_reco",        hme_stddev_weight2_reco,      "hme_stddev_weight2_reco/F")
+TCha2.Branch("newhme_entries_weight2_reco",      hme_entries_weight2_reco,     "hme_entries_weight2_reco/F")
+TCha2.Branch("newhme_entry_peak_weight2_reco",   hme_entry_peak_weight2_reco,  "hme_entry_peak_weight2_reco/F")
+TCha2.Branch("newhme_mostprob_offshellWmass_reco",   hme_mostprob_offshellWmass_reco,  "hme_mostprob_offshellWmass_reco/F")
+TCha2.Branch("newhme_mean_offshellWmass_reco",   hme_mean_offshellWmass_reco,  "hme_mean_offshellWmass_reco/F")
+TCha2.Branch("newhme_stddev_offshellWmass_reco", hme_stddev_offshellWmass_reco,"hme_stddev_offshellWmass_reco/F")
+TCha2.Branch("newhme_mean_offshellWmass_weight2_reco",   hme_mean_offshellWmass_weight2_reco,  "hme_mean_offshellWmass_weight2_reco/F")
+TCha2.Branch("newhme_mostprob_offshellWmass_weight2_reco",   hme_mostprob_offshellWmass_weight2_reco,  "hme_mostprob_offshellWmass_weight2_reco/F")
+TCha2.Branch("newhme_stddev_offshellWmass_weight2_reco", hme_stddev_offshellWmass_weight2_reco,"hme_stddev_offshellWmass_weight2_reco/F")
+TCha2.Branch("newhmecputime",                    hmecputime,                   "hmecputime/F")
+#TCha2.Branch("cross_section",                 cross_section,                "cross_section/F")
+#TCha2.Branch("event_weight_sum",              event_weight_sum,             "event_weight_sum/F")
 
 #ignore HME bins now 
 #for i in range(100):
@@ -321,39 +322,39 @@ for nEv in range(nStart, nEnd):
       jet2_p4 	  = ROOT.TLorentzVector(); jet2_p4.SetPtEtaPhiE(TCha.jet2_pt, TCha.jet2_eta, TCha.jet2_phi, TCha.jet2_E)
       met_vec2    = ROOT.TVector2();       met_vec2.SetMagPhi(TCha.met_pt, TCha.met_phi)
       
-      mt2_event1 =  mt2_bisect.mt2()
-      sumesBl11_p4 = lep1_p4+jet1_p4
-      sumesBl22_p4 = lep2_p4+jet2_p4
-      mt2_event1.set_momenta(sumesBl11_p4.M(), sumesBl11_p4.Px(), sumesBl11_p4.Py(), sumesBl22_p4.M(), sumesBl22_p4.Px(), sumesBl22_p4.Py(), 0.0, met_vec2.Px(), met_vec2.Py())
-      mt2_event1.set_mn(0.0)
-      MT2_1 = mt2_event1.get_mt2()
+      #mt2_event1 =  mt2_bisect.mt2()
+      #sumesBl11_p4 = lep1_p4+jet1_p4
+      #sumesBl22_p4 = lep2_p4+jet2_p4
+      #mt2_event1.set_momenta(sumesBl11_p4.M(), sumesBl11_p4.Px(), sumesBl11_p4.Py(), sumesBl22_p4.M(), sumesBl22_p4.Px(), sumesBl22_p4.Py(), 0.0, met_vec2.Px(), met_vec2.Py())
+      #mt2_event1.set_mn(0.0)
+      #MT2_1 = mt2_event1.get_mt2()
 
-      mt2_event2 =  mt2_bisect.mt2()
-      sumesBl12_p4 = lep2_p4+jet1_p4
-      sumesBl21_p4 = lep1_p4+jet2_p4
-      mt2_event2.set_momenta(sumesBl12_p4.M(), sumesBl12_p4.Px(), sumesBl12_p4.Py(), sumesBl21_p4.M(), sumesBl21_p4.Px(), sumesBl21_p4.Py(), 0.0, met_vec2.Px(), met_vec2.Py())
-      mt2_event2.set_mn(0.0)
-      MT2_2 = mt2_event2.get_mt2()
-      
-      mt2[0] = min(MT2_1, MT2_2)
+      #mt2_event2 =  mt2_bisect.mt2()
+      #sumesBl12_p4 = lep2_p4+jet1_p4
+      #sumesBl21_p4 = lep1_p4+jet2_p4
+      #mt2_event2.set_momenta(sumesBl12_p4.M(), sumesBl12_p4.Px(), sumesBl12_p4.Py(), sumesBl21_p4.M(), sumesBl21_p4.Px(), sumesBl21_p4.Py(), 0.0, met_vec2.Px(), met_vec2.Py())
+      #mt2_event2.set_mn(0.0)
+      #MT2_2 = mt2_event2.get_mt2()
+      #
+      #mt2[0] = min(MT2_1, MT2_2)
 
-      #jj_p4 = jet1_p4+jet2_p4
-      #ll_p4 = lep1_p4+lep2_p4
-      mt2_eventbb = mt2_bisect.mt2()
-      mt2_eventbb.nevt = nEv
-      mt2_eventbb.set_momenta(jet1_p4.M(), jet1_p4.Px(), jet1_p4.Py(), jet2_p4.M(), jet2_p4.Px(), jet2_p4.Py(), 0.0, met_vec2.Px()+lep1_p4.Px()+lep2_p4.Px(), met_vec2.Py()+lep1_p4.Py()+lep1_p4.Py())
-      mt2_eventbb.set_mn(80.4)
-      #mt2_eventbb._print()
-      mt2_bb[0] = mt2_eventbb.get_mt2()
+      ##jj_p4 = jet1_p4+jet2_p4
+      ##ll_p4 = lep1_p4+lep2_p4
+      #mt2_eventbb = mt2_bisect.mt2()
+      #mt2_eventbb.nevt = nEv
+      #mt2_eventbb.set_momenta(jet1_p4.M(), jet1_p4.Px(), jet1_p4.Py(), jet2_p4.M(), jet2_p4.Px(), jet2_p4.Py(), 0.0, met_vec2.Px()+lep1_p4.Px()+lep2_p4.Px(), met_vec2.Py()+lep1_p4.Py()+lep1_p4.Py())
+      #mt2_eventbb.set_mn(80.4)
+      ##mt2_eventbb._print()
+      #mt2_bb[0] = mt2_eventbb.get_mt2()
 
-      mt2_eventll = mt2_bisect.mt2()
-      mt2_eventll.nevt = nEv
-      mt2_eventll.set_momenta(lep1_p4.M(), lep1_p4.Px(), lep1_p4.Py(), lep2_p4.M(), lep2_p4.Px(), lep2_p4.Py(), 0.0, met_vec2.Px(), met_vec2.Py())
-      mt2_eventll.set_mn(0.0)
-      mt2_ll[0] = mt2_eventll.get_mt2()
-      #mt2_eventll._print()
+      #mt2_eventll = mt2_bisect.mt2()
+      #mt2_eventll.nevt = nEv
+      #mt2_eventll.set_momenta(lep1_p4.M(), lep1_p4.Px(), lep1_p4.Py(), lep2_p4.M(), lep2_p4.Px(), lep2_p4.Py(), 0.0, met_vec2.Px(), met_vec2.Py())
+      #mt2_eventll.set_mn(0.0)
+      #mt2_ll[0] = mt2_eventll.get_mt2()
+      ##mt2_eventll._print()
 
-      #print "MT2_1 ", MT2_1," MT2_2 ",MT2_2, " MT2 final ", mt2[0]," mt2_ll ",mt2_ll[0]," mt2_jj ",mt2_bb[0]
+      ##print "MT2_1 ", MT2_1," MT2_2 ",MT2_2, " MT2 final ", mt2[0]," mt2_ll ",mt2_ll[0]," mt2_jj ",mt2_bb[0]
       hme = HeavyMassEstimator()
       hme.setKinematic(lep1_p4, lep2_p4, jet1_p4, jet2_p4, met_vec2, 0)
       #hme.setonshellWmasspdf(onshellWmasspdf)

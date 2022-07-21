@@ -9,6 +9,7 @@ cmsenv
 git clone https://github.com/tahuang1991/nanoAOD-tools.git PhysicsTools/NanoAODTools   
 git clone https://github.com/tahuang1991/HhhAnalysis.git   
 cd HhhAnalysis
+git submoudle https://github.com/tahuang1991/HeavyMassEstimator
 scram b -j 12   
 ```
 tahuang1991/nanoAOD-tools is built based on cms-nanoAOD/nanoAOD-tools with minor change
@@ -35,6 +36,10 @@ If you are using TTbar, you can set Sampletype=0, or Sampletype=13 which will ch
 If you are using DY sample, you can set Sampletype=0, or Sampletype=14 which will check gen-level information( not implemented yet)   
 The event will be saved only if it pass preselection at reco levle but we also sometimes keep track of gen-level information   
  
+# Run python version HME under PlottingTools
+    - PlottingTools/runHME_HHbbWW_boosted.py is used to read in events from TTree and compute the HME for each event
+    - PlottingTools/generateHMEJobs_HHbbWW_condor.py is to generate splitted condor jobs for one sample to run HME 
+
 
 # Samples Location
 https://gitlab.cern.ch/cms-hh-bbww/cms-hh-to-bbww/-/blob/master/Legacy/datasets.md

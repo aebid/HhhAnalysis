@@ -62,7 +62,7 @@ process.hltfilter = cms.EDFilter( "TriggerResultsFilter",
 	throw = cms.bool(True)    
 )
 
-scalefactor_file = "Files/"
+scalefactor_file = "MuonEffAndSF_2016Data/"
 #scalefactor_file = ""
 
 process.DiHiggsWWBBAna = cms.EDAnalyzer('DiHiggsWWBBAnalyzer',

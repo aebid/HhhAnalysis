@@ -7,3 +7,9 @@
   e) Redo these steps for the file "multicrab3.py" in HhhAnalysis/CutFlowAnalyzer/test/MC_MINIAODtoNtuple 
 2) source Send_PlotterProducer.sh
 3) Once the jobs are done you can run: 'python FinalPlotter.py -b'
+
+
+To Checkout python version Heavy mass estimator(HME) by
+```
+git submodule add https://github.com/tahuang1991/HeavyMassEstimator
+```

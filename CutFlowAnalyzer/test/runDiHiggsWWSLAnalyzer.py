@@ -36,7 +36,7 @@ from HhhAnalysis.MCProduction.InputFileHelpers import *
 #inputdir = ['/fdata/hepx/store/user/tahuang/xSM_HeavyHiggs2DiHiggs2bbWW_B3_leptonW_CMSSW80X_13TeV_1M/xSM_HeavyHiggs2DiHiggs2bbWW_B3_leptonW_CMSSW80X_13TeV_1M/170329_023747/0000/']
 #inputdir = ['/fdata/hepx/store/user/tahuang/xSM_HeavyHiggs2DiHiggs2bbWW_B3_leptonW_CMSSW80X_13TeV_10k/xSM_HeavyHiggs2DiHiggs2bbWW_B3_leptonW_CMSSW80X_13TeV_10k/170330_023219/0000/']
 #process = useInputDir(process, inputdir)
-nEvents = 1000
+nEvents = 10000
 process.maxEvents = cms.untracked.PSet( 
     input = cms.untracked.int32(nEvents) 
 )

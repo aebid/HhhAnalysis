@@ -527,6 +527,10 @@ class DiHiggsWWBBAnalyzer : public edm::EDAnalyzer {
     float met_phi;
     float met_px;
     float met_py;
+    float met_covxx;
+    float met_covyy;
+    float met_covxy;
+    float met_covyx;
 
     float HT;
 
@@ -965,6 +969,10 @@ void DiHiggsWWBBAnalyzer::initBranches(){
   met_phi = -9.;
   met_px = -999999.0;
   met_py = -999999.0;
+  met_covxx = 1.0;
+  met_covyy = 1.0;
+  met_covxy = 0.0;
+  met_covyx = 0.0;
 
   HT = 0;
 
@@ -1144,6 +1152,7 @@ void DiHiggsWWBBAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //****************************************************************************
 
   //std::cout <<"MET "<< std::endl;
+  //https://github.com/cms-sw/cmssw/blob/master/DataFormats/METReco/src/MET.cc
   edm::Handle<pat::METCollection> mets;
   iEvent.getByToken(metToken_, mets);
   const pat::MET &met = mets->front();
@@ -1154,6 +1163,10 @@ void DiHiggsWWBBAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   printf("MET: pt %5.1f, phi %+4.2f, sumEt (%.1f). MET with JES up/down: %.1f/%.1f\n", 
 	  met.pt(), met.phi(), met.sumEt(),met.shiftedPt(pat::MET::JetEnUp), met.shiftedPt(pat::MET::JetEnDown));
   met_px = met.px(); met_py = met.py(); met_phi = met.phi(); met_pt = met.pt();
+  met_covxx = met.getSignificanceMatrix()(0,0);
+  met_covxy = met.getSignificanceMatrix()(0,1);
+  met_covyx = met.getSignificanceMatrix()(1,0);
+  met_covyy = met.getSignificanceMatrix()(1,1);
   //****************************************************************************
   //                Di-Leptons selection
   //                Medium ID + loose PF-based combined relative isolation with detaB correction
@@ -1795,6 +1808,10 @@ void DiHiggsWWBBAnalyzer::beginJob(){
   evtree->Branch("met_phi",&met_phi,"met_phi/F");
   evtree->Branch("met_px",&met_px,"met_px/F");
   evtree->Branch("met_py",&met_py,"met_py/F");
+  evtree->Branch("met_covxx",&met_covxx,"met_covxx/F");
+  evtree->Branch("met_covxy",&met_covxy,"met_covxy/F");
+  evtree->Branch("met_covyx",&met_covyx,"met_covyx/F");
+  evtree->Branch("met_covyy",&met_covyy,"met_covyy/F");
 
   evtree->Branch("HT",&HT,"HT/F");
 

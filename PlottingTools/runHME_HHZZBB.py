@@ -2,9 +2,11 @@ import os, sys, random
 import ROOT
 from ROOT import TFile,TChain,TH1F,TH2F,TLegend
 from math import *
-from HeavyMassEstimatorHHZZBB import *
 import argparse
 import numpy as np
+
+sys.path.append(os.path.join(os.path.abspath('..'), 'HeavyMassEstimator/python'))
+from HeavyMassEstimatorHHZZBB import *
 
 import Samplelist 
 execfile("start.py")

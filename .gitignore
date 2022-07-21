@@ -9,6 +9,7 @@ PlottingTools/*.out
 PlottingTools/Plots*/*
 CutFlowAnalyzer/*/*/crab_projects
 CutFlowAnalyzer/*/*/*.pyc
+CutFlowAnalyzer/test/*.root
 CutFlowAnalyzer/test/DATA_MINIAODtoNtuple/check_crab.sh
 CutFlowAnalyzer/test/DATA_MINIAODtoNtuple/for_plotter.py
 CutFlowAnalyzer/test/DATA_MINIAODtoNtuple/out_ana.root
