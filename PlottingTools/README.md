@@ -12,9 +12,10 @@
 3) Once the jobs are done you can run: 'python FinalPlotter.py -b'
 
 ## HME
-To Checkout python version Heavy mass estimator(HME) by
+To Checkout python version Heavy mass estimator(HME) by following commands under HhhAnalysis/
 ```
-git submodule add https://github.com/tahuang1991/HeavyMassEstimator
+git submodule init
+git submodule update
 ```
 Python scripts to compute HME include runHME_HHbbWW.py, runHME_HHbbWW_boosted.py, runHME_HHbbWW_general.py etc and the scripts to generate condor/slrm batch jobs include generateHMEJobs.py, generateHMEJobs_HHbbWW.py, generateHMEJobs_HHZZBB.py, generateHMEJobs_HHbbWW_condor.py etc. bash scripts like runHME_boosted.sh is used in condor job to run runHME_HHbbWW_boosted.py
 

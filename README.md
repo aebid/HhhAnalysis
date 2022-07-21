@@ -9,7 +9,8 @@ cmsenv
 git clone https://github.com/tahuang1991/nanoAOD-tools.git PhysicsTools/NanoAODTools   
 git clone https://github.com/tahuang1991/HhhAnalysis.git   
 cd HhhAnalysis
-git submoudle https://github.com/tahuang1991/HeavyMassEstimator
+git submodule init
+git submodule update
 scram b -j 12   
 ```
 tahuang1991/nanoAOD-tools is built based on cms-nanoAOD/nanoAOD-tools with minor change
