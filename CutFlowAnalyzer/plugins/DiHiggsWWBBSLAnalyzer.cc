@@ -169,8 +169,8 @@ class DiHiggsWWBBSLAnalyzer : public edm::EDAnalyzer {
     void printCandidate(const reco::Candidate* );
     void printallDecendants(const reco::Candidate* );
     void printallAncestors(const reco::Candidate* );
-    void checkGenParticlesHbbWW2L2Nu(edm::Handle<reco::GenParticleCollection> genParticleColl);
-    void checkGenParticlesHbbWW2J2Nu(edm::Handle<reco::GenParticleCollection> genParticleColl);
+    void checkGenParticlesHHbbWW2L2Nu(edm::Handle<reco::GenParticleCollection> genParticleColl);
+    void checkGenParticlesHHbbWW2J2Nu(edm::Handle<reco::GenParticleCollection> genParticleColl);
     void checkGenParticlesZZbb(edm::Handle<reco::GenParticleCollection> genParticleColl);
     void checkGenParticlesZZbb_2L2J(edm::Handle<reco::GenParticleCollection> genParticleColl);
     void checkGenParticlesTTbar(edm::Handle<reco::GenParticleCollection> genParticleColl);
@@ -1164,8 +1164,8 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
 
   if (sampleType_>=Rad_260) {
-    //checkGenParticlesHbbWW2L2Nu(genParticleColl);
-    checkGenParticlesHbbWW2J2Nu(genParticleColl);
+    //checkGenParticlesHHbbWW2L2Nu(genParticleColl);
+    checkGenParticlesHHbbWW2J2Nu(genParticleColl);
     //if (not findAllGenParticles)
 	  //checkGenParticlesZZbb(genParticleColl);
     //if (findAllGenParticles) std::cout <<"find all gen particles "<< std::endl;
@@ -2006,7 +2006,7 @@ DiHiggsWWBBSLAnalyzer::endJob() {
 }
 
 // ------------ method called to check singal genParticles   ------------
-void DiHiggsWWBBSLAnalyzer::checkGenParticlesHbbWW2L2Nu(edm::Handle<reco::GenParticleCollection> genParticleColl){
+void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2L2Nu(edm::Handle<reco::GenParticleCollection> genParticleColl){
 
   std::vector<reco::GenParticle*> b1Coll; 
   std::vector<reco::GenParticle*> b2Coll;
@@ -2311,7 +2311,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesZZbb(edm::Handle<reco::GenParticleC
 
 
 // ------------ method called to check singal genParticles   ------------
-void DiHiggsWWBBSLAnalyzer::checkGenParticlesHbbWW2J2Nu(edm::Handle<reco::GenParticleCollection> genParticleColl){
+void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2J2Nu(edm::Handle<reco::GenParticleCollection> genParticleColl){
 
   std::vector<reco::GenParticle*> b1Coll; 
   std::vector<reco::GenParticle*> b2Coll;
