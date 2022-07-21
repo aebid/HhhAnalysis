@@ -36,3 +36,8 @@ MVA_Studies/*.root
 MVA_Studies/files/
 Regression/*.txt
 PlottingTools/*.pyc
+python/NanoAOD/*log
+PlottingTools/error/
+PlottingTools/log/
+PlottingTools/output/
+PlottingTools/*.root
