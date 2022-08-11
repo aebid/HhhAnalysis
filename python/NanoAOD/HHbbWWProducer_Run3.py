@@ -82,9 +82,18 @@ class HHbbWWProducer(Module):
         self.double_cutflow=0
         self.debug = 0
 
-        self.lepton_systematics_names = ["trigger_SF", "IDSF", "IDSF_recoToLoose", "IDSF_looseToTight"]                  #["Isosf","IDsf","trgsf","trackingsf","HLTsafeIDsf"]
+        self.trigger_SF_down = -1.0
+        self.trigger_SF_up   = -1.0
+        self.lepton_systematics_names = ["IDSF", "IDSF_recoToLoose", "IDSF_looseToTight"]                  #["Isosf","IDsf","trgsf","trackingsf","HLTsafeIDsf"]
         self.lepton1_systematics_values = {}
         self.lepton2_systematics_values = {}
+
+        ######## Vars Tao Asked For ########
+        self.genMET_pT = -1.0
+        self.genMET_phi = -1.0
+        self.met_covxx = -1.0
+        self.met_covyy = -1.0
+        self.met_covxy = -1.0
 
 
     def beginJob(self, histFile=None, histDirName=None):
@@ -260,6 +269,11 @@ class HHbbWWProducer(Module):
         out.branch("vbf_dEta_jj", "F");	#difference in eta of the VBF jet pair (filled only in the event categories)
 
         ######## SF Nom/Up/Down ########             #Adding the systematics
+        #
+        ######## Event Level ########
+        out.branch("trigger_SF_down", "F")
+        out.branch("trigger_SF_up", "F")
+        #
         ######## Leptons ########
         for branchname in self.lepton_systematics_names:
           out.branch("lepton1_{branchname}_nominal", "F")
@@ -268,6 +282,13 @@ class HHbbWWProducer(Module):
           out.branch("lepton2_{branchname}_nominal", "F")
           out.branch("lepton2_{branchname}_up", "F")
           out.branch("lepton2_{branchname}_down", "F")
+
+        ######## Vars Tao Asked For ########
+        out.branch("genMET_pT", "F")
+        out.branch("genMET_phi", "F")
+        out.branch("met_covxx", "F")
+        out.branch("met_covyy", "F")
+        out.branch("met_covxy", "F")
 
 
 
@@ -325,6 +346,7 @@ class HHbbWWProducer(Module):
 
 
 
+
         self.ievent =  getattr(event,"event", False)
         self.luminosityBlock = getattr(event, "luminosityBlock", False)
         self.run = getattr(event, "run", False)
@@ -333,6 +355,15 @@ class HHbbWWProducer(Module):
         self.met = Object(event, "MET")
         self.PU_weight = event.puWeight
         self.MC_weight = getattr(event, "genWeight", 1)
+
+
+        ######## Vars Tao Asked For ########
+        self.genMET_pT = Object(event, "GenMET").pt
+        self.genMET_phi = Object(event, "GenMET").phi
+        self.met_covxx = self.met.covXX
+        self.met_covyy = self.met.covYY
+        self.met_covxy = self.met.covXY
+
 
         electrons = list(Collection(event, "Electron"))
         muons = list(Collection(event, "Muon"))
@@ -521,7 +552,7 @@ class HHbbWWProducer(Module):
 
     def muonPreselection(self, muon):
       #pT >= 5, abs(eta) <= 2.4, abs(dxy) <= 500 um, abs(dz) <= 1mm, miniIso <= 0.4, sip3D <= 8, looseID
-      return abs(muon.eta)<=2.4 and muon.pt>=5 and abs(muon.dxy)<=0.05 and abs(muon.dz)<=0.1 and muon.miniPFRelIso_all<=0.4 and muon.sip3d<=8 and muon.looseId
+      return abs(muon.eta)<=2.4 and muon.pt>=5.0 and abs(muon.dxy)<=0.05 and abs(muon.dz)<=0.1 and muon.miniPFRelIso_all<=0.4 and muon.sip3d<=8 and muon.looseId
 
     def muonFakeable(self, muon):
       #Preselection, lepton cone-pT >= 10, jetDeepJet <= medium WP (per year), if leptonMVA <= 0.5: JetRelIso <= 0.5 and jetDeepJet upper cut obtained with interpolation
@@ -725,7 +756,7 @@ class HHbbWWProducer(Module):
 
       if "Fake" in category_string:
         print("Is fake single, testing jet->lepton fakerate")
-        #self.get_jet_to_lepton_fake_rate_SF(leading_lepton)
+        self.get_jet_to_lepton_fake_rate_SF(leading_lepton)
       return category_string
 
 
@@ -801,6 +832,16 @@ class HHbbWWProducer(Module):
 
 
 
+      #["trigger_SF", "IDSF", "IDSF_recoToLoose", "IDSF_looseToTight"]
+      #SF1_list = []
+      #SF2_list = []
+      #for i, name in enumerate(self.lepton_systematics_names):
+      #  SF1 = SF1_list[i]
+      #  SF2 = SF2_list[i]
+      #  self.lepton1_systematics_values[name] = [SF1[0], SF1[1], SF1[2]]
+      #  self.lepton2_systematics_values[name] = [SF2[0], SF2[1], SF2[2]]
+
+
 
       SF1 = self.get_lepton_SF(leading_lepton)
       SF2 = self.get_lepton_SF(subleading_lepton)
@@ -812,19 +853,20 @@ class HHbbWWProducer(Module):
       self.lepton2_systematics_values["IDSF"] = [SF2[0]*SF2[1], 1.0, 1.0]
 
 
-
-
-
       self.lepton_IDSF_recoToLoose = SF1[0]*SF2[0]
       self.lepton_IDSF_looseToTight = SF1[1]*SF2[1]
       self.lepton_IDSF = self.lepton_IDSF_recoToLoose*self.lepton_IDSF_looseToTight
 
-      self.get_trigger_eff_SF(lep_type, fake_leptons)
+
+      trigger_SF = self.get_trigger_eff_SF(lep_type, fake_leptons)
+      self.trigger_SF      = trigger_SF[0]
+      self.trigger_SF_down = trigger_SF[1]
+      self.trigger_SF_up   = trigger_SF[2]
 
       if "Fake" in category_string:
         print("Is fake double, testing jet->lepton fakerate")
-        #self.get_jet_to_lepton_fake_rate_SF(leading_lepton)
-        #self.get_jet_to_lepton_fake_rate_SF(subleading_lepton)
+        self.get_jet_to_lepton_fake_rate_SF(leading_lepton)
+        self.get_jet_to_lepton_fake_rate_SF(subleading_lepton)
 
       return category_string
 
@@ -986,7 +1028,7 @@ class HHbbWWProducer(Module):
       weight1 = math.exp(0.0615-0.0005*(genTops[0].pt))
       weight2 = math.exp(0.0615-0.0005*(genTops[1].pt))
       SF = math.sqrt(weight1 * weight2)
-      return SF, 1.0, SF**2 #returns central, down, up
+      return SF, 1.0, SF**2
 
     def get_lepton_SF(self, lepton):
       lepton_IDSF_looseToTight = 1.0
@@ -1119,7 +1161,7 @@ class HHbbWWProducer(Module):
 
 
 
-      trigger_eff_SF = [1.0, 0.0]
+      trigger_eff_SF = [1.0, 0.0, 0.0]
       shortlist = [] #This could be smarter by having 3 channels in one more dimmension on the list, but that was too confusing
       mumu_SF_list =[
 [ [ [0.0, 10000.0], [0.99, 0.01] ] ], #Runyear 2016
@@ -1151,10 +1193,10 @@ class HHbbWWProducer(Module):
         SF_file_path = "./scale_factor_files/{Runyear}/single_lepton_trigger_efficiency_SF/ele_and_mu_SF_{Runyear}.root".format(Runyear = Runyear)
         SF_file = ROOT.TFile(SF_file_path)
         hist = SF_file.Get("{ch_name}_SF".format(ch_name = ch_name)); xbin = hist.GetXaxis().FindBin(abs(eta)); ybin = hist.GetYaxis().FindBin(pT)
-        trigger_eff_SF = [hist.GetBinContent(xbin, ybin), hist.GetBinError(xbin, ybin)]
-        print("new SF, channel is ", channel)
-        print("Single lep SF ", trigger_eff_SF)
-        print("Used pT ", leptons[0].pt, " and eta ", eta)
+        trigger_eff_SF = [hist.GetBinContent(xbin, ybin), hist.GetBinContent(xbin, ybin) - hist.GetBinError(xbin, ybin), hist.GetBinContent(xbin, ybin) + hist.GetBinError(xbin, ybin)]
+        #print("new SF, channel is ", channel)
+        #print("Single lep SF ", trigger_eff_SF)
+        #print("Used pT ", leptons[0].pt, " and eta ", eta)
 
       else:
         if channel == "MuMu":
@@ -1168,7 +1210,9 @@ class HHbbWWProducer(Module):
           lowbound = shortlist[n][0][0]
           highbound = shortlist[n][0][1]
           if pT > lowbound and pT < highbound:
-            trigger_eff_SF = shortlist[n][1]
+            nominal = shortlist[n][1][0]
+            error = shortlist[n][1][1]
+            trigger_eff_SF = [nominal, nominal - error, nominal + error]
 
       return trigger_eff_SF #Returns[value, +- error]
 
@@ -1181,6 +1225,8 @@ class HHbbWWProducer(Module):
       #2016      | ./scale_factor_files/2016/jet_to_lepton_fakerate/jet_to_lepton_fakerate_SF_2016.root
       #2017      | ./scale_factor_files/2017/jet_to_lepton_fakerate/jet_to_lepton_fakerate_SF_2017.root
       #2018      | ./scale_factor_files/2018/jet_to_lepton_fakerate/jet_to_lepton_fakerate_SF_2018.root
+      #
+      #Fixed*** Tao pointed that ELE use FR_mva080_el_data_comb_NC and MU use FR_mva085_mu_data_comb
 
 
       jet_to_lepton_fake_rate_SF = 1.0
@@ -1194,12 +1240,15 @@ class HHbbWWProducer(Module):
       if lepton in self.muons_pre:
         hist = jet_to_lepton_fake_rate_SF_file.Get("FR_mva085_mu_data_comb") #SHOULD BE mva090!!!
       if lepton in self.electrons_pre:
-        hist = jet_to_lepton_fake_rate_SF_file.Get("FR_mva085_el_data_comb_NC") #SHOULD BE mva090!!!
+        hist = jet_to_lepton_fake_rate_SF_file.Get("FR_mva080_el_data_comb_NC") #SHOULD BE mva090!!!
       xbin = hist.GetXaxis().FindBin(pT); ybin = hist.GetYaxis().FindBin(abs(eta))
       jet_to_lepton_fake_rate_SF = hist.GetBinContent(xbin, ybin)
-      print("Found jet to lepton fake rate SF = ", jet_to_lepton_fake_rate_SF)
+      hist_error = hist.GetBinError(xbin, ybin)
+      jet_to_lepton_fake_rate_SF_down = jet_to_lepton_fake_rate_SF - hist_error
+      jet_to_lepton_fake_rate_SF_up   = jet_to_lepton_fake_rate_SF + hist_error
+      print("Found jet to lepton fake rate SF = ", jet_to_lepton_fake_rate_SF, jet_to_lepton_fake_rate_SF_down, jet_to_lepton_fake_rate_SF_up)
 
-      return jet_to_lepton_fake_rate_SF
+      return jet_to_lepton_fake_rate_SF, jet_to_lepton_fake_rate_SF_down, jet_to_lepton_fake_rate_SF_up
 
 
     def fillBranches(self, out):
@@ -1416,6 +1465,11 @@ class HHbbWWProducer(Module):
 
 
         ######## SF Nom/Up/Down ########
+        #
+        ######## Event Level ########
+        out.branch("trigger_SF_down", "F")
+        out.branch("trigger_SF_up", "F")
+        #
         ######## Leptons ########
         for branchname in self.lepton_systematics_names:
           out.fillBranch("lepton1_{branchname}_nominal", self.lepton1_systematics_values[branchname][0])
@@ -1424,3 +1478,12 @@ class HHbbWWProducer(Module):
           out.fillBranch("lepton2_{branchname}_nominal", self.lepton2_systematics_values[branchname][0])
           out.fillBranch("lepton2_{branchname}_up", self.lepton2_systematics_values[branchname][1])
           out.fillBranch("lepton2_{branchname}_down", self.lepton2_systematics_values[branchname][2])
+
+
+
+        ######## Vars Tao Asked For ########
+        out.fillBranch("genMET_pT", self.genMET_pT)
+        out.fillBranch("genMET_phi", self.genMET_phi)
+        out.fillBranch("met_covxx", self.met_covxx)
+        out.fillBranch("met_covyy", self.met_covyy)
+        out.fillBranch("met_covxy", self.met_covxy)
