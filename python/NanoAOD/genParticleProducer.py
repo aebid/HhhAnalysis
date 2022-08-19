@@ -65,16 +65,16 @@ statusFlagsMap = {
 }
 
 def printGenParticles(genparts, genParticles, string=''):
-    print "debugging ",string
+    print("debugging ",string)
     genParticles = list(genParticles)
     for genp in genparts:
         idx = None
         if hasattr(genp, 'idx'):
-	   idx = genp.idx
-        print "---- id ",genp.pdgId," idx ",idx," pt ",genp.pt," eta ",genp.eta," mass ",genp.mass, " status ",genp.status, " its motheridx ",genp.genPartIdxMother
+          idx = genp.idx
+        print("---- id ",genp.pdgId," idx ",idx," pt ",genp.pt," eta ",genp.eta," mass ",genp.mass, " status ",genp.status, " its motheridx ",genp.genPartIdxMother)
         if genp.genPartIdxMother >0:
 	    genp_mother = genParticles[genp.genPartIdxMother]
-	    print "\t its  mother id ",genp_mother.pdgId, " mass ",genp_mother.mass, " status ",genp_mother.status
+	    print("\t its  mother id ",genp_mother.pdgId, " mass ",genp_mother.mass, " status ",genp_mother.status)
 
 class MassTable:
   def __init__(self):
@@ -118,10 +118,10 @@ class GenPartAux:
     self.idx              = idx
 
   def __str__(self):
-    return "pt = %.3f eta = %.3f phi = %.3f mass = %.3f pdgId = %i charge = %i status = %i " \
+    return("pt = %.3f eta = %.3f phi = %.3f mass = %.3f pdgId = %i charge = %i status = %i " \
            "statusFlags = %i mom = %i idx = %i" % \
       (self.pt, self.eta, self.phi, self.mass, self.pdgId, self.charge, self.status, \
-       self.statusFlags, self.genPartIdxMother, self.idx)
+       self.statusFlags, self.genPartIdxMother, self.idx))
 
   def __repr__(self):
     return self.__str__()
@@ -193,7 +193,6 @@ def genHiggsSelection(genParticles):
   )
 
 def genRadionGravitonSelection(genParticles): ## X->HH
-  #print "genRadionGravitonSelection type(genParticles) ",type(genParticles)
   XCandidates = []
   pdgIds =[35, 39]## add potential id for X
      
@@ -551,7 +550,7 @@ def genTauSelection(genParticles, choice, enable_consistency_checks = False):
 def findLastDecendantWithSameId(cand, genParticles):
   nextgeneration = filter(lambda genPart: genPart.pdgId == cand.pdgId and genPart.genPartIdxMother == cand.idx, genParticles)
   if len(nextgeneration) == 1:
-      return findLastDecendantWithSameId(nextgeneration[0])
+      return findLastDecendantWithSameId(nextgeneration[0], genParticles)
   elif len(nextgeneration) == 0:
       return cand
   else:
@@ -578,7 +577,7 @@ def genXToHHTobbWWSelection(genParticles, choice, enable_consistency_checks = Tr
   finalXCandidates = filter(lambda X : X.genPartIdxMother not in XCandidatesidx, XCandidates)
      
   if len(finalXCandidates) != 1: 
-    #print "Xcandidates is not one ",len(finalXCandidates)
+    print("Warning!! Xcandidates is not one ",len(finalXCandidates))
     #printGenParticles(finalXCandidates, genParticles, "genXToHHTobbWWSelection")
     ##avoid printout for non-signal MC
     return []
@@ -737,7 +736,7 @@ class genParticleProducer(Module):
   def analyze(self, event):
     genParticles  = map(lambda genPartIdx: GenPartAux(genPartIdx[1], genPartIdx[0], self.massTable), enumerate(Collection(event, "GenPart")))
     allgenParticles = Collection(event, "GenPart")
-    #print " type(genParticles) ",type(genParticles)  ," type(allgenParticles) ",type(allgenParticles)
+    #print(" type(genParticles) ",type(genParticles)  ," type(allgenParticles) ",type(allgenParticles))
 
     for branchBaseName in self.branchBaseNames:
       gen_arr = self.selections[branchBaseName](genParticles)
