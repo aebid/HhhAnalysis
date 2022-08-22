@@ -57,7 +57,7 @@ see examples to calculate above variables here: https://github.com/tahuang1991/H
 - MET significance and MET resolution on px, py by doing (recomet_px-genmet_px) and (recomet_py-genmet_py)
 - lepton MVA score
 - b-tagging discriminator distribution of bjets
-- bquark_pt/bgenjet_pt for leading bjet and sub leading bjet that are matched to b quarks, with deltaR(bquark, bgenjet) < 0.3
+- bquark_pt/bjet_pt for leading bjet and sub leading bjet that are matched to b quarks, with deltaR(bquark, bjet) < 0.3
 - invariant mass, pT of dilepton for DL channel by adding up the Lorentz vectors of two leptons 
 - invariant mass, pT of dijets for SL channel by adding up the Lorentz vectors of two jets from W
 - invariant mass, pT of dijets by adding up the  Lorentz vectors of two b jets from Higgs 
