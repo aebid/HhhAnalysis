@@ -45,7 +45,7 @@ see examples to calculate above variables here: https://github.com/tahuang1991/H
 ## Genjets
  Match Genjets to quarks in above particle decay chains by deltaR method
  - eta and pt distributions of all genjets that matched to each quarks, including light quarks and b quarks
- - deltR of gen quark and gen jet distributions
+ - delta R of gen quark and gen jet distributions
  - W Mass reconstructed gen jets matched light quarks from W and Higgs mass reconstructed from gen jets matched to b quarks from Higgs decay. Make it 1D when plotting it alone and 2D when comparing with gen level true particle mass
  
  The calculate the high-level variables with quarks replaced by matched genjets
