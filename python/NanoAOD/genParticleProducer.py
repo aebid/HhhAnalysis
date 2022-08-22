@@ -678,6 +678,17 @@ def genXToHHTobbWWSelection(genParticles, choice, enable_consistency_checks = Tr
         (len(genWDaughters), genW, ', '.join(map(str, genWDaughters)))
       )
     daughters = filter(lambda genPart: abs(genPart.pdgId) in [1,2,3,4,5], genWDaughters) 
+    if enable_consistency_checks and len(daughters) == 2:
+      genWDaughters_pdgIdSorted = list(sorted(genWDaughters, key = lambda genPart: abs(genPart.pdgId), reverse = True))
+      if not ((genWDaughters_pdgIdSorted[0].pdgId == -5 * sign(genW.pdgId) and genWDaughters_pdgIdSorted[1].pdgId ==  4 * sign(genW.pdgId)) or \
+              (genWDaughters_pdgIdSorted[0].pdgId == -5 * sign(genW.pdgId) and genWDaughters_pdgIdSorted[1].pdgId ==  2 * sign(genW.pdgId)) or \
+              (genWDaughters_pdgIdSorted[0].pdgId ==  4 * sign(genW.pdgId) and genWDaughters_pdgIdSorted[1].pdgId == -3 * sign(genW.pdgId)) or \
+              (genWDaughters_pdgIdSorted[0].pdgId ==  4 * sign(genW.pdgId) and genWDaughters_pdgIdSorted[1].pdgId == -1 * sign(genW.pdgId)) or \
+              (genWDaughters_pdgIdSorted[0].pdgId == -3 * sign(genW.pdgId) and genWDaughters_pdgIdSorted[1].pdgId ==  2 * sign(genW.pdgId)) or \
+              (genWDaughters_pdgIdSorted[0].pdgId ==  2 * sign(genW.pdgId) and genWDaughters_pdgIdSorted[1].pdgId == -1 * sign(genW.pdgId))):
+        raise ValueError("Invalid hadronic W (%s) decay products from Higgs: %s" % \
+          (genW, ', '.join(map(str, genWDaughters)))
+        )
 
     return daughters
           
