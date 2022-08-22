@@ -159,6 +159,7 @@ class SelectionOptions:
   SAVE_QUARK_FROM_W_FROM_TOP             = 21
 
 
+
 class SelectionXToHHTobbWWOptions:
   SAVE_HIG_From_X                   = 0
   SAVE_BQUARK_FROM_HIG                   = 1
@@ -168,7 +169,7 @@ class SelectionXToHHTobbWWOptions:
   SAVE_LEPTONIC_NU_FROM_W1_FROM_HIG       = 5
   SAVE_LEPTON_FROM_W2_FROM_HIG            = 6
   SAVE_LEPTONIC_NU_FROM_W2_FROM_HIG       = 7
-  SAVE_QUARKS_FROM_W2_FROM_HIG            = 8
+  SAVE_QUARK_FROM_W2_FROM_HIG            = 8
 
 
 
@@ -614,26 +615,27 @@ def genXToHHTobbWWSelection(genParticles, choice, enable_consistency_checks = Tr
   isHHbbWW = len(genBQuarkFromHiggs) == 2 and len(genWFromHiggs) == 2 
   if not(len(genBQuarkFromHiggs) == 2 and len(genWFromHiggs) == 2) :
     if len(genZFromHiggs) != 2 and debugXToHHTobbWW:
-      print "Invalid number of H->bb (%s):%d or H->WW (%s):%d in HH (%s) decay" % \
+      print("Invalid number of H->bb (%s):%d or H->WW (%s):%d in HH (%s) decay" % \
         (', '.join(map(lambda genPart: str(genPart), genBQuarkFromHiggs)), len(genBQuarkFromHiggs), \
 	 ', '.join(map(lambda genPart: str(genPart), genWFromHiggs)), len(genWFromHiggs), \
-	 ', '.join(map(lambda genPart: str(genPart), genHiggsFromX)))
+	 ', '.join(map(lambda genPart: str(genPart), genHiggsFromX))))
       #decendantsFromHiggs = filter(lambda genPart: genPart.genPartIdxMother in genHiggsidx, genParticles)
       #printGenParticles(decendantsFromHiggs, genParticles, "All decendants from HH")
-       
+    #HH sample also include H->ZZ
+    #printGenParticles(genHiggsFromX, genParticles, "debugging H->bbWW") 
     return []
   
   if choice == SelectionXToHHTobbWWOptions.SAVE_BQUARK_FROM_HIG:
       if len(genBQuarkFromHiggs)  != 2 or genBQuarkFromHiggs[0].genPartIdxMother != genBQuarkFromHiggs[1].genPartIdxMother:
           if debugXToHHTobbWW:
-	      print ("Invalid number of H->bb decay products (%s): %i" % \
+	      print("Invalid number of H->bb decay products (%s): %i" % \
 		( ', '.join(map(lambda genPart: str(genPart), genBQuarkFromHiggs)), len(genBQuarkFromHiggs)))
 	  return []
       return genBQuarkFromHiggs
 
   if len(genWFromHiggs)  != 2 or genWFromHiggs[0].genPartIdxMother != genWFromHiggs[1].genPartIdxMother:
       if debugXToHHTobbWW:
-         print ("Invalid number of H->WW decay products (%s): %i" % \
+         print("Invalid number of H->WW decay products (%s): %i" % \
 	   ( ', '.join(map(lambda genPart: str(genPart), genWFromHiggs)), len(genWFromHiggs)))
       return []
  
@@ -667,7 +669,7 @@ def genXToHHTobbWWSelection(genParticles, choice, enable_consistency_checks = Tr
 
     return daughters
 
-  ##step3 find W->q1q2, (only to quarks)
+  ##step3 find W->q1q2, (only to quarks, hadronic case)
   def findQuarksfromW(genW):
     genW = findLastDecendantWithSameId(genW, genParticles, True)
     genWDaughters = filter(lambda genPart: genPart.genPartIdxMother == genW.idx, genParticles)
@@ -675,8 +677,7 @@ def genXToHHTobbWWSelection(genParticles, choice, enable_consistency_checks = Tr
       raise ValueError("Invalid number (%i) of W (%s) daughters decay: %s" % \
         (len(genWDaughters), genW, ', '.join(map(str, genWDaughters)))
       )
-
-    daughters = filter(lambda genPart: abs(genPart.pdgId) in [1,2,3,4], genWDaughters) 
+    daughters = filter(lambda genPart: abs(genPart.pdgId) in [1,2,3,4,5], genWDaughters) 
 
     return daughters
           
@@ -724,7 +725,7 @@ def genXToHHTobbWWSelection(genParticles, choice, enable_consistency_checks = Tr
         return W2Daughters['Lep']
     else:
         return W2Daughters['Nu']
-  elif choice in [ SelectionXToHHTobbWWOptions.SAVE_QUARKS_FROM_W2_FROM_HIG] and isHHbbWWlvqq:
+  elif choice in [ SelectionXToHHTobbWWOptions.SAVE_QUARK_FROM_W2_FROM_HIG] and isHHbbWWlvqq:
     return findQuarksfromW(genW2FromHIG) 
   else:
     return []
@@ -812,7 +813,7 @@ genLepFromW1FromHIGEntry            = ("GenLepFromW1FromHiggs",          (lambda
 genNuFromW1FromHIGEntry             = ("GenNuFromW1FromHiggs",           (lambda genParticles : genXToHHTobbWWSelection(genParticles, SelectionXToHHTobbWWOptions.SAVE_LEPTONIC_NU_FROM_W1_FROM_HIG)))
 genLepFromW2FromHIGEntry            = ("GenLepFromW2FromHiggs",          (lambda genParticles : genXToHHTobbWWSelection(genParticles, SelectionXToHHTobbWWOptions.SAVE_LEPTON_FROM_W2_FROM_HIG)))
 genNuFromW2FromHIGEntry             = ("GenNuFromW2FromHiggs",           (lambda genParticles : genXToHHTobbWWSelection(genParticles, SelectionXToHHTobbWWOptions.SAVE_LEPTONIC_NU_FROM_W2_FROM_HIG)))
-genQuarksFromW2FromHIGEntry         = ("GenQuarksFromW2FromHiggs",       (lambda genParticles : genXToHHTobbWWSelection(genParticles, SelectionXToHHTobbWWOptions.SAVE_Quarks_FROM_W2_FROM_HIG)))
+genQuarksFromW2FromHIGEntry         = ("GenQuarksFromW2FromHiggs",       (lambda genParticles : genXToHHTobbWWSelection(genParticles, SelectionXToHHTobbWWOptions.SAVE_QUARK_FROM_W2_FROM_HIG)))
 genTauEntry                         = ("GenTau",                         (lambda genParticles : genTauSelection(genParticles, SelectionOptions.SAVE_TAU)))
 genLeptonicTauEntry                 = ("GenLeptonicTau",                 (lambda genParticles : genTauSelection(genParticles, SelectionOptions.SAVE_LEPTONIC_TAU)))
 genHadronicTauEntry                 = ("GenHadronicTau",                 (lambda genParticles : genTauSelection(genParticles, SelectionOptions.SAVE_HADRONIC_TAU)))
@@ -915,7 +916,7 @@ genHHAndTTbar = lambda : genParticleProducer(dict([
     genNuFromW1FromHIGEntry,
     genLepFromW2FromHIGEntry,
     genNuFromW2FromHIGEntry,
-    genQuarksFromW2FromHiggs,
+    genQuarksFromW2FromHIGEntry,
     #genHiggsDaughtersEntry,
     genTopEntry,
     genBQuarkFromTopEntry,
@@ -935,7 +936,7 @@ genHH = lambda : genParticleProducer(dict([
     genNuFromW1FromHIGEntry,
     genLepFromW2FromHIGEntry,
     genNuFromW2FromHIGEntry,
-    genQuarksFromW2FromHiggs,
+    genQuarksFromW2FromHIGEntry,
   ]))
 
 
