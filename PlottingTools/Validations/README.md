@@ -17,14 +17,14 @@ The list of plots to validate the ntuples before next step
 - 2D distribution of W mass with one heavier W as x-axis and one lighter W as y-axis
 
 ### single lepton (SL) channel, top pair production 
-- eta, pt, mass distributions of gen particles in tt->bWbw->blvbqq
+- eta, pt, mass distributions of gen particles in tt->bWbW->blvbqq
 - invariant mass of top pair
 - phi and pt, px, py distributions of genMET
 - 2D distributions of top mass and top mass reconstructed from bW, W mass and W mass reconstructed from lv and qq,  top mass and top mass constructed from blv or bqq
 - 2D distribution of W mass with one heavier W as x-axis and one lighter W as y-axis
 
 ### double lepton (DL) channel, top pair production 
-- eta, pt, mass distributions of gen particles in tt->bWbw->blvblv
+- eta, pt, mass distributions of gen particles in tt->bWbW->blvblv
 - invariant mass of top pair
 - phi and pt, px, py distributions of genMET
 - 2D distributions of top mass and top mass reconstructed from bW, W mass and W mass reconstructed from lv,  top mass and top mass constructed from blv
@@ -47,18 +47,20 @@ see examples to calculate above variables here: https://github.com/tahuang1991/H
  - eta and pt distributions of all genjets that matched to each quarks, including light quarks and b quarks
  - delta R of gen quark and gen jet distributions
  - W Mass reconstructed gen jets matched light quarks from W and Higgs mass reconstructed from gen jets matched to b quarks from Higgs decay. Make it 1D when plotting it alone and 2D when comparing with gen level true particle mass
+ - bquark_pt/bgenjet_pt for leading genjet and sub leading genjet that are matched to b quarks, with deltaR(bquark, bgenjet) < 0.3
  
  The calculate the high-level variables with quarks replaced by matched genjets
  
 ## Reco level, both MC(signals + backgrounds) and data
- here is the list of high-level kinematics with reco level objects to calculate:
+ here is the list of high-level kinematics with reco level objects to calculate (If AK8jet is selected, then do it for subjet):
 - eta, pt distributions of selected reco objects
-- MET significance 
+- MET significance and MET resolution on px, py by doing (recomet_px-genmet_px) and (recomet_py-genmet_py)
 - lepton MVA score
 - b-tagging discriminator distribution of bjets
+- bquark_pt/bgenjet_pt for leading bjet and sub leading bjet that are matched to b quarks, with deltaR(bquark, bgenjet) < 0.3
 - invariant mass, pT of dilepton for DL channel by adding up the Lorentz vectors of two leptons 
 - invariant mass, pT of dijets for SL channel by adding up the Lorentz vectors of two jets from W
-- invariant amss, pT of dijets by adding up the  Lorentz vectors of two b jets from Higgs 
+- invariant mass, pT of dijets by adding up the  Lorentz vectors of two b jets from Higgs 
 - delta R between two leptons for DL, between two quarks from W for SL and between b jets from Higgs
 - minimum delta R between lepton and jet
 - delta phi between two leptons (lepton) system and two bjets system and delta phi between two leptons (lepton) system and MET for DL(SL) channel 
