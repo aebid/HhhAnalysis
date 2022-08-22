@@ -37,7 +37,7 @@ Besides, here is the list of high-level kinematics to calculate:
 - delta R between two leptons for DL, between two quarks from W for SL and between b quarks from Higgs
 - minimum delta R between lepton and quark
 - delta phi between two leptons (lepton) system and two bquarks system and delta phi between two leptons (lepton) system and genMET for DL(SL) channel 
-- transverse mass for DL channel
+- transverse mass (MT) for DL channel
 
 
 see examples to calculate above variables here: https://github.com/tahuang1991/HhhAnalysis/blob/CMSSW_10_2_0/CutFlowAnalyzer/plugins/DiHiggsWWBBSLAnalyzer.cc#L1580
@@ -62,6 +62,6 @@ see examples to calculate above variables here: https://github.com/tahuang1991/H
 - delta R between two leptons for DL, between two quarks from W for SL and between b jets from Higgs
 - minimum delta R between lepton and jet
 - delta phi between two leptons (lepton) system and two bjets system and delta phi between two leptons (lepton) system and MET for DL(SL) channel 
-- transverse mass for DL channel
-- Stransverse Mass for DL channel: https://www.hep.phy.cam.ac.uk/~lester/mt2/
+- transverse mass (MT) for DL channel
+- Stransverse Mass (MT2) for DL channel: https://www.hep.phy.cam.ac.uk/~lester/mt2/
 - HME for both channels 
