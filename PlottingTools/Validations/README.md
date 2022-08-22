@@ -4,13 +4,13 @@ The list of plots to validate the ntuples before next step
 
 ## Generator level, for Signal and Major backgrounds
 
-### single lepton (SL) channel, resonance signal 
+### single lepton (SL) channel, resonant signal 
 - eta, pt, mass distributions of gen particles in X->HH->bbWW->bblvqq
 - phi and pt, px, py distributions of genMET
 - 2D distributions of X mass and X mass reconstructed from HH, Higgs mass and Higgs mass recontructed from bb and WW, W mass and W mass reconstructed from lv and qq,  Higgs mass and Higgs mass reconstructed from lvqq, X mass and X mass reconstructed from bblvqq
 - 2D distribution of W mass with one heavier W as x-axis and one lighter W as y-axis
 
-### double lepton (DL) channel, resonance signal
+### double lepton (DL) channel, resonant signal
 - eta, pt mass distributions of gen particles in X->HH->bbWW->bblvlv
 - phi and pt, px, py distributions of genMET
 - 2D distributions of X mass and X mass reconstructed from HH, Higgs mass and Higgs mass recontructed from bb and WW, W mass and W mass reconstructed from lv,  Higgs mass and Higgs mass reconstructed from lvlv, X mass and X mass reconstructed from bblvlv
@@ -50,7 +50,7 @@ see examples to calculate above variables here: https://github.com/tahuang1991/H
  
  The calculate the high-level variables with quarks replaced by matched genjets
  
-## Reco level
+## Reco level, both MC(signals + backgrounds) and data
  here is the list of high-level kinematics with reco level objects to calculate:
 - eta, pt distributions of selected reco objects
 - MET significance 
