@@ -2,6 +2,58 @@
 
 The list of plots to validate the ntuples before next step
 
+## Run genParticleProducer.py to find gen particles from decay chain
+Instruction to just run modules in genParticleProducer.py to find gen particles from decay chain
+```
+cd CMSSW_X_X/src
+cd HhhAnalysis/python/NanoAOD
+python postproc_genpart.py
+```
+Make sure that the input file is replaced by the one you want to process
+### Descriptions of gen information in Ntuples
+
+| branch name |  data type | description |
+| ------------- |:-------------:|:-----|
+| nGenX    | int  | number of gen X  |
+| GenX_status | int | statu code of gen X. if more than one X is found, it is a vector. same for similar branches |
+| GenX_phi    | float | global phi of gen X |
+| GenX_eta    | float | global eta of gen X |
+| GenX_mass    | float | mass of gen X |
+| GenX_idx    | int | index of gen X in genParticles |
+| GenX_pt    | float | transverse momentum of gen X |
+| GenX_statusFlags   | int | status flag of gen X |
+| GenX_pdgId    | int | pdgId of gen X |
+| GenX_charge    | int | charge of gen X |
+| nGenHiggs   | int | num of gen Higgs, from X->HH |
+| GenHiggs_xx | xx | xxx |
+| nGenW1FromHiggs   | int | num of gen W1, from X->HH->bbW1W2  |
+| GenW1FromHiggs_xx | xx | xxx |
+| nGenW2FromHiggs   | int | num of gen W2, from X->HH->bbW1W2. in DL channel W2->lv and in SL, W2->qq  |
+| GenW2FromHiggs_xx | xx | xxx |
+| nGenLepFromW1FromHiggs   | int | num of gen lepton (ele/muon), from W1->lv with W1 from H->WW  |
+| GenLepFromW1FromHiggs_xx | xx | xxx |
+| nGenNuFromW1FromHiggs   | int | num of gen neutrino (ele/muon neutrino), from  W1->lv with W1 from H->WW  |
+| GenNuFromW1FromHiggs_xx | xx | xxx |
+| nGenTauNuFromW1FromHiggs   | int | num of gen tau neutrino (tau neutrino), from W1->Tau+v with W1 from H->WW  |
+| GenTauNuFromW1FromHiggs_xx | xx | xxx |
+| nGenLepFromTauFromW1FromHiggs   | int | num of gen lepton (ele/muon) from tau decay, from  W1->lv->Tau+v->l+v+v+v with with W1 from H->WW   |
+| GenLepFromTauFromW1FromHiggs_xx | xx | xxx |
+| nGenNuFromTauFromW1FromHiggs   | int | num of gen (ele/muon/tau neutrino), from W1->Tau+v->l+v+v+v with W1 from H->WW  |
+| GenNuFromTauFromW1FromHiggs_xx | xx | xxx |
+| nGenLepFromW2FromHiggs   | int | num of gen lepton (ele/muon), W2->lv with W2 from H->WW |
+| GenLepFromW2FromHiggs_xx | xx | xxx |
+| nGenNuFromW2FromHiggs   | int | num of gen neutrino (ele/muon neutrino), from W2->lv with W2 from H->WW |
+| GenNuFromW2FromHiggs_xx | xx | xxx |
+| nGenTauNuFromW2FromHiggs   | int | num of gen tau neutrino (tau neutrino), from W2->Tau+v  with W2 from H->WW |
+| GenTauNuFromW2FromHiggs_xx | xx | xxx |
+| nGenLepFromTauFromW2FromHiggs   | int | num of gen lepton (ele/muon) from tau decay, from W2->lv->Tau+v->l+v+v+v with W2 from H->WW  |
+| GenLepFromTauFromW2FromHiggs_xx | xx | xxx |
+| nGenNuFromTauFromW2FromHiggs   | int | num of gen (ele/muon/tau neutrino), from W2->Tau+v->l+v+v+v with W2 from H->WW |
+| GenNuFromTauFromW2FromHiggs_xx | xx | xxx |
+| nGenBQuarkFromHiggs   | int | num of gen b and bbar quarks, from X->HH->bbW1W2  |
+| GenBQuarkFromHiggs_xx | xx | xxx |
+
+
 ## Generator level, for Signal and Major backgrounds
 
 ### single lepton (SL) channel, resonant signal 
