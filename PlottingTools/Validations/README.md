@@ -53,6 +53,17 @@ Make sure that the input file is replaced by the one you want to process
 | nGenBQuarkFromHiggs   | int | num of gen b and bbar quarks, from X->HH->bbW1W2  |
 | GenBQuarkFromHiggs_xx | xx | xxx |
 
+Attentions to the MC samples:
+ - for SL and DL signal samples, W can decay into ele/muon and tau, with one third W going to tau and tau decaying into ele/muon+neutrinos
+ - for DL signal smaples, it contains that H->ZZ with one Z->ll and other Z->nu+nu
+ 
+Here is the Higgs decay branch ratio that matters in this analysis, with Higgs mass= 125 GeV. The table is taken from: https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBR
+
+| Higgs decay channel | branch ratio |
+| ------------- |:-------------:|
+| H->bb  | 5.824E-01 |
+| H->ww  | 2.137E-01 |
+| H->zz  | 2.619E-02 |
 
 ## Generator level, for Signal and Major backgrounds
 
