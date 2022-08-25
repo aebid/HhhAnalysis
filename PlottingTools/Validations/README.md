@@ -12,6 +12,9 @@ python postproc_genpart.py
 Make sure that the input file is replaced by the one you want to process
 ### Descriptions of gen information in Ntuples
 
+The follow is the Gen particle information filled in Ntuples by running genHH module in genParticleProducer.py
+
+
 | branch name |  data type | description |
 | ------------- |:-------------:|:-----|
 | nGenX    | int  | number of gen X  |
@@ -50,8 +53,31 @@ Make sure that the input file is replaced by the one you want to process
 | GenLepFromTauFromW2FromHiggs_xx | xx | xxx |
 | nGenNuFromTauFromW2FromHiggs   | int | num of gen (ele/muon/tau neutrino), from W2->Tau+v->l+v+v+v with W2 from H->WW |
 | GenNuFromTauFromW2FromHiggs_xx | xx | xxx |
+| nGenQuarkFromW2FromHiggs   | int | num of gen quark with abs(pdgid)=1,2,3,4,5, from W2->qq with W2 from H->WW |
+| GenQuarkFromTauFromW2FromHiggs_xx | xx | xxx |
 | nGenBQuarkFromHiggs   | int | num of gen b and bbar quarks, from X->HH->bbW1W2  |
 | GenBQuarkFromHiggs_xx | xx | xxx |
+
+
+The follow is the Gen particle information filled in Ntuples by running genTTbar module in genParticleProducer.py
+
+
+| branch name |  data type | description |
+| ------------- |:-------------:|:-----|
+| nGenTop    | int  | number of gen top/antitop  |
+| GenTop_xx | xx | xxx |
+| nGenBQuarkFromTop    | int  | number of gen b and bbar from top decay  |
+| GenBQuarkFromTop_xx | xx | xxx |
+| nGenWFromTop    | int  | number of gen W from top decay  |
+| GenWFromTop_xx | xx | xxx |
+| nGenLepFromWFromTop    | int  | number of gen lepton(ele/muon) from W decay with W from t->Wb |
+| GenLepFromWFromTop_xx | xx | xxx |
+| nGenNuFromWFromTop    | int  | number of gen leptonic neutrino from W decay with W from t->Wb |
+| GenNuFromWFromTop_xx | xx | xxx |
+| nGenLepFromTauFromTop    | int  | number of gen lepton(ele/muon) from Tau decay with Tau from t->Wb->Tau+nu+b |
+| GenLepFromTauFromTop_xx | xx | xxx |
+| nGenQaurkFromWFromTop    | int  | number of gen quark with abs(pdgId)=1,2,3,4,5 from W->qq with W from t->Wb |
+| GenQuarkFromWFromTop_xx | xx | xxx |
 
 Attentions to the MC samples:
  - for SL and DL signal samples, W can decay into ele/muon and tau, with one third W going to tau and tau decaying into ele/muon+neutrinos
@@ -130,3 +156,29 @@ see examples to calculate above variables here: https://github.com/tahuang1991/H
 - transverse mass (MT) for DL channel
 - Stransverse Mass (MT2) for DL channel: https://www.hep.phy.cam.ac.uk/~lester/mt2/
 - HME for both channels 
+
+
+
+## Plotting Style 
+
+Plots should be made  with title, label, stat box and text with explanation etc
+ - Text: sample type (Signal with M=? or TTbar ), run condition (Run2016/2017/2018) 
+ - X-Title: variable name 
+ - Stat box: at least with total number of events, underflow and overflow
+ - the plots to validate ntuples at reco level should try to use standard CMS style
+   - CMS Publish guide: https://twiki.cern.ch/twiki/bin/view/CMS/Internal/PubGuidelines
+   - CMS figure guide: https://twiki.cern.ch/twiki/bin/view/CMS/Internal/FigGuidelines
+   
+   To use the ROOT .C macros in pyROOT, the simplest way is:
+```
+from ROOT import gROOT
+
+# Set TDR styles
+gROOT.LoadMacro("tdrstyle.C")
+gROOT.ProcessLine("setTDRStyle();")
+
+# Add CMS text
+gROOT.LoadMacro("CMS_lumi.C")
+gROOT.ProcessLine("CMS_lumi(c1);")
+```
+ 
