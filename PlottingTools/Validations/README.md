@@ -87,25 +87,31 @@ Here is the Higgs decay branch ratio that matters in this analysis, with Higgs m
 
 | Higgs decay channel | branch ratio |
 | ------------- |:-------------:|
-| H->bb  | 5.824E-01 |
-| H->ww  | 2.137E-01 |
-| H->zz  | 2.619E-02 |
+| H->bb  | 5.792E-01 |
+| H->ww  | 2.170E-01 |
+| H->zz  | 2.667E-02 |
 
 ## Generator level, for Signal and Major backgrounds
 
 ### single lepton (SL) channel, resonant signal 
+- distribution of gen particle number in one event: X,Higgs,W/b quark from Higgs decay, lepton from W, quark from W decay
+  - nGenX, nGenHiggs,nGenWFromHiggs, nGenBQuarkFromHiggs, nGenLepFromW1FromHiggs, nGenQuarkFromW2FromHiggs etc
 - eta, pt, mass distributions of gen particles in X->HH->bbWW->bblvqq
 - phi and pt, px, py distributions of genMET
 - 2D distributions of X mass and X mass reconstructed from HH, Higgs mass and Higgs mass recontructed from bb and WW, W mass and W mass reconstructed from lv and qq,  Higgs mass and Higgs mass reconstructed from lvqq, X mass and X mass reconstructed from bblvqq
 - 2D distribution of W mass with one heavier W as x-axis and one lighter W as y-axis
 
 ### double lepton (DL) channel, resonant signal
+- distribution of gen particle number in one event: X,Higgs,W/b quark from Higgs decay, lepton from W1/W2
+  - nGenX, nGenHiggs,nGenWFromHiggs, nGenBQuarkFromHiggs, nGenLepFromW1FromHiggs, nGenLepFromW2FromHiggs etc
 - eta, pt mass distributions of gen particles in X->HH->bbWW->bblvlv
 - phi and pt, px, py distributions of genMET
 - 2D distributions of X mass and X mass reconstructed from HH, Higgs mass and Higgs mass recontructed from bb and WW, W mass and W mass reconstructed from lv,  Higgs mass and Higgs mass reconstructed from lvlv, X mass and X mass reconstructed from bblvlv
 - 2D distribution of W mass with one heavier W as x-axis and one lighter W as y-axis
 
 ### single lepton (SL) channel, top pair production 
+- distribution of gen particle number in one event: top,W/b quark from top decay, lepton from W, quark from W decay
+  - nGenTop, nGenWFromTop, nGenBQuarkFromTop, nGenLepFromWFromTop etc
 - eta, pt, mass distributions of gen particles in tt->bWbW->blvbqq
 - invariant mass of top pair
 - phi and pt, px, py distributions of genMET
@@ -113,6 +119,8 @@ Here is the Higgs decay branch ratio that matters in this analysis, with Higgs m
 - 2D distribution of W mass with one heavier W as x-axis and one lighter W as y-axis
 
 ### double lepton (DL) channel, top pair production 
+- distribution of gen particle number in one event: top,W/b quark from top decay, lepton from W, quark from W decay
+  - nGenTop, nGenWFromTop, nGenBQuarkFromTop, nGenLepFromWFromTop etc
 - eta, pt, mass distributions of gen particles in tt->bWbW->blvblv
 - invariant mass of top pair
 - phi and pt, px, py distributions of genMET
