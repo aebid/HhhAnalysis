@@ -116,9 +116,9 @@ class DiHiggsWWBBSLAnalyzer : public edm::EDAnalyzer {
     float met_;
     float jetleptonDeltaR_;
     float iterations_;
-    //gen matching 
+    //gen matching
     float leptonsDeltaR_;//dR(gen, reco)
-    float jetsDeltaR_;//gen matching 
+    float jetsDeltaR_;//gen matching
     bool onlyGenLevel_;
     std::string triggerSFFile_;
     std::string isoSFFile_;
@@ -132,8 +132,8 @@ class DiHiggsWWBBSLAnalyzer : public edm::EDAnalyzer {
     bool doTriggerMatching_;
     float deltaPtRel_trigger_;
     float deltaR_trigger_;
-    // debuglevel constrol 
-    int verbose_; 
+    // debuglevel constrol
+    int verbose_;
     void print();
     void printHtoWWChain();
     //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
@@ -145,7 +145,7 @@ class DiHiggsWWBBSLAnalyzer : public edm::EDAnalyzer {
     TTree *evtree;
     TFile *output;
     void initBranches();
-    void fillbranches(); 
+    void fillbranches();
     edm::Service< TFileService > fs;
 
     //----------branches of tree ---------------------------
@@ -176,7 +176,7 @@ class DiHiggsWWBBSLAnalyzer : public edm::EDAnalyzer {
     void checkGenParticlesTTbar(edm::Handle<reco::GenParticleCollection> genParticleColl);
     void checkGenParticlesDY(edm::Handle<reco::GenParticleCollection> genParticleColl);
     void matchGenJet2Parton(edm::Handle<std::vector<reco::GenJet>> genjetColl);
-    void matchmuon2Gen();//match pat:::Muon to gen muon 
+    void matchmuon2Gen();//match pat:::Muon to gen muon
     void matchBjets2Gen();//match genjet to gen b and then match pat::Jet to genjet
 
   private:
@@ -228,8 +228,13 @@ class DiHiggsWWBBSLAnalyzer : public edm::EDAnalyzer {
     TLorentzVector met_lorentz;
     TLorentzVector bjet_lorentz;
     TLorentzVector bbarjet_lorentz;
-    TLorentzVector stableDecendantsLorentz(const reco::Candidate* cand); 
-    TLorentzVector calculateMET(); 
+    TLorentzVector stableDecendantsLorentz(const reco::Candidate* cand);
+    TLorentzVector calculateMET();
+
+    // W candidate mass
+    float w_to_lep_mass;
+    float w_to_qq_mass;
+
     float XsecBr;
     //gen particles
     bool findAllGenParticles;
@@ -301,7 +306,7 @@ class DiHiggsWWBBSLAnalyzer : public edm::EDAnalyzer {
     float nu2_phi;
     int   nu2_pdgid;
     bool Wtolep2nu2;
-    
+
 
     float htoWW_energy;
     float htoWW_pt;
@@ -309,7 +314,7 @@ class DiHiggsWWBBSLAnalyzer : public edm::EDAnalyzer {
     float htoWW_phi;
     float htoWW_px;
     float htoWW_py;
-    float htoWW_pz; 
+    float htoWW_pz;
     float htoWW_mass;
     bool htoWW;
 
@@ -336,7 +341,7 @@ class DiHiggsWWBBSLAnalyzer : public edm::EDAnalyzer {
     float htoZZ_phi;
     float htoZZ_px;
     float htoZZ_py;
-    float htoZZ_pz; 
+    float htoZZ_pz;
     float htoZZ_mass;
     bool htoZZ;
 
@@ -618,7 +623,7 @@ class DiHiggsWWBBSLAnalyzer : public edm::EDAnalyzer {
 
 DiHiggsWWBBSLAnalyzer::DiHiggsWWBBSLAnalyzer(const edm::ParameterSet& iConfig){
   //****************************************************************************
-  //                 SET GEN LEVEL VARIABLES AND MATCHING                      
+  //                 SET GEN LEVEL VARIABLES AND MATCHING
   //****************************************************************************
   genParticlesToken_    = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticles"));
   genjetToken_          = consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("genjets"));
@@ -627,13 +632,12 @@ DiHiggsWWBBSLAnalyzer::DiHiggsWWBBSLAnalyzer(const edm::ParameterSet& iConfig){
   metToken_             = consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
 
   //****************************************************************************
-  //                 SET RECO LEVEL VARIABLES AND COUNTERS                       
+  //                 SET RECO LEVEL VARIABLES AND COUNTERS
   //****************************************************************************
   /*
   muonToken_            = consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
   electronToken_        = consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"));
   jetToken_             = consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
-
   triggerBitsToken_     = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("TriggerResults"));
   triggerObjectsToken_  = consumes<std::vector<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("TriggerObjects"));
   //beamSpotToken_        = consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"));
@@ -642,7 +646,6 @@ DiHiggsWWBBSLAnalyzer::DiHiggsWWBBSLAnalyzer(const edm::ParameterSet& iConfig){
   //trackRefToken_        = consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("TrackRefitter"));
   //trajToken_            = consumes< std::vector<Trajectory> >(iConfig.getParameter<edm::InputTag>("Traj"));
   primaryVerticesToken_ = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("primaryVertices"));
-
   mu_eta_               = iConfig.getUntrackedParameter<double>("mu_eta",2.4);
   mu_PFIso_             = iConfig.getUntrackedParameter<double>("mu_PFIso", 0.25);
   mu_id_                = iConfig.getUntrackedParameter<std::string>("mu_id","2016Medium");
@@ -668,7 +671,6 @@ DiHiggsWWBBSLAnalyzer::DiHiggsWWBBSLAnalyzer(const edm::ParameterSet& iConfig){
   doTriggerMatching_         = iConfig.getParameter<bool>("doTriggerMatching");
   deltaPtRel_trigger_   = iConfig.getUntrackedParameter<double>("deltaPtRel_trigger",0.5);
   deltaR_trigger_       = iConfig.getUntrackedParameter<double>("deltaR_trigger",0.1);
-
   triggerSFFile_        = iConfig.getParameter<std::string>("triggerSFFile");
   isoSFFile_            = iConfig.getParameter<std::string>("isoSFFile");
   idSFFile_             = iConfig.getParameter<std::string>("idSFFile");
@@ -734,6 +736,9 @@ void DiHiggsWWBBSLAnalyzer::initBranches(){
   Xtohhcand = NULL;
   t1cand = NULL;
   t2cand = NULL;
+
+  w_to_qq_mass = -999999.0;
+  w_to_lep_mass = -999999.0;
 
   lep1_energy = -999999;
   lep1_pt = -1;
@@ -1104,13 +1109,13 @@ DiHiggsWWBBSLAnalyzer::~DiHiggsWWBBSLAnalyzer(){
 }
 
 //step 1 find gen particles if it is MC sample
-//step 2 select pat objects: matched by gen or not, and apply clear-up cuts at the same time 
+//step 2 select pat objects: matched by gen or not, and apply clear-up cuts at the same time
 //step 3 run MMC on selected objects: gen level or reco level
 void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
-  initBranches(); 
+  initBranches();
   ievent++;
-  if (debug_) 
+  if (debug_)
       std::cout << "event  " << iEvent.id().event()<<" ievent "<< ievent << std::endl;
   //Compute weight
   float BR_h_bb   = 0.577;
@@ -1118,7 +1123,7 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   float BR_W_lnu  = 0.3257;
   float BR_final = pow(BR_h_bb,2) + pow(BR_h_WW,2)*pow(BR_W_lnu,4) + 2*BR_h_bb*BR_h_WW*pow(BR_W_lnu,2);
   XsecBr=-1;
-  if(sampleType_==TTbar)                    XsecBr = 87.31; 
+  if(sampleType_==TTbar)                    XsecBr = 87.31;
   else if(sampleType_==DYJets)                   XsecBr = 18610;
   else if(sampleType_==DY0Jets)                  XsecBr = 4758.9;
   else if(sampleType_==DY1Jets)                  XsecBr = 929.1;
@@ -1152,7 +1157,7 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   else if(sampleType_>= Rad_260)                  XsecBr = 1.;// To be added
 
   //****************************************************************************
-  //                GENERATOR LEVEL                       
+  //                GENERATOR LEVEL
   //****************************************************************************
   edm::Handle<reco::GenParticleCollection> genParticleColl;
   edm::Handle<std::vector<reco::GenJet>> genjetColl;
@@ -1181,14 +1186,14 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       fillbranches(); //fill Gen info into tree
       std::cout <<"find all gen particles "<< std::endl;
   }
- 
+
 
   if (onlyGenLevel_ and sampleType_>Data){
         if (findAllGenParticles)
 	    evtree->Fill();
 	return;
   }
-  
+
   //std::cout <<"reco level "<< std::endl;
   //****************************************************************************
   //                RECO LEVEL
@@ -1202,16 +1207,15 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   numOfVertices = primaryVertices->size() ;
    */
   //****************************************************************************
-  //                Triggering matching 
+  //                Triggering matching
   //                1. find all trigger objects matched to hlt paths
-  //                2. match reco objects to trigger objects 
+  //                2. match reco objects to trigger objects
   //****************************************************************************
   /*
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<std::vector<pat::TriggerObjectStandAlone>> triggerObjects;
   std::vector<pat::TriggerObjectStandAlone> matchedTriggerObjects;
   //edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
-
   try{
       iEvent.getByToken(triggerBitsToken_, triggerBits);
       iEvent.getByToken(triggerObjectsToken_, triggerObjects);
@@ -1219,7 +1223,6 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   } catch (...){
       std::cout <<"no Trigger results information "<< std::endl;
   }
-
   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
   //std::cout << "\nTRIGGER NAMEs, size " << names.size() << " TRIGGER OBJECTS, size "<< (*triggerObjects).size() << std::endl;
   for (pat::TriggerObjectStandAlone obj : *triggerObjects) { // note: not "const &" since we want to call unpackPathNames
@@ -1233,8 +1236,8 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	    break;
 	}
   }
-  
-  std::cout <<"matched trigger objects, size  "<< matchedTriggerObjects.size() << std::endl; 
+
+  std::cout <<"matched trigger objects, size  "<< matchedTriggerObjects.size() << std::endl;
   for (auto obj : matchedTriggerObjects){
       std::cout << "\tTrigger object:  id "<< obj.pdgId() << " pt " << obj.pt() << ", eta " << obj.eta() << ", phi " << obj.phi() << std::endl;
       // Print trigger object collection and type
@@ -1258,7 +1261,7 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       const reco::GenMET *genmet = met.genMET();
       genmet_px = genmet->px(); genmet_py = genmet->py(); genmet_phi = genmet->phi(); genmet_pt = genmet->pt();
   }
-  printf("MET: pt %5.1f, phi %+4.2f, sumEt (%.1f). MET with JES up/down: %.1f/%.1f\n", 
+  printf("MET: pt %5.1f, phi %+4.2f, sumEt (%.1f). MET with JES up/down: %.1f/%.1f\n",
 	  met.pt(), met.phi(), met.sumEt(),met.shiftedPt(pat::MET::JetEnUp), met.shiftedPt(pat::MET::JetEnDown));
   met_px = met.px(); met_py = met.py(); met_phi = met.phi(); met_pt = met.pt();
   //****************************************************************************
@@ -1287,15 +1290,14 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	}
 	if (not triggermatching) continue;
     }
-
     bool muonid = false;
     if (mu_id_ == "2016Medium") muonid = POGRecipesRun2::is2016MediumMuon(mu);
     else if (mu_id_ == "Medium") muonid = POGRecipesRun2::isMediumMuon(mu);
     else std::cout <<"mu ID is not correct: "<< mu_id_ << std::endl;
     float isoVar = POGRecipesRun2::MuonIsoPFbased(mu);
-    if (fabs(mu.eta())<mu_eta_ and mu.pt()>10 and muonid and isoVar <= mu_PFIso_){ 
-	//and fabs(mu.muonBestTrack()->dz(PV.position()))<0.1 and 
-	//((mu.pt()>20 and fabs(mu.muonBestTrack()->dxy(PV.position()))<0.02) or 
+    if (fabs(mu.eta())<mu_eta_ and mu.pt()>10 and muonid and isoVar <= mu_PFIso_){
+	//and fabs(mu.muonBestTrack()->dz(PV.position()))<0.1 and
+	//((mu.pt()>20 and fabs(mu.muonBestTrack()->dxy(PV.position()))<0.02) or
 	//(mu.pt()<20 and fabs(mu.muonBestTrack()->dxy(PV.position()))<0.01))){
 	if (mu.charge()>0) pleptons.push_back(&mu);
 	else if (mu.charge()<0) nleptons.push_back(&mu);
@@ -1308,13 +1310,10 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     if(debug_) printf("muon with pt %4.1f, charge %d, IsoVar %5.3f, dz(PV) %+5.3f, dxy(PV)%+5.3f, POG loose id %d, tight id %d\n",
 	  mu.pt(), mu.charge(), isoVar, mu.muonBestTrack()->dz(PV.position()), fabs(mu.muonBestTrack()->dxy(PV.position())),mu.isLooseMuon(), mu.isTightMuon(PV));
   }
-
   //Ignore electron now
   for (const pat::Electron &el : *electrons) {
     if (el.pt()>1000000) continue;
   }
-
-
   const reco::Candidate * selectedPlep = NULL;
   const reco::Candidate * selectedNlep = NULL;
   const reco::Candidate * selectedleadinglep = NULL;
@@ -1339,15 +1338,14 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	}
     }
   }
-
   //bool hastwomuons = false;
   //two leptons and adding SFs
   if (sumPt>=30){
-    muon1_px = selectedleadinglep->px(); muon1_py = selectedleadinglep->py(); muon1_pz = selectedleadinglep->pz(); 
+    muon1_px = selectedleadinglep->px(); muon1_py = selectedleadinglep->py(); muon1_pz = selectedleadinglep->pz();
     muon1_energy = selectedleadinglep->energy();
     muon1_pt = selectedleadinglep->pt(); muon1_eta = selectedleadinglep->eta(); muon1_phi = selectedleadinglep->phi();
     muon1_dxy = dxy(selectedleadinglep, &PV); muon1_dz = dz(selectedleadinglep, &PV);
-    muon2_px = selectedsubleadinglep->px(); muon2_py = selectedsubleadinglep->py(); muon2_pz = selectedsubleadinglep->pz(); 
+    muon2_px = selectedsubleadinglep->px(); muon2_py = selectedsubleadinglep->py(); muon2_pz = selectedsubleadinglep->pz();
     muon2_energy = selectedsubleadinglep->energy();
     muon2_pt = selectedsubleadinglep->pt(); muon2_eta = selectedsubleadinglep->eta(); muon2_phi = selectedsubleadinglep->phi();
     muon2_dxy = dxy(selectedsubleadinglep, &PV); muon2_dz = dz(selectedsubleadinglep, &PV);
@@ -1365,7 +1363,6 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	    muon2_trigger_dPtRel = dPtRel2;
 	}
     }
-
     hastwomuons = true;
     if (sampleType_>Data){
 	float dR_gen_reco11 = deltaR(lep1_eta, lep1_phi, muon1_eta, muon1_phi);
@@ -1374,7 +1371,7 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	float dR_gen_reco22 = deltaR(lep2_eta, lep2_phi, muon2_eta, muon2_phi);
 	dR_lep1 = (dR_gen_reco11 < dR_gen_reco21) ? dR_gen_reco11:dR_gen_reco21;
 	dR_lep2 = (dR_gen_reco12 < dR_gen_reco22) ? dR_gen_reco12:dR_gen_reco22;
-	//apply SF for MC samplpes 
+	//apply SF for MC samplpes
 	//float triggerSF1 =  POGRecipesRun2::getMuonTriggerSF(std::abs(muon1_eta), muon1_pt, triggerSFFile_, triggerSFhist_);
 	//float isoSF1 =  POGRecipesRun2::getMuonISOSF(std::abs(muon1_eta), muon1_pt, isoSFFile_, isoSFhist_);
 	//float idSF1 =  POGRecipesRun2::getMuonIDSF(std::abs(muon1_eta), muon1_pt, idSFFile_, idSFhist_);
@@ -1395,7 +1392,6 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	float trackingSF2 = muonPOGSFs->getMuonTrackingMCSF(muon2_eta);
 	muon2_pogSF = triggerSF2*isoSF2*idSF2*trackingSF2;
 	muon2_triggerSF = triggerSF2; muon2_isoSF = isoSF2; muon2_idSF = idSF2; muon2_trackingSF = trackingSF2;
-
 	printf("leadinglepton: pt %5.1f, eta %+4.2f, triggerSF %+2.4f, isoSF %+2.4f, idSF %+2.4f, trackingSF %+2.4f\n", muon1_pt, muon1_eta, triggerSF1, isoSF1, idSF1, trackingSF1);
 	printf("subleadlepton: pt %5.1f, eta %+4.2f, triggerSF %+2.4f, isoSF %+2.4f, idSF %+2.4f, trackingSF %+2.4f\n", muon2_pt, muon2_eta, triggerSF2, isoSF2, idSF2, trackingSF2);
     }else {
@@ -1414,18 +1410,17 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   iEvent.getByToken(jetToken_, jets);
   std::vector<pat::Jet> allbjets;
   for (const pat::Jet &j : *jets) {
-    HT +=  j.pt();//scalar sum of all jet pt 
+    HT +=  j.pt();//scalar sum of all jet pt
     if (j.pt() < jet_trailingpt_ or fabs(j.eta()) > jet_eta_) continue;
     if (hastwomuons){
-	TLorentzVector jet_p4(j.px(), j.py(), j.pz(), j.energy());    
+	TLorentzVector jet_p4(j.px(), j.py(), j.pz(), j.energy());
 	float dR1 = jet_p4.DeltaR(TLorentzVector(selectedPlep->px(), selectedPlep->py(), selectedPlep->pz(), selectedPlep->energy()));
 	float dR2 = jet_p4.DeltaR(TLorentzVector(selectedNlep->px(), selectedNlep->py(), selectedNlep->pz(), selectedNlep->energy()));
 	if (dR1 < jetleptonDeltaR_ or dR2 < jetleptonDeltaR_) continue;
-    }	
+    }
     float bDiscVar = j.bDiscriminator(bjetDiscrName_);
     if (bDiscVar < bjetDiscrCut_loose_)  continue;
     allbjets.push_back(j);
-
     if (debug_){
 	printf("Jet with pt %6.1f, eta %+4.2f, pileup mva disc %+.2f, btag CSV %.3f, CISV %.3f\n",
 	  j.pt(),j.eta(), j.userFloat("pileupJetId:fullDiscriminant"), std::max(0.f,j.bDiscriminator("combinedSecondaryVertexBJetTags")), std::max(0.f,j.bDiscriminator("combinedInclusiveSecondaryVertexBJetTags")));
@@ -1435,7 +1430,6 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     if (genp and debug_)
 	std::cout <<"matched genParticle: id "<< genp->pdgId()<<" px "<< genp->px() <<" py "<< genp->py()<<" pz "<< genp->pz() << std::endl;
   }
-
   // sort jets by pt
   std::sort(allbjets.begin(), allbjets.end(), [](pat::Jet& jet1, pat::Jet& jet2) { return jet1.pt() > jet2.pt(); });
   if (debug_) std::cout <<"allbjets size "<< allbjets.size() << std::endl;
@@ -1452,24 +1446,21 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	if (mbtags >=  1)
 	  hastwojets = true;
 	else continue;
-
 	if (mbtags > numOfMediumbtags){//first priority: 2 medium btags
 	  jet1 = i;
 	  jet2 = j;
 	  numOfMediumbtags = mbtags;
 	}else if (mbtags == numOfMediumbtags){//second priority: invariant mass close to M_H
-	  TLorentzVector dijet_p4(allbjets[i].px()+allbjets[j].px(), allbjets[i].py()+allbjets[j].py(), 
+	  TLorentzVector dijet_p4(allbjets[i].px()+allbjets[j].px(), allbjets[i].py()+allbjets[j].py(),
 		allbjets[i].pz()+allbjets[j].pz(),allbjets[i].energy()+allbjets[j].energy());
 	  if (fabs(dijet_p4.M()-125)<diff_higgsmass){
 	    jet1 = i;
 	    jet2 = j;
-	    diff_higgsmass = fabs(dijet_p4.M()-125); 
+	    diff_higgsmass = fabs(dijet_p4.M()-125);
 	  }
 	}
     }
   }
-
-
   if (allbjets.size() >= 2 and hastwojets){
     b1jet_px = allbjets[jet1].px(); b1jet_py = allbjets[jet1].py(); b1jet_pz = allbjets[jet1].pz(); b1jet_energy = allbjets[jet1].energy();
     b1jet_pt = allbjets[jet1].pt(); b1jet_eta = allbjets[jet1].eta(); b1jet_phi = allbjets[jet1].phi();
@@ -1484,34 +1475,33 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	if (i==0)
 	  b1jet_leadTrackPt = cand.pt();
 	if ((abs(cand.pdgId()) == 13 or abs(cand.pdgId()) == 11) and not(leadinglepton1)){
-	  b1jet_leptonPdgId = cand.pdgId(); b1jet_leptonPt = cand.pt(); 
+	  b1jet_leptonPdgId = cand.pdgId(); b1jet_leptonPt = cand.pt();
 	  b1jet_leptonEta = cand.eta(); b1jet_leptonPhi = cand.phi();
-	  leadinglepton1_px = cand.px(); 
-	  leadinglepton1_py = cand.py(); 
-	  leadinglepton1_pz = cand.pz(); 
-	  leadinglepton1_p = cand.p(); 
+	  leadinglepton1_px = cand.px();
+	  leadinglepton1_py = cand.py();
+	  leadinglepton1_pz = cand.pz();
+	  leadinglepton1_p = cand.p();
 	  leadinglepton1 = true;
 	}
 	if (leadinglepton1 and b1jet_leadTrackPt>0)
 	  break;
     }
-    float lepXj1 = (leadinglepton1_px*b1jet_px+leadinglepton1_py*b1jet_py+leadinglepton1_pz*b1jet_pz)/allbjets[jet1].p(); 
+    float lepXj1 = (leadinglepton1_px*b1jet_px+leadinglepton1_py*b1jet_py+leadinglepton1_pz*b1jet_pz)/allbjets[jet1].p();
     float pTrel2_1 = leadinglepton1_p*leadinglepton1_p - lepXj1*lepXj1;
     if (leadinglepton1)
 	b1jet_leptonPtRel = std::sqrt(pTrel2_1);
-    else 
+    else
 	b1jet_leptonPtRel = 0;
     b1jet_leptonDeltaR = deltaR(b1jet_leptonEta, b1jet_leptonPhi, b1jet_eta, b1jet_phi);
     //b1jet_neHEF = allbjets[jet1].neutralHadronEnergy()/(allbjets[jet1].p4()*allbjets[jet1].rawFactor()).energy();//neutralHardonEfraction
     //b1jet_neEmEF = allbjets[jet1].neutralEmEnergy()/(allbjets[jet1].p4()*allbjets[jet1].rawFactor()).energy();//neutralEmEnergyFraction
     b1jet_neHEF = allbjets[jet1].neutralHadronEnergyFraction();
     b1jet_neEmEF = allbjets[jet1].neutralEmEnergyFraction();
-    //b1jet_vtxMass = allbjets[jet1].userFloat("vtxMass"); b1jet_vtxNtracks = allbjets[jet1].userFloat("vtxNtracks"); 
+    //b1jet_vtxMass = allbjets[jet1].userFloat("vtxMass"); b1jet_vtxNtracks = allbjets[jet1].userFloat("vtxNtracks");
     //b1jet_vtxPx = allbjets[jet1].userFloat("vtxPx"); b1jet_vtxPy = allbjets[jet1].userFloat("vtxPy");
     //b1jet_vtxPt = sqrt(b1jet_vtxPx*b1jet_vtxPx + b1jet_vtxPy*b1jet_vtxPy);
     //b1jet_vtx3DSig = allbjets[jet1].userFloat("vtx3DSig"); b1jet_vtx3DVal = allbjets[jet1].userFloat("vtx3DVal");
     //b1jet_vtxPosX = allbjets[jet1].userFloat("vtxPosX"); b1jet_vtxPosY = allbjets[jet1].userFloat("vtxPosY"); b1jet_vtxPosZ = allbjets[jet1].userFloat("vtxPosZ");
-
     b2jet_px = allbjets[jet2].px(); b2jet_py = allbjets[jet2].py(); b2jet_pz = allbjets[jet2].pz(); b2jet_energy = allbjets[jet2].energy();
     b2jet_pt = allbjets[jet2].pt(); b2jet_eta = allbjets[jet2].eta(); b2jet_phi = allbjets[jet2].phi();
     b2jet_bDiscVar = allbjets[jet2].bDiscriminator(bjetDiscrName_);
@@ -1525,22 +1515,22 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	if (i==0)
 	  b2jet_leadTrackPt = cand.pt();
 	if ((abs(cand.pdgId()) == 13 or abs(cand.pdgId()) == 11)  and not(leadinglepton2)){
-	  b2jet_leptonPdgId = cand.pdgId(); b2jet_leptonPt = cand.pt(); 
+	  b2jet_leptonPdgId = cand.pdgId(); b2jet_leptonPt = cand.pt();
 	  b2jet_leptonEta = cand.eta(); b2jet_leptonPhi = cand.phi();
-	  leadinglepton2_px = cand.px(); 
-	  leadinglepton2_py = cand.py(); 
-	  leadinglepton2_pz = cand.pz(); 
-	  leadinglepton2_p = cand.p(); 
+	  leadinglepton2_px = cand.px();
+	  leadinglepton2_py = cand.py();
+	  leadinglepton2_pz = cand.pz();
+	  leadinglepton2_p = cand.p();
 	  leadinglepton2 = true;
 	}
 	if (leadinglepton2 and b2jet_leadTrackPt>0)
 	  break;
     }
-    float lepXj2 = (leadinglepton2_px*b2jet_px+leadinglepton2_py*b2jet_py+leadinglepton2_pz*b2jet_pz)/allbjets[jet2].p(); 
+    float lepXj2 = (leadinglepton2_px*b2jet_px+leadinglepton2_py*b2jet_py+leadinglepton2_pz*b2jet_pz)/allbjets[jet2].p();
     float pTrel2_2 = leadinglepton2_p*leadinglepton2_p - lepXj2*lepXj2;
     if (leadinglepton2)
 	b2jet_leptonPtRel = std::sqrt(pTrel2_2);
-    else 
+    else
 	b2jet_leptonPtRel = 0;
     //std::cout <<"b1jet_leptonPtRel "<<b1jet_leptonPtRel <<" b2jet_leptonPtRel "<< b2jet_leptonPtRel << std::endl;
     b2jet_leptonDeltaR = deltaR(b2jet_leptonEta, b2jet_leptonPhi, b2jet_eta, b2jet_phi);
@@ -1548,12 +1538,11 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b2jet_neEmEF = allbjets[jet2].neutralEmEnergyFraction();
     //b2jet_neHEF = allbjets[jet2].neutralHadronEnergy()/(allbjets[jet2].p4()*allbjets[jet2].rawFactor()).energy();//neutralHardonEfraction
     //b2jet_neEmEF = allbjets[jet2].neutralEmEnergy()/(allbjets[jet2].p4()*allbjets[jet2].rawFactor()).energy();//neutralEmEnergyFraction
-    //b2jet_vtxMass = allbjets[jet2].userFloat("vtxMass"); b2jet_vtxNtracks = allbjets[jet2].userFloat("vtxNtracks"); 
+    //b2jet_vtxMass = allbjets[jet2].userFloat("vtxMass"); b2jet_vtxNtracks = allbjets[jet2].userFloat("vtxNtracks");
     //b2jet_vtxPx = allbjets[jet2].userFloat("vtxPx"); b2jet_vtxPy = allbjets[jet2].userFloat("vtxPy");
     //b2jet_vtxPt = sqrt(b2jet_vtxPx*b2jet_vtxPx + b2jet_vtxPy*b2jet_vtxPy);
     //b2jet_vtx3DSig = allbjets[jet2].userFloat("vtx3DSig"); b2jet_vtx3DVal = allbjets[jet2].userFloat("vtx3DVal");
     //b2jet_vtxPosX = allbjets[jet2].userFloat("vtxPosX"); b2jet_vtxPosY = allbjets[jet2].userFloat("vtxPosY"); b2jet_vtxPosZ = allbjets[jet2].userFloat("vtxPosZ");
-
     if (sampleType_>Data){
 	float dR_gen_reco11 = deltaR(b1_eta, b1_phi, b1jet_eta, b1jet_phi);
 	float dR_gen_reco12 = deltaR(b1_eta, b1_phi, b2jet_eta, b2jet_phi);
@@ -1562,21 +1551,19 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	dR_b1jet = (dR_gen_reco11 < dR_gen_reco21) ? dR_gen_reco11:dR_gen_reco21;
 	dR_b2jet = (dR_gen_reco12 < dR_gen_reco22) ? dR_gen_reco12:dR_gen_reco22;
     }
-    
+
     printf("Jet1: pt %5.1f, eta %+4.2f, mt %5.1f, btag_var %+1.2f, \n", b1jet_pt, b1jet_eta, b1jet_mt, b1jet_bDiscVar);
     printf("Jet2: pt %5.1f, eta %+4.2f, mt %5.1f, btag_var %+1.2f, \n", b2jet_pt, b2jet_eta, b2jet_mt, b2jet_bDiscVar);
   }
-
   if (hastwomuons and hastwojets) std::cout <<"Event has two muons and two bjets " << std::endl;
   else if (hastwomuons and !hastwojets) std::cout <<"Event has two muons BUT not two bjets " << std::endl;
   else if (!hastwomuons and hastwojets) std::cout <<"Event has two jets BUT not two muons " << std::endl;
   else if (!hastwomuons and !hastwojets) std::cout <<"Event does not have two jets nor two muons " << std::endl;
-
   if (hastwomuons and hastwojets){
-    TLorentzVector Muon1_p4(muon1_px, muon1_py, muon1_pz, muon1_energy); 
-    TLorentzVector Muon2_p4(muon2_px, muon2_py, muon2_pz, muon2_energy); 
-    TLorentzVector b1jet_p4(b1jet_px, b1jet_py, b1jet_pz, b1jet_energy); 
-    TLorentzVector b2jet_p4(b2jet_px, b2jet_py, b2jet_pz, b2jet_energy); 
+    TLorentzVector Muon1_p4(muon1_px, muon1_py, muon1_pz, muon1_energy);
+    TLorentzVector Muon2_p4(muon2_px, muon2_py, muon2_pz, muon2_energy);
+    TLorentzVector b1jet_p4(b1jet_px, b1jet_py, b1jet_pz, b1jet_energy);
+    TLorentzVector b2jet_p4(b2jet_px, b2jet_py, b2jet_pz, b2jet_energy);
     dR_bl   = (b1jet_p4.Pt()>b2jet_p4.Pt()) ? (b1jet_p4.DeltaR( (Muon1_p4.Pt()>Muon2_p4.Pt()) ? Muon1_p4 : Muon2_p4 )) : (b2jet_p4.DeltaR( (Muon1_p4.Pt()>Muon2_p4.Pt()) ? Muon1_p4 : Muon2_p4 ));
     dR_b1l1 = b1jet_p4.DeltaR(Muon1_p4);
     dR_b1l2 = b1jet_p4.DeltaR(Muon2_p4);
@@ -1596,12 +1583,10 @@ void DiHiggsWWBBSLAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     mass_trans = sqrt(2*ll_p4.Pt()*met_pt*(1-cos(dphi_llmet)));
     //if (dR_b1l1 > jetleptonDeltaR_ and dR_b1l2 > jetleptonDeltaR_ and dR_b2l1 > jetleptonDeltaR_ and dR_b2l2 > jetleptonDeltaR_) hasdRljet =true;
     //MINdR_bl = dR_b1l1*(dR_b1l1<dR_b1l2 && dR_b1l1<dR_b2l1 && dR_b1l1<dR_b2l2) + dR_b2l1*(dR_b2l1<dR_b2l2 && dR_b2l1<dR_b1l1 && dR_b2l1<dR_b1l2) + dR_b1l2*(dR_b1l2<dR_b1l1 && dR_b1l2<dR_b2l1 && dR_b1l2<dR_b2l2) + dR_b2l2*(dR_b2l2<dR_b1l1 && dR_b2l2<dR_b1l2 && dR_b2l2<dR_b2l1);
-
     //MT2: In order to construct MT2 for either the t tbar -> bW bW system or our signal H -> h h -> bb WW,
     //we group each pair b_jet-lepton into an object: we then get "Particle A" and "Particle B" (each one given by a b_jet-lepton object),
     //whose Kinematics is to be fed into the MT2 variable.
     //There are two possible Lepton-Bquark pairings. We compute MT2 for both and pick the smallest value.
-
   }*/
   //if((hastwomuons and hastwojets) or findAllGenParticles) evtree->Fill();
   if(findAllGenParticles) evtree->Fill();
@@ -1615,6 +1600,10 @@ void DiHiggsWWBBSLAnalyzer::beginJob(){
   evtree->Branch("ievent",&ievent);
   //evtree = new TTree("evtree","event tree");
   evtree->Branch("findAllGenParticles",&findAllGenParticles);
+
+  evtree->Branch("w_to_qq_mass",&w_to_qq_mass, "w_to_qq_mass/F");
+  evtree->Branch("w_to_lep_mass",&w_to_lep_mass, "w_to_lep_mass/F");
+
   evtree->Branch("XsecBr",&XsecBr, "XsecBr/F");
   evtree->Branch("lep1_px",&lep1_px, "lep1_px/F");
   evtree->Branch("lep1_py",&lep1_py, "lep1_py/F");
@@ -1761,9 +1750,9 @@ void DiHiggsWWBBSLAnalyzer::beginJob(){
   evtree->Branch("b2genjet_pt",&b2genjet_pt, "b2genjet_pt/F");
   evtree->Branch("b2genjet_energy",&b2genjet_energy, "b2genjet_energy/F");
   evtree->Branch("b2genjet_mass",&b2genjet_mass, "b2genjet_mass/F");
-  evtree->Branch("dR_b1genjet", &dR_b1genjet,"dR_b1genjet/F");  
-  evtree->Branch("dR_b2genjet", &dR_b2genjet,"dR_b2genjet/F");  
-  evtree->Branch("hastwogenjets", &hastwogenjets,"hastwogenjets/B");  
+  evtree->Branch("dR_b1genjet", &dR_b1genjet,"dR_b1genjet/F");
+  evtree->Branch("dR_b2genjet", &dR_b2genjet,"dR_b2genjet/F");
+  evtree->Branch("hastwogenjets", &hastwogenjets,"hastwogenjets/B");
 
   evtree->Branch("q1genjet_px"    ,&q1genjet_px,     "q1genjet_px/F");
   evtree->Branch("q1genjet_py"    ,&q1genjet_py,     "q1genjet_py/F");
@@ -1781,9 +1770,9 @@ void DiHiggsWWBBSLAnalyzer::beginJob(){
   evtree->Branch("q2genjet_pt"    ,&q2genjet_pt,     "q2genjet_pt/F");
   evtree->Branch("q2genjet_energy",&q2genjet_energy, "q2genjet_energy/F");
   evtree->Branch("q2genjet_mass"  ,&q2genjet_mass,   "q2genjet_mass/F");
-  evtree->Branch("dR_q1genjet", &dR_q1genjet,"dR_q1genjet/F");  
-  evtree->Branch("dR_q2genjet", &dR_q2genjet,"dR_q2genjet/F");  
-  evtree->Branch("hastwogenjets_wqq", &hastwogenjets_wqq,"hastwogenjets_wqq/B");  
+  evtree->Branch("dR_q1genjet", &dR_q1genjet,"dR_q1genjet/F");
+  evtree->Branch("dR_q2genjet", &dR_q2genjet,"dR_q2genjet/F");
+  evtree->Branch("hastwogenjets_wqq", &hastwogenjets_wqq,"hastwogenjets_wqq/B");
 
 
   evtree->Branch("genmet_neutrinos_pt",&genmet_neutrinos_pt,"genmet_neutrinos_pt/F");
@@ -1944,8 +1933,8 @@ void DiHiggsWWBBSLAnalyzer::beginJob(){
   evtree->Branch("b2jet_vtxPosY",&b2jet_vtxPosY, "b2jet_vtxPosY/F");
   evtree->Branch("b2jet_vtxPosZ",&b2jet_vtxPosZ, "b2jet_vtxPosZ/F");
 
-  evtree->Branch("dR_b1jet", &dR_b1jet,"dR_b1jet/F");  
-  evtree->Branch("dR_b2jet", &dR_b2jet,"dR_b2jet/F");  
+  evtree->Branch("dR_b1jet", &dR_b1jet,"dR_b1jet/F");
+  evtree->Branch("dR_b2jet", &dR_b2jet,"dR_b2jet/F");
   evtree->Branch("hastwojets",&hastwojets, "hastwojets/B");
   evtree->Branch("hasb1jet",&hasb1jet, "hasb1jet/B");
   evtree->Branch("hasb2jet",&hasb2jet, "hasb2jet/B");
@@ -1981,18 +1970,18 @@ void DiHiggsWWBBSLAnalyzer::beginJob(){
   evtree->Branch("eta_l1l2",&eta_l1l2, "eta_l1l2/F");
   evtree->Branch("dphi_llbb",&dphi_llbb, "dphi_llbb/F");
   evtree->Branch("dphi_llmet",&dphi_llmet, "dphi_llmet/F");
-  evtree->Branch("mass_trans",&mass_trans, "mass_trans/F");   
+  evtree->Branch("mass_trans",&mass_trans, "mass_trans/F");
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void 
+void
 DiHiggsWWBBSLAnalyzer::endJob() {
   hevent->Fill(1, ievent);
   //   std::cout << "endJob, ievent  " << ievent << std::endl;
   //output->Write();
   // output->Close();
   /*
-  // release space 
+  // release space
   delete mu_onshellW_lorentz;
   delete mu_offshellW_lorentz;
   delete nu_onshellW_lorentz;
@@ -2008,7 +1997,7 @@ DiHiggsWWBBSLAnalyzer::endJob() {
 // ------------ method called to check singal genParticles   ------------
 void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2L2Nu(edm::Handle<reco::GenParticleCollection> genParticleColl){
 
-  std::vector<reco::GenParticle*> b1Coll; 
+  std::vector<reco::GenParticle*> b1Coll;
   std::vector<reco::GenParticle*> b2Coll;
   std::vector<reco::GenParticle*> W1Coll;
   std::vector<reco::GenParticle*> W2Coll;
@@ -2020,7 +2009,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2L2Nu(edm::Handle<reco::GenPa
   for (reco::GenParticleCollection::const_iterator it = genParticleColl->begin(); it != genParticleColl->end(); ++it) {
     //particle id, (electron12)(muon13),(b5),(W+24),(SM higgs25)
     // particle id  it->pdgId()
-    //std::cout << "Gen paticles: id " << it->pdgId() << std::endl; 
+    //std::cout << "Gen paticles: id " << it->pdgId() << std::endl;
     //if (it->pdgId() == 24 && hasDaughter(it->clone(), -13) )
     if (it->pdgId() == 24){
       const reco::Candidate* tmpw1 = it->mother();
@@ -2083,9 +2072,9 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2L2Nu(edm::Handle<reco::GenPa
         const reco::Candidate* htoBB_mother = htoBB_cand->mother();
         while (htoWW_mother->pdgId() == 25)  htoWW_mother = htoWW_mother->mother();
         while (htoBB_mother->pdgId() == 25)  htoBB_mother = htoBB_mother->mother();
-        //if (htoWW_mother == htoBB_mother && (htoBB_mother->pdgId()==99927 || htoBB_mother->pdgId()==99926)){ 
+        //if (htoWW_mother == htoBB_mother && (htoBB_mother->pdgId()==99927 || htoBB_mother->pdgId()==99926)){
         //release the pdgId requirement to use other signal samples: graviton, radion
-        if (htoWW_mother == htoBB_mother){ 
+        if (htoWW_mother == htoBB_mother){
           Xtohhcand = htoWW_mother;
           htoWWcand = htoWW_cand;
           htoBBcand = htoBB_cand;
@@ -2104,7 +2093,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2L2Nu(edm::Handle<reco::GenPa
     b1cand = findDecendant(htoBBcand, 5, false);
     b2cand = findDecendant(htoBBcand, -5, false);
     w1cand = findDecendant(htoWWcand, 24, false);
-    w2cand = findDecendant(htoWWcand, -24, false);   
+    w2cand = findDecendant(htoWWcand, -24, false);
     if (debug_){
       if (hasDaughter(w1cand, -13) and hasDaughter(w2cand, 13)) std::cout <<" find two muons "<< std::endl;
       if (hasDaughter(w1cand, -11) and hasDaughter(w2cand, 11)) std::cout <<" find two electrons "<< std::endl;
@@ -2147,7 +2136,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2L2Nu(edm::Handle<reco::GenPa
 // ------------ method called to check singal genParticles   ------------
 void DiHiggsWWBBSLAnalyzer::checkGenParticlesZZbb(edm::Handle<reco::GenParticleCollection> genParticleColl){
 
-  std::vector<reco::GenParticle*> b1Coll; 
+  std::vector<reco::GenParticle*> b1Coll;
   std::vector<reco::GenParticle*> b2Coll;
   std::vector<reco::GenParticle*> ZColl;
   std::vector<const reco::Candidate*> htoZZColl;
@@ -2158,7 +2147,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesZZbb(edm::Handle<reco::GenParticleC
   for (reco::GenParticleCollection::const_iterator it = genParticleColl->begin(); it != genParticleColl->end(); ++it) {
     //particle id, (electron12)(muon13),(b5),(W+24),(SM higgs25), (Z 23)
     // particle id  it->pdgId()
-    //std::cout << "Gen paticles: id " << it->pdgId() << std::endl; 
+    //std::cout << "Gen paticles: id " << it->pdgId() << std::endl;
     //if (it->pdgId() == 24 && hasDaughter(it->clone(), -13) )
     if (it->pdgId() == 23){
 	const reco::Candidate* tmpz = it->mother();
@@ -2222,9 +2211,9 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesZZbb(edm::Handle<reco::GenParticleC
 	  const reco::Candidate* htoBB_mother = htoBB_cand->mother();
 	  while (htoZZ_mother->pdgId() == 25)  htoZZ_mother = htoZZ_mother->mother();
 	  while (htoBB_mother->pdgId() == 25)  htoBB_mother = htoBB_mother->mother();
-	  //if (htoWW_mother == htoBB_mother && (htoBB_mother->pdgId()==99927 || htoBB_mother->pdgId()==99926)){ 
+	  //if (htoWW_mother == htoBB_mother && (htoBB_mother->pdgId()==99927 || htoBB_mother->pdgId()==99926)){
 	  //release the pdgId requirement to use other signal samples: graviton, radion
-	  if (htoZZ_mother == htoBB_mother){ 
+	  if (htoZZ_mother == htoBB_mother){
 	    Xtohhcand = htoZZ_mother;
 	    htoZZcand = htoZZ_cand;
 	    htoBBcand = htoBB_cand;
@@ -2244,7 +2233,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesZZbb(edm::Handle<reco::GenParticleC
   if (Xtohh){
     b1cand = findDecendant(htoBBcand, 5, false);
     b2cand = findDecendant(htoBBcand, -5, false);
-    //not working here 
+    //not working here
     const reco::Candidate* htoZZtmp = htoZZcand;
     while (htoZZtmp->numberOfDaughters() == 1 and htoZZtmp->daughter(0)->pdgId() == 25) htoZZtmp = htoZZtmp->daughter(0);
     for (unsigned i=0; i < htoZZtmp->numberOfDaughters(); i++){
@@ -2313,7 +2302,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesZZbb(edm::Handle<reco::GenParticleC
 // ------------ method called to check singal genParticles   ------------
 void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2J2Nu(edm::Handle<reco::GenParticleCollection> genParticleColl){
 
-  std::vector<reco::GenParticle*> b1Coll; 
+  std::vector<reco::GenParticle*> b1Coll;
   std::vector<reco::GenParticle*> b2Coll;
   std::vector<reco::GenParticle*> W1Coll;
   std::vector<reco::GenParticle*> W2Coll;
@@ -2325,7 +2314,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2J2Nu(edm::Handle<reco::GenPa
   for (reco::GenParticleCollection::const_iterator it = genParticleColl->begin(); it != genParticleColl->end(); ++it) {
     //particle id, (electron12)(muon13),(b5),(W+24),(SM higgs25)
     // particle id  it->pdgId()
-    //std::cout << "Gen paticles: id " << it->pdgId() << std::endl; 
+    //std::cout << "Gen paticles: id " << it->pdgId() << std::endl;
     //if (it->pdgId() == 24 && hasDaughter(it->clone(), -13) )
     if (it->pdgId() == 24){
       const reco::Candidate* tmpw1 = it->mother();
@@ -2388,9 +2377,9 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2J2Nu(edm::Handle<reco::GenPa
         const reco::Candidate* htoBB_mother = htoBB_cand->mother();
         while (htoWW_mother->pdgId() == 25)  htoWW_mother = htoWW_mother->mother();
         while (htoBB_mother->pdgId() == 25)  htoBB_mother = htoBB_mother->mother();
-        //if (htoWW_mother == htoBB_mother && (htoBB_mother->pdgId()==99927 || htoBB_mother->pdgId()==99926)){ 
+        //if (htoWW_mother == htoBB_mother && (htoBB_mother->pdgId()==99927 || htoBB_mother->pdgId()==99926)){
         //release the pdgId requirement to use other signal samples: graviton, radion
-        if (htoWW_mother == htoBB_mother){ 
+        if (htoWW_mother == htoBB_mother){
           Xtohhcand = htoWW_mother;
           htoWWcand = htoWW_cand;
           htoBBcand = htoBB_cand;
@@ -2407,49 +2396,121 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2J2Nu(edm::Handle<reco::GenPa
   }
 
   if (Xtohh){
-    b1cand = findDecendant(htoBBcand, 5, false);
-    b2cand = findDecendant(htoBBcand, -5, false);
-    w1cand = findDecendant(htoWWcand, 24, false);
-    w2cand = findDecendant(htoWWcand, -24, false);   
+
+      std::cout << "htoBB candidate:" << std::endl;
+      printCandidate(htoBBcand);
+      std::cout << "Higgs particle decendats:" << std::endl;
+      printallDecendants(htoBBcand);
+
+    b1cand = findDecendant(htoBBcand, 5, true);
+    b2cand = findDecendant(htoBBcand, -5, true);
+    w1cand = findDecendant(htoWWcand, 24, true);
+    w2cand = findDecendant(htoWWcand, -24, true);
     if (debug_){
       if (hasDaughter(w1cand, -13) and hasDaughter(w2cand, 13)) std::cout <<" find two muons from H->ww"<< std::endl;
-      else if(hasDaughter(w1cand, -13) or hasDaughter(w2cand, 13)) std::cout <<" find one muon from H->ww"<< std::endl; 
+      else if(hasDaughter(w1cand, -13) or hasDaughter(w2cand, 13)) std::cout <<" find one muon from H->ww"<< std::endl;
       if (hasDaughter(w1cand, -11) and hasDaughter(w2cand, 11)) std::cout <<" find two electrons from H->ww"<< std::endl;
-      else if(hasDaughter(w1cand, -11) and hasDaughter(w2cand, 11)) std::cout <<" find one electron from H->ww"<< std::endl; 
+      else if(hasDaughter(w1cand, -11) and hasDaughter(w2cand, 11)) std::cout <<" find one electron from H->ww"<< std::endl;
       if ((hasDaughter(w1cand, -13) and hasDaughter(w2cand, 11)) or (hasDaughter(w1cand, -11) and hasDaughter(w2cand, 13))) std::cout <<" find two electron+muon from H->ww"<< std::endl;
     }
     if (hasDaughter(w1cand, -11) or hasDaughter(w1cand, 11) or hasDaughter(w1cand, -13) or hasDaughter(w1cand, 13)){
       lep1cand = findLeptonDaughter(w1cand);
       nu1cand = findNuDaughter(w1cand);
+
+      w_to_lep_mass = w1cand->mass();
+
       //make sure all candiates are in same frame
       while (lep1cand->numberOfDaughters()==1 and  lep1cand->daughter(0)->pdgId()==lep1cand->pdgId())
         lep1cand = lep1cand->daughter(0);
       while (nu1cand->numberOfDaughters()==1 and  nu1cand->daughter(0)->pdgId()==nu1cand->pdgId())
         nu1cand = nu1cand->daughter(0);
-      //while (lep2cand->numberOfDaughters()==1 and  lep2cand->daughter(0)->pdgId()==lep2cand->pdgId())
+      // while (lep2cand->numberOfDaughters()==1 and  lep2cand->daughter(0)->pdgId()==lep2cand->pdgId())
       //  lep2cand = lep2cand->daughter(0);
-      //while (nu2cand->numberOfDaughters()==1 and  nu2cand->daughter(0)->pdgId()==nu2cand->pdgId())
+      // while (nu2cand->numberOfDaughters()==1 and  nu2cand->daughter(0)->pdgId()==nu2cand->pdgId())
       //  nu2cand = nu2cand->daughter(0);
       //W->q1q2
       if (w2cand->numberOfDaughters()==2){
-        q1cand = w2cand->daughter(0);
-        q2cand = w2cand->daughter(1);
-        if (abs(q1cand->pdgId()) <= 4 and abs(q2cand->pdgId()) <= 4){
-          std::cout <<"one W leptonically decay and the other W decays into light quarks" << std::endl;
-        }else if (abs(q1cand->pdgId()) >=5 or abs(q2cand->pdgId()) >=5){
-          std::cout <<"one W leptonically decay and the other W decays into b/t " << std::endl;
-        }else if ((abs(q1cand->pdgId()) >= 11 and abs(q1cand->pdgId()) <= 16)){
-          std::cout <<"one W leptonically decay and the other W decays into leptons " << std::endl;
-        }else{
-          std::cout <<"one W leptonically decay and the other W decays into unknowns" << std::endl;
-          std::cout <<"w2 "; printCandidate(w2cand); 
-          std::cout <<"q1 "; printCandidate(q1cand); 
-          std::cout <<"q2 "; printCandidate(q2cand); 
+          q1cand = w2cand->daughter(0);
+          q2cand = w2cand->daughter(1);
+
+        w_to_qq_mass = w2cand->mass();
+
+        if (abs(q1cand->pdgId()) <= 4 and abs(q2cand->pdgId()) <= 4)
+        {
+            std::cout <<"one W leptonically decay and the other W decays into light quarks" << std::endl;
         }
+        else if (abs(q1cand->pdgId()) >=5 or abs(q2cand->pdgId()) >=5)
+        {
+            std::cout <<"one W leptonically decay and the other W decays into b/t " << std::endl;
+        }
+        else if ((abs(q1cand->pdgId()) >= 11 and abs(q1cand->pdgId()) <= 16))
+        {
+            std::cout <<"one W leptonically decay and the other W decays into leptons " << std::endl;
+        }
+        else
+        {
+            std::cout <<"one W leptonically decay and the other W decays into unknowns" << std::endl;
+            std::cout <<"w2 "; printCandidate(w2cand);
+            // std::cout <<"q1 "; printCandidate(q1cand);
+            // std::cout <<"q2 "; printCandidate(q2cand);
+        }
+
+        // std::cout << "W2 to qq:" << std::endl;
+        // printCandidate(w2cand);
+        //
+        // printCandidate(q1cand);
+        // std::cout << "q1 daughters " << q1cand->numberOfDaughters() << std::endl;
+        // printallDecendants(q1cand);
+        // printCandidate(q2cand);
+        // std::cout << "q2 daughters " << q2cand->numberOfDaughters() << std::endl;
+        // printallDecendants(q2cand);
+        //
+        // float px_b = q1cand->px() + q2cand->px();
+        // float py_b = q1cand->py() + q2cand->py();
+        // float pz_b = q1cand->pz() + q2cand->pz();
+        // float e_b = q1cand->energy() + q2cand->energy();
+        //
+        // TLorentzVector before = TLorentzVector(px_b, py_b, pz_b, e_b);
+        //
+        // std::cout << "4-momentum before (px, py, pz, E): " << px_b << " " << py_b << " " << pz_b << " " << e_b << std::endl;
+        // std::cout << "W mass before: " << before.M() << std::endl;
+        //
         while(q1cand->numberOfDaughters()==1 and  q1cand->daughter(0)->pdgId()==q1cand->pdgId())
-          q1cand = q1cand->daughter(0);
+            q1cand = q1cand->daughter(0);
         while(q2cand->numberOfDaughters()==1 and  q2cand->daughter(0)->pdgId()==q2cand->pdgId())
-          q2cand = q2cand->daughter(0);
+            q2cand = q2cand->daughter(0);
+        //
+        //     float px_a = q1cand->px() + q2cand->px();
+        //     float py_a = q1cand->py() + q2cand->py();
+        //     float pz_a = q1cand->pz() + q2cand->pz();
+        //     float e_a = q1cand->energy() + q2cand->energy();
+        //
+        //     TLorentzVector after = TLorentzVector(px_a, py_a, pz_a, e_a);
+        //
+        //     std::cout << "4-momentum after (px, py, pz, E): " << px_a << " " << py_a << " " << pz_a << " " << e_a << std::endl;
+        //     std::cout << "W mass after: " << after.M() << std::endl;
+
+        // const reco::Candidate * q1_tmp = w2cand->daughter(0);
+        // const reco::Candidate * q2_tmp = w2cand->daughter(1);
+        //
+        // std::cout << "created temporary candidates!" << std::endl;
+        //
+        // int q1_id = q1_tmp->pdgId();
+        // int q2_id = q2_tmp->pdgId();
+        //
+        // std::cout << "temporary candidates IDs are: " << q1_id << ", " << q2_id << std::endl;
+        // printCandidate(q1_tmp);
+        // std::cout << "q1_tmp daughters " << q1_tmp->numberOfDaughters() << std::endl;
+        // printallDecendants(q1_tmp);
+        // printCandidate(q2_tmp);
+        // std::cout << "q2_tmp daughters " << q2_tmp->numberOfDaughters() << std::endl;
+        // printallDecendants(q2_tmp);
+        //
+        // q1cand = findDecendant(q1_tmp, q1_id, true);
+        // q2cand = findDecendant(q2_tmp, q2_id, true);
+        //
+        // std::cout << "found decendats" << std::endl;
+
       }else{
         std::cout <<"one W leptonically decay and the num of daugters from the other W "<<w2cand->numberOfDaughters() << std::endl;
         return ;
@@ -2457,36 +2518,103 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2J2Nu(edm::Handle<reco::GenPa
       findAllGenParticles = true;
     }else if (hasDaughter(w2cand, -11) or hasDaughter(w2cand, 11) or hasDaughter(w2cand, -13) or hasDaughter(w2cand, 13)){
       lep1cand = findLeptonDaughter(w2cand);
+      std::cout << "found lepton1 candidate" << std::endl;
       nu1cand = findNuDaughter(w2cand);
+
+      w_to_lep_mass = w2cand->mass();
+
       //make sure all candiates are in same frame
       while (lep1cand->numberOfDaughters()==1 and  lep1cand->daughter(0)->pdgId()==lep1cand->pdgId())
         lep1cand = lep1cand->daughter(0);
       while (nu1cand->numberOfDaughters()==1 and  nu1cand->daughter(0)->pdgId()==nu1cand->pdgId())
         nu1cand = nu1cand->daughter(0);
-      //while (lep2cand->numberOfDaughters()==1 and  lep2cand->daughter(0)->pdgId()==lep2cand->pdgId())
+      // while (lep2cand->numberOfDaughters()==1 and  lep2cand->daughter(0)->pdgId()==lep2cand->pdgId())
       //  lep2cand = lep2cand->daughter(0);
-      //while (nu2cand->numberOfDaughters()==1 and  nu2cand->daughter(0)->pdgId()==nu2cand->pdgId())
+      // while (nu2cand->numberOfDaughters()==1 and  nu2cand->daughter(0)->pdgId()==nu2cand->pdgId())
       //  nu2cand = nu2cand->daughter(0);
       //W->q1q2
       if (w1cand->numberOfDaughters()==2){
-        q1cand = w1cand->daughter(0);
-        q2cand = w1cand->daughter(1);
-        if (abs(q1cand->pdgId()) <= 4 and abs(q2cand->pdgId()) <= 4){
-          std::cout <<"one W leptonically decay and the other W decays into light quarks" << std::endl;
-        }else if (abs(q1cand->pdgId()) >=5 or abs(q2cand->pdgId()) >=5){
-          std::cout <<"one W leptonically decay and the other W decays into b/t " << std::endl;
-        }else if ((abs(q1cand->pdgId()) >= 11 and abs(q1cand->pdgId()) <= 16)){
-          std::cout <<"one W leptonically decay and the other W decays into leptons " << std::endl;
-        }else{
-          std::cout <<"one W leptonically decay and the other W decays into unknowns" << std::endl;
-          std::cout <<"w2 "; printCandidate(w2cand); 
-          std::cout <<"q1 "; printCandidate(q1cand); 
-          std::cout <<"q2 "; printCandidate(q2cand); 
+          q1cand = w1cand->daughter(0);
+          q2cand = w1cand->daughter(1);
+
+        w_to_qq_mass = w1cand->mass();
+
+        if (abs(q1cand->pdgId()) <= 4 and abs(q2cand->pdgId()) <= 4)
+        {
+            std::cout <<"one W leptonically decay and the other W decays into light quarks" << std::endl;
         }
+        else if (abs(q1cand->pdgId()) >=5 or abs(q2cand->pdgId()) >=5)
+        {
+            std::cout <<"one W leptonically decay and the other W decays into b/t " << std::endl;
+        }
+        else if ((abs(q1cand->pdgId()) >= 11 and abs(q1cand->pdgId()) <= 16))
+        {
+            std::cout <<"one W leptonically decay and the other W decays into leptons " << std::endl;
+        }
+        else
+        {
+            std::cout <<"one W leptonically decay and the other W decays into unknowns" << std::endl;
+            std::cout <<"w2 "; printCandidate(w2cand);
+            // std::cout <<"q1 "; printCandidate(q1cand);
+            // std::cout <<"q2 "; printCandidate(q2cand);
+        }
+
+        // std::cout << "W1 to qq: " << std::endl;
+        // printCandidate(w1cand);
+        //
+        // printCandidate(q1cand);
+        // std::cout << "q1 daughters " << q1cand->numberOfDaughters() << std::endl;
+        // printallDecendants(q1cand);
+        // printCandidate(q2cand);
+        // std::cout << "q2 daughters " << q2cand->numberOfDaughters() << std::endl;
+        // printallDecendants(q2cand);
+        //
+        // float px_b = q1cand->px() + q2cand->px();
+        // float py_b = q1cand->py() + q2cand->py();
+        // float pz_b = q1cand->pz() + q2cand->pz();
+        // float e_b = q1cand->energy() + q2cand->energy();
+        //
+        // TLorentzVector before = TLorentzVector(px_b, py_b, pz_b, e_b);
+        //
+        // std::cout << "4-momentum before (px, py, pz, E): " << px_b << " " << py_b << " " << pz_b << " " << e_b << std::endl;
+        // std::cout << "W mass before: " << before.M() << std::endl;
+        //
         while(q1cand->numberOfDaughters()==1 and  q1cand->daughter(0)->pdgId()==q1cand->pdgId())
           q1cand = q1cand->daughter(0);
         while(q2cand->numberOfDaughters()==1 and  q2cand->daughter(0)->pdgId()==q2cand->pdgId())
           q2cand = q2cand->daughter(0);
+        //
+        //   float px_a = q1cand->px() + q2cand->px();
+        //   float py_a = q1cand->py() + q2cand->py();
+        //   float pz_a = q1cand->pz() + q2cand->pz();
+        //   float e_a = q1cand->energy() + q2cand->energy();
+        //
+        //   TLorentzVector after = TLorentzVector(px_a, py_a, pz_a, e_a);
+        //
+        //   std::cout << "4-momentum after (px, py, pz, E): " << px_a << " " << py_a << " " << pz_a << " " << e_a << std::endl;
+        //   std::cout << "W mass after: " << after.M() << std::endl;
+
+        // const reco::Candidate * q1_tmp = w1cand->daughter(0);
+        // const reco::Candidate * q2_tmp = w1cand->daughter(1);
+        //
+        // std::cout << "created temporary candidates!" << std::endl;
+        //
+        // int q1_id = q1_tmp->pdgId();
+        // int q2_id = q2_tmp->pdgId();
+        //
+        // std::cout << "temporary candidates IDs are: " << q1_id << ", " << q2_id << std::endl;
+        // printCandidate(q1_tmp);
+        // std::cout << "q1_tmp daughters " << q1_tmp->numberOfDaughters() << std::endl;
+        // printallDecendants(q1_tmp);
+        // printCandidate(q2_tmp);
+        // std::cout << "q2_tmp daughters " << q2_tmp->numberOfDaughters() << std::endl;
+        // printallDecendants(q2_tmp);
+        //
+        // q1cand = findDecendant(q1_tmp, q1_id, true);
+        // q2cand = findDecendant(q2_tmp, q2_id, true);
+        //
+        // std::cout << "found decendats" << std::endl;
+
       }else{
         std::cout <<"one W leptonically decay and the num of daugters from the other W "<<w1cand->numberOfDaughters() << std::endl;
         return ;
@@ -2496,7 +2624,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2J2Nu(edm::Handle<reco::GenPa
       findAllGenParticles = false;
       std::cout <<"failed to one lepton from  W decay and two quarks from the other W "<< std::endl;
     }
-    if (debug_){
+    if (debug_ && findAllGenParticles){
       std::cout <<" w1 " ; printCandidate(w1cand);
       std::cout <<" w2 " ; printCandidate(w2cand);
       std::cout <<" b1 " ; printCandidate(b1cand);
@@ -2514,7 +2642,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesHHbbWW2J2Nu(edm::Handle<reco::GenPa
 // ------------ method called to check genParticles ZZbb->2L2J2B   ------------
 void DiHiggsWWBBSLAnalyzer::checkGenParticlesZZbb_2L2J(edm::Handle<reco::GenParticleCollection> genParticleColl){
 
-  std::vector<reco::GenParticle*> b1Coll; 
+  std::vector<reco::GenParticle*> b1Coll;
   std::vector<reco::GenParticle*> b2Coll;
   std::vector<reco::GenParticle*> ZColl;
   std::vector<const reco::Candidate*> htoZZColl;
@@ -2525,7 +2653,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesZZbb_2L2J(edm::Handle<reco::GenPart
   for (reco::GenParticleCollection::const_iterator it = genParticleColl->begin(); it != genParticleColl->end(); ++it) {
     //particle id, (electron12)(muon13),(b5),(W+24),(SM higgs25), (Z 23)
     // particle id  it->pdgId()
-    //std::cout << "Gen paticles: id " << it->pdgId() << std::endl; 
+    //std::cout << "Gen paticles: id " << it->pdgId() << std::endl;
     //if (it->pdgId() == 24 && hasDaughter(it->clone(), -13) )
     if (it->pdgId() == 23){
 	const reco::Candidate* tmpz = it->mother();
@@ -2589,9 +2717,9 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesZZbb_2L2J(edm::Handle<reco::GenPart
 	  const reco::Candidate* htoBB_mother = htoBB_cand->mother();
 	  while (htoZZ_mother->pdgId() == 25)  htoZZ_mother = htoZZ_mother->mother();
 	  while (htoBB_mother->pdgId() == 25)  htoBB_mother = htoBB_mother->mother();
-	  //if (htoWW_mother == htoBB_mother && (htoBB_mother->pdgId()==99927 || htoBB_mother->pdgId()==99926)){ 
+	  //if (htoWW_mother == htoBB_mother && (htoBB_mother->pdgId()==99927 || htoBB_mother->pdgId()==99926)){
 	  //release the pdgId requirement to use other signal samples: graviton, radion
-	  if (htoZZ_mother == htoBB_mother){ 
+	  if (htoZZ_mother == htoBB_mother){
 	    Xtohhcand = htoZZ_mother;
 	    htoZZcand = htoZZ_cand;
 	    htoBBcand = htoBB_cand;
@@ -2611,7 +2739,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesZZbb_2L2J(edm::Handle<reco::GenPart
   if (Xtohh){
     b1cand = findDecendant(htoBBcand, 5, false);
     b2cand = findDecendant(htoBBcand, -5, false);
-   
+
     const reco::Candidate* htoZZtmp = htoZZcand;
     while (htoZZtmp->numberOfDaughters() == 1 and htoZZtmp->daughter(0)->pdgId() == 25) htoZZtmp = htoZZtmp->daughter(0);
     for (unsigned i=0; i < htoZZtmp->numberOfDaughters(); i++){
@@ -2690,7 +2818,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesZZbb_2L2J(edm::Handle<reco::GenPart
 // ------------ method called to check ttbar genParticles   ------------
 void DiHiggsWWBBSLAnalyzer::checkGenParticlesTTbar(edm::Handle<reco::GenParticleCollection> genParticleColl){
 
-  std::vector<reco::GenParticle*> b1Coll; 
+  std::vector<reco::GenParticle*> b1Coll;
   std::vector<reco::GenParticle*> b2Coll;
   std::vector<reco::GenParticle*> W1Coll;
   std::vector<reco::GenParticle*> W2Coll;
@@ -2700,7 +2828,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesTTbar(edm::Handle<reco::GenParticle
   for (reco::GenParticleCollection::const_iterator it = genParticleColl->begin(); it != genParticleColl->end(); ++it) {
     //particle id, (electron12)(muon13),(b5),(W+24),(SM higgs25)
     //particle id  it->pdgId()
-    //std::cout << "Gen paticles: id " << it->pdgId() << std::endl; 
+    //std::cout << "Gen paticles: id " << it->pdgId() << std::endl;
     //if (it->pdgId() == 24 && hasDaughter(it->clone(), -13) )
     if (it->pdgId() == 24 ){
 	const reco::Candidate* tmpw1 = it->mother();
@@ -2763,7 +2891,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesTTbar(edm::Handle<reco::GenParticle
     b1cand = findDecendant(t1cand, 5, false);
     w1cand = findDecendant(t1cand, 24, false);
     b2cand = findDecendant(t2cand, -5, false);
-    w2cand = findDecendant(t2cand, -24, false);   
+    w2cand = findDecendant(t2cand, -24, false);
     //for (unsigned int i=0; i < b1cand->numberOfDaughters(); i++)
     //std::cout <<"candidate id "<< b1cand->pdgId()<<" daughter i "<< i <<" id "<<(b1cand->daughter(i))->pdgId()<< std::endl;
     if (hasDaughter(w1cand, -13) and hasDaughter(w2cand, 13)){
@@ -2811,7 +2939,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesDY(edm::Handle<reco::GenParticleCol
 
   std::cout <<"*********** start to check GenParticles for DY sample ***********"<< std::endl;
   for(reco::GenParticleCollection::const_iterator it = genParticleColl->begin(); it != genParticleColl->end(); ++it) {
-    if( debug_ and abs(it->pdgId()) == 13){ 
+    if( debug_ and abs(it->pdgId()) == 13){
 	std::cout<<"ID: "<<it->pdgId()<<" ->numOfmothers: "<<it->numberOfMothers()<<std::endl;
 	//if( it->numberOfMothers()==0 ) std::cout<<"  DY: NO MOTHER!"<<std::endl;
 	//if( it->numberOfMothers()==1 ) std::cout<<"  DY: Mother is: "<<it->mother()->pdgId()<<std::endl;
@@ -2824,7 +2952,7 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesDY(edm::Handle<reco::GenParticleCol
     if( fabs(it->pdgId()) == 5 )  bJet1Coll.push_back(it->clone());
     if( fabs(it->pdgId()) == -5 ) bJet2Coll.push_back(it->clone());
   }// all Gen particles
-  //Fill Final quantites, only Z/gamma->ll are accepted 
+  //Fill Final quantites, only Z/gamma->ll are accepted
   if(lept1Coll.size()>0 and lept2Coll.size()>0){
     for (auto lept1Cand : lept1Coll){
 	for (auto lept2Cand : lept2Coll){
@@ -2844,9 +2972,9 @@ void DiHiggsWWBBSLAnalyzer::checkGenParticlesDY(edm::Handle<reco::GenParticleCol
     lep2cand = stableDecendant(ZColl[0], 13);
   }
 
-  //not care about where b comes from 
+  //not care about where b comes from
   if(bJet1Coll.size()>0){
-    float minPT=5;//min pt cut 
+    float minPT=5;//min pt cut
     for (auto bJet1Cand : bJet1Coll){
 	const reco::Candidate *tmpcand = bJet1Cand;
 	TLorentzVector part(tmpcand->px(), tmpcand->py(), tmpcand->pz(), tmpcand->energy());
@@ -2924,7 +3052,7 @@ void DiHiggsWWBBSLAnalyzer::matchGenJet2Parton(edm::Handle<std::vector<reco::Gen
 }
 
 //---------- method called to fill branches --------------------------------------------
-void 
+void
 DiHiggsWWBBSLAnalyzer::fillbranches(){
   using namespace std;//include min, max
   if (findAllGenParticles){
@@ -3054,7 +3182,7 @@ DiHiggsWWBBSLAnalyzer::fillbranches(){
       z2_py = z2cand->py();
       z2_pz = z2cand->pz();
       z2_mass = z2cand->mass();
-        
+
       htobb_energy = htoBBcand->energy();
       htobb_px = htoBBcand->px();
       htobb_py = htoBBcand->py();
@@ -3119,7 +3247,6 @@ DiHiggsWWBBSLAnalyzer::fillbranches(){
     TLorentzVector hww_p4 = lep1_p4 + nu1_p4 + q1_p4 + q2_p4;
     TLorentzVector Xhh_p4 = hbb_p4 + hww_p4;
     std::cout<<"hbb  mass "<< hbb_p4.M() << " hww mass "<< hww_p4.M() <<" Xhh mass "<< Xhh_p4.M() << std::endl;
-    
     //dR_genbl   = (b1_p4.Pt()>b2_p4.Pt()) ? (b1_p4.DeltaR( (lep1_p4.Pt()>lep2_p4.Pt()) ? lep1_p4 : lep2_p4 )) : (b2_p4.DeltaR( (lep1_p4.Pt()>lep2_p4.Pt()) ? lep1_p4 : lep2_p4 ));
     dR_genb1l1 = b1_p4.DeltaR(lep1_p4);
     //dR_genb1l2 = b1_p4.DeltaR(lep2_p4);
@@ -3144,7 +3271,7 @@ DiHiggsWWBBSLAnalyzer::fillbranches(){
 
 
 //-------------- method called to find a muon daughter for given candidate -------------------------
-const reco::Candidate* 
+const reco::Candidate*
 DiHiggsWWBBSLAnalyzer::findLeptonDaughter(const reco::Candidate *Wcand){
 
   const reco::Candidate *tmpcand = NULL;
@@ -3168,7 +3295,7 @@ DiHiggsWWBBSLAnalyzer::findLeptonDescendants(const reco::Candidate *cand, int& c
   for (unsigned int i = 0; i<cand->numberOfDaughters(); i++){
     tmpcand = findLeptonDescendants(cand->daughter(i), count);
     if (abs(cand->daughter(i)->pdgId()) == 13 or abs(cand->daughter(i)->pdgId()) == 11) count++;
-    if (tmpcand == NULL && cand->daughter(i)->pdgId() == cand->pdgId())  tmpcand = cand->daughter(i);                            
+    if (tmpcand == NULL && cand->daughter(i)->pdgId() == cand->pdgId())  tmpcand = cand->daughter(i);
   }
 
   return tmpcand;
@@ -3176,7 +3303,7 @@ DiHiggsWWBBSLAnalyzer::findLeptonDescendants(const reco::Candidate *cand, int& c
 
 
 //-------------- method called to find a neutrino daughter for given candidate -------------------------
-const reco::Candidate* 
+const reco::Candidate*
 DiHiggsWWBBSLAnalyzer::findNuDaughter(const reco::Candidate *Wcand){
 
   const reco::Candidate *tmpcand = NULL;
@@ -3199,30 +3326,30 @@ DiHiggsWWBBSLAnalyzer::findNuDescendants(const reco::Candidate *cand, int& count
   for (unsigned int i = 0; i<cand->numberOfDaughters(); i++){
     tmpcand = findLeptonDescendants(cand->daughter(i), count);
     if (abs(cand->daughter(i)->pdgId()) == 12 or abs(cand->daughter(i)->pdgId()) == 14) count++;
-    if (tmpcand == NULL && cand->daughter(i)->pdgId() == cand->pdgId())  tmpcand = cand->daughter(i);                            
+    if (tmpcand == NULL && cand->daughter(i)->pdgId() == cand->pdgId())  tmpcand = cand->daughter(i);
   }
   return tmpcand;
 }
 
 
 //------------- method called to find stable decendant with pdgid = id
-const reco::Candidate* 
+const reco::Candidate*
 DiHiggsWWBBSLAnalyzer::stableDecendant(const reco::Candidate* cand, int id){
   const reco::Candidate* tmp = NULL;
   for (unsigned int i=0; i < cand->numberOfDaughters(); i++){
     if ((cand->daughter(i))->pdgId() == id && (cand->daughter(i))->status() == 1)
 	return 	tmp=cand->daughter(i);
-    else if (stableDecendant(cand->daughter(i),id)) 
+    else if (stableDecendant(cand->daughter(i),id))
 	return tmp=stableDecendant(cand->daughter(i),id);
-  }   
+  }
   return tmp;
 }
 
 
-//------------ method called to find decendant with pdgid = id, 
+//------------ method called to find decendant with pdgid = id,
 //if first it true, then return the candidate closest to seed
 //if first it false, then return the candidate farthest to seed
-const reco::Candidate* 
+const reco::Candidate*
 DiHiggsWWBBSLAnalyzer::findDecendant(const reco::Candidate* cand, int id, bool first){
   /*const reco::Candidate* tmp1 = cand;
   while (tmp1->numberOfDaughters() == 1 and tmp1->daughter(0)->pdgId() == cand->pdgId()) tmp1 = tmp1->daughter(0);
@@ -3230,23 +3357,23 @@ DiHiggsWWBBSLAnalyzer::findDecendant(const reco::Candidate* cand, int id, bool f
   for (unsigned int i=0; i < tmp1->numberOfDaughters(); i++){
       printCandidate(tmp1->daughter(i));
   }*/
- 
+
   const reco::Candidate* tmp = NULL;
   for (unsigned int i=0; i < cand->numberOfDaughters(); i++){
 
     if ((cand->daughter(i))->pdgId() == id && first && cand->pdgId() != id)
 	return 	tmp=cand->daughter(i);
-    else if ((cand->daughter(i))->pdgId() == id && !first && !hasDaughter(cand->daughter(i), id)) 
+    else if ((cand->daughter(i))->pdgId() == id && !first && !hasDaughter(cand->daughter(i), id))
 	return  tmp=cand->daughter(i); // tmp does not has daughter with pdgid = id
-    else if ((cand->daughter(i))->pdgId() == id && !first && (cand->daughter(i))->numberOfDaughters()>1) 
+    else if ((cand->daughter(i))->pdgId() == id && !first && (cand->daughter(i))->numberOfDaughters()>1)
 	return  tmp=cand->daughter(i);// tmp has more one daughters therefore it is final-states
-    else if (findDecendant(cand->daughter(i),id, first)) 
+    else if (findDecendant(cand->daughter(i),id, first))
 	return tmp=findDecendant(cand->daughter(i),id);
   }
   return tmp;
 }
 
-//---------- method called to find a ancestor with pdgid = id, 
+//---------- method called to find a ancestor with pdgid = id,
 //if first is true, then return the candidate closest to seed
 //if first is false, then return the candidate furthest to seed
 const reco::Candidate*
@@ -3257,9 +3384,9 @@ DiHiggsWWBBSLAnalyzer::findAncestor(const reco::Candidate* cand, int id, bool fi
 
     if ((cand->mother(i))->pdgId() == id && first && cand->pdgId() != id)
 	return 	tmp=cand->mother(i);
-    else if ((cand->mother(i))->pdgId() == id && !first && !hasMother(cand->mother(i), id)) 
+    else if ((cand->mother(i))->pdgId() == id && !first && !hasMother(cand->mother(i), id))
 	return  tmp=cand->mother(i);
-    else if (findAncestor(cand->mother(i),id, first)) 
+    else if (findAncestor(cand->mother(i),id, first))
 	return tmp=findAncestor(cand->mother(i),id, first);
   }
   return tmp;
@@ -3299,18 +3426,18 @@ DiHiggsWWBBSLAnalyzer::stableDecendantsLorentz(const reco::Candidate *cand){
   TLorentzVector bjets = TLorentzVector();
   for (unsigned i = 0; i < cand->numberOfDaughters(); i++){
     if ((cand->daughter(i))->status() == 1){
-	TLorentzVector tmp((cand->daughter(i))->px(), (cand->daughter(i))->py(), 
+	TLorentzVector tmp((cand->daughter(i))->px(), (cand->daughter(i))->py(),
 	    (cand->daughter(i))->pz(),(cand->daughter(i))->energy());
 	//printCandidate(cand->daughter(i));
-	bjets = bjets+tmp; 
+	bjets = bjets+tmp;
     }else bjets = bjets+stableDecendantsLorentz(cand->daughter(i));
   }
 
   return bjets;
 }
 
-//-------------  method called to calculate MET in simuation ------------------ 
-TLorentzVector 
+//-------------  method called to calculate MET in simuation ------------------
+TLorentzVector
 DiHiggsWWBBSLAnalyzer::calculateMET(){
 
   TLorentzVector METlorentz = TLorentzVector();
@@ -3326,43 +3453,37 @@ DiHiggsWWBBSLAnalyzer::calculateMET(){
 // ------------ method called for printing additional information, useful for debugging  ------------
 void
 DiHiggsWWBBSLAnalyzer::print() {
-  //todo: combine all necessary print out for debug 
+  //todo: combine all necessary print out for debug
   std::cout << "print() " << std::endl;
 }
 
 //------------- method called for printing h->WW->mumununu chain -------------------------
 /*
-   void 
+   void
    DiHiggsWWBBSLAnalyzer::printHtoWWChain(){
-
    float h_energy = lep1_energy+lep2_energy+nu1_energy+nu2_energy;
    float h_px = lep1_px+lep2_px+nu1_px+nu2_px;
    float h_py = lep1_py+lep2_py+nu1_py+nu2_py;
    float h_pz = lep1_pz+lep2_pz+nu1_pz+nu2_pz;
-
    TLorentzVector final_p4(h_px, h_py, h_pz, h_energy);
-
-   float h_energy_bb = b1_energy+b2_energy; 
-   float h_px_bb = b1_px+b2_px; 
+   float h_energy_bb = b1_energy+b2_energy;
+   float h_px_bb = b1_px+b2_px;
    float h_py_bb = b1_py+b2_py;
    float h_pz_bb = b1_pz+b2_pz;
    TLorentzVector h_bb_p4(h_px_bb,h_py_bb,h_pz_bb,h_energy_bb);
-
-   TLorentzVector X_final_tot(final_p4+h_bb_p4); 
+   TLorentzVector X_final_tot(final_p4+h_bb_p4);
    if (htoWW){
-
    TLorentzVector h_p4(htoWW_px, htoWW_py, htoWW_pz, htoWW_energy);
-   TLorentzVector WW_p4(lep1_W1_cand->px()+lep2_W2_cand->px(),lep1_W1_cand->py()+lep2_W2_cand->py(), 
+   TLorentzVector WW_p4(lep1_W1_cand->px()+lep2_W2_cand->px(),lep1_W1_cand->py()+lep2_W2_cand->py(),
    lep1_W1_cand->pz()+lep2_W2_cand->pz(),lep1_W1_cand->energy()+lep2_W2_cand->energy());
-   std::cout << "invariant mass from h_p4: " << h_p4.M() 
-   << "	, from WW_p4 " << WW_p4.M() 
+   std::cout << "invariant mass from h_p4: " << h_p4.M()
+   << "	, from WW_p4 " << WW_p4.M()
    << "	, from final_p4 " << final_p4.M() << std::endl;
-   if (abs(WW_p4.M()-h_p4.M())>1)  std::cout << "h->WW, invariant mass reconstruction discrepancy ? " << std::endl; 
+   if (abs(WW_p4.M()-h_p4.M())>1)  std::cout << "h->WW, invariant mass reconstruction discrepancy ? " << std::endl;
    std::cout <<  " H -> WW " << std::endl;
    const reco::Candidate* tmp_cand1 = NULL;
    const reco::Candidate* tmp_cand2 = NULL;
-
-   for (unsigned int n = 0; n<lep1_htoWW_cand->numberOfDaughters(); n++){                                  
+   for (unsigned int n = 0; n<lep1_htoWW_cand->numberOfDaughters(); n++){
    if ((lep1_htoWW_cand->daughter(n))->pdgId()==-24) tmp_cand1 =  lep1_htoWW_cand->daughter(n);
    if ((lep1_htoWW_cand->daughter(n))->pdgId()== 24) tmp_cand2 =  lep1_htoWW_cand->daughter(n);
    if (n >= 2) std::cout << "h has more 2 daughters, id " << (lep1_htoWW_cand->daughter(n))->pdgId() << std::endl;
@@ -3373,29 +3494,27 @@ DiHiggsWWBBSLAnalyzer::print() {
    TLorentzVector tmp_WW_p4(W1_p4+W2_p4);
    std::cout <<"W- num of daughters "<< tmp_cand1->numberOfDaughters() << " W-mass " << W1_p4.M() << " W1 four momentum "; W1_p4.Print();
    std::cout <<"W+ num of daughters "<< tmp_cand2->numberOfDaughters() << " W+mass " << W2_p4.M() << " W2 four momentum "; W2_p4.Print();
-   std::cout << "Total invariant mass " << tmp_WW_p4.M() <<" tmp_WW four momentum "; tmp_WW_p4.Print(); 
+   std::cout << "Total invariant mass " << tmp_WW_p4.M() <<" tmp_WW four momentum "; tmp_WW_p4.Print();
 //if (tmp_cand1 != lep1_W1_cand) {
 for (unsigned int i = 0; i<tmp_cand1->numberOfDaughters(); i++){
-std::cout << " daughter of W- , id " << tmp_cand1->daughter(i)->pdgId() << "  status " << tmp_cand1->daughter(i)->status() <<std::endl; 
+std::cout << " daughter of W- , id " << tmp_cand1->daughter(i)->pdgId() << "  status " << tmp_cand1->daughter(i)->status() <<std::endl;
 TLorentzVector dau_W1_p4(tmp_cand1->daughter(i)->px(),tmp_cand1->daughter(i)->py(),tmp_cand1->daughter(i)->pz(),tmp_cand1->daughter(i)->energy());
 std::cout << " four momentum "; dau_W1_p4.Print();
-if (tmp_cand1->daughter(i)->pdgId() == -24) tmp_cand1 = tmp_cand1->daughter(i);  
+if (tmp_cand1->daughter(i)->pdgId() == -24) tmp_cand1 = tmp_cand1->daughter(i);
 }
 // }
 //if (tmp_cand2 != lep2_W2_cand) {
 for (unsigned int j = 0; j<tmp_cand2->numberOfDaughters(); j++){
-std::cout << " daughter of W+ , id " << tmp_cand2->daughter(j)->pdgId() << "  status " << tmp_cand2->daughter(j)->status() <<std::endl; 
+std::cout << " daughter of W+ , id " << tmp_cand2->daughter(j)->pdgId() << "  status " << tmp_cand2->daughter(j)->status() <<std::endl;
 TLorentzVector dau_W2_p4(tmp_cand2->daughter(j)->px(),tmp_cand2->daughter(j)->py(),tmp_cand2->daughter(j)->pz(),tmp_cand2->daughter(j)->energy());
 std::cout << " four momentum "; dau_W2_p4.Print();
-if (tmp_cand2->daughter(j)->pdgId() == 24) tmp_cand2 = tmp_cand2->daughter(j);  
+if (tmp_cand2->daughter(j)->pdgId() == 24) tmp_cand2 = tmp_cand2->daughter(j);
 }
 // }
 }
 std::cout << "WW -> mumununu" << std::endl;
 while (tmp_cand1->status() != 1 || tmp_cand2->status() != 1){
-
 std::cout << "-------------  begin of this loop ----------------------" << std::endl;
-
 int size1 = tmp_cand1->numberOfDaughters();
 int size2 = tmp_cand2->numberOfDaughters();
 int muon1 = -1;
@@ -3411,19 +3530,19 @@ if (tmp_cand1->pdgId() == 13)  {
   pz += nu1_pz;
   energy += nu1_energy;
 }
-std::cout << "cand1, id"<< tmp_cand1->pdgId() << " status " << tmp_cand1->status() <<" size of daughters " << size1 << std::endl; 
+std::cout << "cand1, id"<< tmp_cand1->pdgId() << " status " << tmp_cand1->status() <<" size of daughters " << size1 << std::endl;
 std::cout << " daughters of " << ((tmp_cand1->pdgId()==-24)?"W-  ":"muon- ") << std::endl;
 for (int i = 0; i < size1; i++){
-  const Candidate * d1 = tmp_cand1->daughter(i); 
+  const Candidate * d1 = tmp_cand1->daughter(i);
   std::cout << "daughter id " << d1->pdgId() << "  status " << d1->status() << std::endl;
   if (d1->pdgId() == 13 ) muon1 = i;
   printCandidate(d1);
   px += d1->px();
   py += d1->py();
   pz += d1->pz();
-  energy += d1->energy(); 
+  energy += d1->energy();
 }
-TLorentzVector cand1_lorentz(px, py, pz, energy); 
+TLorentzVector cand1_lorentz(px, py, pz, energy);
 std::cout << " W- mass from W- Candidate " << w1_mass << " from mu-,nu " << cand1_lorentz.M() << std::endl;
 if (muon1 != -1 && tmp_cand1->status() != 1) tmp_cand1 = tmp_cand1->daughter(muon1);
 float px2 = 0.0;
@@ -3437,38 +3556,36 @@ if (tmp_cand2->pdgId() == -13)  {
   pz2 += nu2_pz;
   energy2 += nu2_energy;
 }
-std::cout << "cand2, id" << tmp_cand2->pdgId() <<" status " << tmp_cand2->status() <<" size of daughters " << size2 << std::endl; 
+std::cout << "cand2, id" << tmp_cand2->pdgId() <<" status " << tmp_cand2->status() <<" size of daughters " << size2 << std::endl;
 std::cout << " daughters of " << ((tmp_cand2->pdgId()==24)?"W+  ":"muon+ ") << std::endl;
 for (int j = 0; j < size2; j++){
-  const Candidate * d2 = tmp_cand2->daughter(j); 
+  const Candidate * d2 = tmp_cand2->daughter(j);
   std::cout << "daughter id " << d2->pdgId() << "  status " << d2->status() << std::endl;
   if (d2->pdgId() == -13 ) muon2 = j;
   printCandidate(d2);
   px2 += d2->px();
   py2 += d2->py();
   pz2 += d2->pz();
-  energy2 += d2->energy(); 
+  energy2 += d2->energy();
 }
-TLorentzVector cand2_lorentz(px2, py2, pz2, energy2); 
+TLorentzVector cand2_lorentz(px2, py2, pz2, energy2);
 std::cout << " W+ mass from W+ Candidate " << w2_mass << " from mu+,nu " << cand2_lorentz.M() << std::endl;
 if (muon2 != -1 && tmp_cand2->status() != 1) tmp_cand2 = tmp_cand2->daughter(muon2);
 TLorentzVector tmp = cand1_lorentz+cand2_lorentz;
 std::cout <<"Total px " << tmp.Px() << " py " << tmp.Py() << " pz " << tmp.Pz() << " E " << tmp.Energy() << std::endl;
-std::cout << " invariant mass from daughters of WW " << tmp.M() << std::endl;  
-std::cout << "For Next loop status of cand1 " << tmp_cand1->status()  << "	cand2 " << tmp_cand2->status() << std::endl; 
+std::cout << " invariant mass from daughters of WW " << tmp.M() << std::endl;
+std::cout << "For Next loop status of cand1 " << tmp_cand1->status()  << "	cand2 " << tmp_cand2->status() << std::endl;
 std::cout << "-------------  end of this loop ----------------------" << std::endl;
-} 
-if (findAllGenParticles){	
-  std::cout <<"htoWW invariant mass " << final_p4.M() <<" four momentum " << std::endl; 
+}
+if (findAllGenParticles){
+  std::cout <<"htoWW invariant mass " << final_p4.M() <<" four momentum " << std::endl;
   final_p4.Print();
   std::cout <<"htobb invariant mass " << h_bb_p4.M() << " four momentum " << std::endl;
   h_bb_p4.Print();
   std::cout <<"Xtohh invariant mass " << X_final_tot.M() <<" total momentum " << std::endl;
   X_final_tot.Print();
-} 
-
+}
 }//end if (htoWW)
-
 }*/
 
 
@@ -3477,14 +3594,14 @@ if (findAllGenParticles){
 void
 DiHiggsWWBBSLAnalyzer::printCandidate(const reco::Candidate* cand){
 
-  std::cout <<" Candidate id: "<< cand->pdgId() << " mass: " << cand->mass() <<" (P,E)= ("<< cand->px() <<", "<< cand->py()<<", "<< cand->pz()<<", "<< cand->energy() <<")" <<"(Pt,E) = ("<< cand->pt() <<", "<< cand->eta() <<", "<< cand->phi()<<", "<<cand->energy()<< ")" 
-  <<" status: " << cand->status() << std::endl; 
+  std::cout <<" Candidate id: "<< cand->pdgId() << " mass: " << cand->mass() <<" (P,E)= ("<< cand->px() <<", "<< cand->py()<<", "<< cand->pz()<<", "<< cand->energy() <<")" <<"(Pt,E) = ("<< cand->pt() <<", "<< cand->eta() <<", "<< cand->phi()<<", "<<cand->energy()<< ")"
+  <<" status: " << cand->status() << std::endl;
   //<< (cand->isLastCopy() ? "lastCopy" : "NOTLastCopy") << (cand->isLastCopyBeforeFSR() ? " LastCopyBeforeFSR" : " NOTLastCopybeforeFSR")<< std::endl;
 
 }
 
 //--------- method called to print all decendants for cand -------------------
-void 
+void
 DiHiggsWWBBSLAnalyzer::printallDecendants(const reco::Candidate* cand){
 
   if (cand->status() != 0 && cand->numberOfDaughters() > 0){
@@ -3500,7 +3617,7 @@ DiHiggsWWBBSLAnalyzer::printallDecendants(const reco::Candidate* cand){
 
 
 //--------- method called to print all Ancestors for cand -------------------
-void 
+void
 DiHiggsWWBBSLAnalyzer::printallAncestors(const reco::Candidate* cand){
 
   if (cand->status() != 0 && cand->numberOfMothers() > 0){
@@ -3529,5 +3646,3 @@ DiHiggsWWBBSLAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descript
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(DiHiggsWWBBSLAnalyzer);
-
-

@@ -8,6 +8,9 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+# print decay tree
+process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
+
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
 ### DL sample
@@ -28,7 +31,8 @@ process.source = cms.Source("PoolSource",
 	#'file:/fdata/hepx/store/user/tahuang/TEST_LOCALLY/RadionM400-3217F073-EF25-E611-862F-A0369F7FC210.root'
 	#'/store/data/Run2017C/DoubleMuon/MINIAOD/PromptReco-v3/000/300/742/00000/00CE998C-717E-E711-AD9B-02163E019CB5.root'
 	#'/store/data/Run2017C/DoubleMuon/MINIAOD/PromptReco-v2/000/300/636/00000/FC587F5C-E57D-E711-830B-02163E01A3C2.root'
-	'/store/mc/RunIISummer16MiniAODv3/GluGluToRadionToHHTo2B2WToLNu2J_M-270_narrow_13TeV-madgraph/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v2/270000/60F34423-2E3F-E911-B900-0CC47A6C17FC.root'
+	#'/store/mc/RunIISummer16MiniAODv3/GluGluToRadionToHHTo2B2WToLNu2J_M-270_narrow_13TeV-madgraph/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v2/270000/60F34423-2E3F-E911-B900-0CC47A6C17FC.root'
+    'file:/eos/user/t/tahuang/GluGluToRadionToHHTo2B2WToLNu2J_M-250_Run2016/6C2B2F7D-DF3C-E911-B863-B083FED00117.root'
     )
 )
 
@@ -37,12 +41,12 @@ from HhhAnalysis.MCProduction.InputFileHelpers import *
 #inputdir = ['/fdata/hepx/store/user/tahuang/xSM_HeavyHiggs2DiHiggs2bbWW_B3_leptonW_CMSSW80X_13TeV_10k/xSM_HeavyHiggs2DiHiggs2bbWW_B3_leptonW_CMSSW80X_13TeV_10k/170330_023219/0000/']
 #process = useInputDir(process, inputdir)
 nEvents = 10000
-process.maxEvents = cms.untracked.PSet( 
+process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(nEvents) 
 )
 
-process.MessageLogger = cms.Service("MessageLogger", 
-    destinations = cms.untracked.vstring("cout"), 
+process.MessageLogger = cms.Service("MessageLogger",
+    destinations = cms.untracked.vstring("cout"),
     cout = cms.untracked.PSet(threshold = cms.untracked.string("ERROR"))
 )
 
@@ -55,7 +59,7 @@ import HLTrigger.HLTfilters.triggerResultsFilter_cfi as hlt
 process.hltfilter = hlt.triggerResultsFilter.clone(
 	HLTPaths = ('HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*','HLT_Mu17*'),
 	l1tResults = '',#not use L1t results
-	throw = cms.bool(False) 
+	throw = cms.bool(False)
 """
 triggerPaths = cms.vstring( #'HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*',
 			    # 'HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*',
@@ -71,7 +75,7 @@ process.hltfilter = cms.EDFilter( "TriggerResultsFilter",
 	l1tIgnoreMask = cms.bool( False ),
 	l1techIgnorePrescales = cms.bool( False ),
 	daqPartitions = cms.uint32( 1 ),
-	throw = cms.bool(True)    
+	throw = cms.bool(True)
 )
 
 
@@ -93,12 +97,12 @@ process.DiHiggsWWBBAna = cms.EDAnalyzer('DiHiggsWWBBSLAnalyzer',
   #TriggerResults = cms.InputTag("TriggerResults","","HLT"),
   ##TriggerObjects = cms.InputTag("selectedPatTrigger"),
   #TriggerObjects = cms.InputTag("slimmedPatTrigger"),
- 
+
   #hltPaths = triggerPaths,
   #deltaPtRel_trigger = cms.untracked.double(.5),
   #deltaR_trigger  = cms.untracked.double(.1),
 
-  ##reco 
+  ##reco
   ##muons = cms.InputTag("cleanPatPFMuonsTriggerMatch"),
   #muons = cms.InputTag("slimmedMuons"),
   ##2016data: Run BCDEF use 2016Medium, GH use Medium
@@ -129,6 +133,15 @@ process.DiHiggsWWBBAna = cms.EDAnalyzer('DiHiggsWWBBSLAnalyzer',
   runMMC = cms.bool(False)
 )
 process.dump=cms.EDAnalyzer('EventContentAnalyzer')
+# process.printTree = cms.EDAnalyzer("ParticleTreeDrawer",
+#                                    src = cms.InputTag("genParticles"),
+#                                    printP4 = cms.untracked.bool(False),
+#                                    printPtEtaPhi = cms.untracked.bool(False),
+#                                    printVertex = cms.untracked.bool(False),
+#                                    printStatus = cms.untracked.bool(False),
+#                                    printIndex = cms.untracked.bool(False),
+#                                    status = cms.untracked.vint32( 3 )
+#                                    )
 
 process.TFileService = cms.Service("TFileService",
   fileName = cms.string("out_ana_sl.root")
