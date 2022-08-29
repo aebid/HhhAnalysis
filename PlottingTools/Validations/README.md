@@ -6,6 +6,7 @@ The list of plots to validate the ntuples before next step
 Instruction to just run modules in genParticleProducer.py to find gen particles from decay chain
 ```
 cd CMSSW_X_X/src
+cmsenv
 cd HhhAnalysis/python/NanoAOD
 python postproc_genpart.py
 ```
