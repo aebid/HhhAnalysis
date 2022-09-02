@@ -649,7 +649,13 @@ def genXToHHTobbWWSelection(genParticles, choice, enable_consistency_checks = Tr
           ( ', '.join(map(lambda genPart: str(genPart), genBQuarkFromHiggs)), len(genBQuarkFromHiggs)))
       return []
     return genBQuarkFromHiggs
+          
+  if choice in [ SelectionXToHHTobbWWOptions.SAVE_TAU_FROM_WZ_FROM_HIG ]:
+    genTau = filter(lambda genPart: abs(genPart.pdgId) == 15 and genPart.genPartIdxMother >0 \
+     and abs(genParticles[genPart.genPartIdxMother].pdgId) in [23,24], genParticles)
+    return genTau
 
+  ##ignore H->ZZ from now
   if len(genWFromHiggs)  != 2 or genWFromHiggs[0].genPartIdxMother != genWFromHiggs[1].genPartIdxMother:
     if len(genZFromHiggs) != 2 and debugXToHHTobbWW:
       print("Invalid number of H->bb (%s):%d or H->WW (%s):%d in HH (%s) decay" % \
@@ -712,11 +718,6 @@ def genXToHHTobbWWSelection(genParticles, choice, enable_consistency_checks = Tr
         )
 
     return daughters
-          
-  if choice in [ SelectionXToHHTobbWWOptions.SAVE_TAU_FROM_WZ_FROM_HIG ]:
-    genTau = filter(lambda genPart: abs(genPart.pdgId) == 15 and genPart.genPartIdxMother >0 \
-     and abs(genParticles[genPart.genPartIdxMother].pdgId) in [23,24], genParticles)
-    return genTau
   
   genWFromHiggs.sort(key=lambda x:x.mass,reverse=True)	
   genW1FromHIG = None; genW2FromHIG = None
