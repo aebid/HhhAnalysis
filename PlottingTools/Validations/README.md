@@ -34,6 +34,8 @@ The follow is the Gen particle information filled in Ntuples by running genHH mo
 | GenW1FromHiggs_xx | xx | xxx |
 | nGenW2FromHiggs   | int | num of gen W2, from X->HH->bbW1W2. in DL channel W2->lv and in SL, W2->qq  |
 | GenW2FromHiggs_xx | xx | xxx |
+| nGenTauFromWZFromHiggs   | int | num of gen tau , from W->lv or Z->ll with W/Z from H->WW/ZZ  |
+| GenTauFromWZFromHiggs_xx | xx | xxx |
 | nGenLepFromW1FromHiggs   | int | num of gen lepton (ele/muon), from W1->lv with W1 from H->WW  |
 | GenLepFromW1FromHiggs_xx | xx | xxx |
 | nGenNuFromW1FromHiggs   | int | num of gen neutrino (ele/muon neutrino), from  W1->lv with W1 from H->WW  |
@@ -97,6 +99,7 @@ Here is the Higgs decay branch ratio that matters in this analysis, with Higgs m
 ### single lepton (SL) channel, resonant signal 
 - distribution of gen particle number in one event: X,Higgs,W/b quark from Higgs decay, lepton from W, quark from W decay
   - nGenX, nGenHiggs,nGenWFromHiggs, nGenBQuarkFromHiggs, nGenLepFromW1FromHiggs, nGenQuarkFromW2FromHiggs etc
+  - scripts to make these plots: `python makePlots.py`
 - eta, pt, mass distributions of gen particles in X->HH->bbWW->bblvqq
 - phi and pt, px, py distributions of genMET
 - 2D distributions of X mass and X mass reconstructed from HH, Higgs mass and Higgs mass recontructed from bb and WW, W mass and W mass reconstructed from lv and qq,  Higgs mass and Higgs mass reconstructed from lvqq, X mass and X mass reconstructed from bblvqq
