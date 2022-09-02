@@ -29,8 +29,10 @@ def drawText(text, x=0.17, y=0.35, font_size=0.):
       return tex
 
 def plotNGenParticles(rfile, variable, xbins, xtitle, cut, text, plotsuffix, plotfolder):
+    iPeriod = -1 ## do not draw lumi/energy
     nbin = xbins[0]; xmin = xbins[1]; xmax = xbins[2]
 
+    gStyle.SetOptStat(1111110);
     c1 = ROOT.TCanvas("c1","c1",800,600)
     #c = newCanvas()
     tch = ROOT.TChain(treename)
@@ -111,6 +113,7 @@ SLdict = {
         "nGenW1FromHiggs":"num of W1,H#rightarrow W1W2",
         "nGenW2FromHiggs":"num of W2,H#rightarrow W1W2",
         "nGenBQuarkFromHiggs": "num of bquarks, H#rightarrow bb",
+        "nGenTauFromWFromHiggs":"num of #tau,W#rightarrow #tau#nu",
         "nGenLepFromW1FromHiggs":"num of ele/mu,W1#rightarrow l#nu",
         "nGenLepFromTauFromW1FromHiggs":"num of ele/mu,W1#rightarrow #tau#nu#rightarrow l+3#nu",
         "nGenQuarkFromW2FromHiggs" : "num of quark(abs(pdgid)=1,2,3,4,5), W2#rightarrow qq",
@@ -121,6 +124,7 @@ DLdict = {
         "nGenW1FromHiggs":"num of W1,H#rightarrow W1W2",
         "nGenW2FromHiggs":"num of W2,H#rightarrow W1W2",
         "nGenBQuarkFromHiggs": "num of bquarks, H#rightarrow bb",
+        "nGenTauFromWFromHiggs":"num of #tau,W#rightarrow #tau#nu",
         "nGenLepFromW1FromHiggs":"num of ele/mu,W1#rightarrow l#nu",
         "nGenLepFromW2FromHiggs":"num of ele/mu,W2#rightarrow l#nu",
         "nGenLepFromTauFromW1FromHiggs":"num of ele/mu,W1#rightarrow #tau#nu#rightarrow l+3#nu",
@@ -149,5 +153,5 @@ def plotAllNGen(plotter):
         xtitle = thisdict[variable]
         if "Nonres" in channel: xtitle = xtitle.replace("X","GG")
         plotsuffix = "%s_%d_"%(channel,year)+variable
-        #plotNGenParticles(rfile, variable, xbins, xtitle, cut, text, plotsuffix, Plotfolder)
+        plotNGenParticles(rfile, variable, xbins, xtitle, cut, text, plotsuffix, Plotfolder)
 
