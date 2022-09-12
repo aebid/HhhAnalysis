@@ -686,7 +686,7 @@ def genXToHHTobbWWSelection(genParticles, choice, enable_consistency_checks = Tr
           (genW, ', '.join(map(str, genWDaughters)))
         )
       genLepFromW = lepsFromW[0]
-      nusLepFromW = filter(lambda genPart: genPart.pdgId != sign(genW.pdgId) * (abs(genLepFromW.pdgId) + 1), genWDaughters)
+      nusLepFromW = filter(lambda genPart: genPart.pdgId == sign(genW.pdgId) * (abs(genLepFromW.pdgId) + 1), genWDaughters)
       if len(nusLepFromW) != 1:
         raise ValueError("Inconsistent W (%s) decay products decay: %s" % \
           (genW, ', '.join(map(str, genWDaughters)))
