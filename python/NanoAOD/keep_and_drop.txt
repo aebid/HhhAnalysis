@@ -1,6 +1,8 @@
 # this is a comment
 drop *
 #keep * # start with all
+keep Gen*
+keep nGen*
 keep Electron_*
 keep GenMET_*
 keep GenPart_*
@@ -13,6 +15,8 @@ keep LHEWeight_*
 keep LHEScaleWeight
 keep LHEPdfWeight
 keep Jet_*
+keep FatJet*
+keep SubJet*
 keep Muon_*
 keep MET_*
 keep Pileup_*
