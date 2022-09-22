@@ -1,0 +1,8 @@
+name: DiHiggs
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - coffea
+  - vector
+prefix: /afs/cern.ch/work/t/tahuang/Condaenv
