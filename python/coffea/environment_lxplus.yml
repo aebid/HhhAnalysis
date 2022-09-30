@@ -4,5 +4,13 @@ channels:
   - defaults
 dependencies:
   - coffea
+  - uproot
+  - awkward
   - vector
+  - pandas
+  - matplotlib
+  - root
+  - tensorflow
+  - scikit-learn
+  - seaborn
 prefix: /afs/cern.ch/work/t/tahuang/Condaenv
