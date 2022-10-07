@@ -4,6 +4,8 @@ import numpy as np
 import ROOT
 from coffea.nanoevents.methods import vector
 
+from object_selection import test_selections
+
 import time
 startTime = time.time()
 
@@ -18,6 +20,7 @@ debug = 0
 Runyear = 2016
 isMC = True
 
+
 muons = ak.pad_none(events.Muon, 1)
 electrons = ak.pad_none(events.Electron, 1)
 taus = ak.pad_none(events.Tau, 1)
@@ -26,6 +29,7 @@ ak8_jets = ak.pad_none(events.FatJet, 1)
 ak8_subjets = ak.pad_none(events.SubJet, 1)
 HLT = events.HLT
 flag = events.Flag
+
 
 if debug > 0:
     print("Muons: ", muons)
@@ -514,70 +518,28 @@ def do_single_lepton_category():
 
     #Tau veto: no tau passing pt>20, abs(eta) < 2.3, abs(dxy) <= 1000, abs(dz) <= 0.2, "decayModeFindingNewDMs", decay modes = {0, 1, 2, 10, 11}, and "byMediumDeepTau2017v2VSjet", "byVLooseDeepTau2017v2VSmu", "byVVVLooseDeepTau2017v2VSe". Taus overlapping with fakeable electrons or fakeable muons within dR < 0.3 are not considered for the tau veto
     #False -> Gets Removed : True -> Passes veto
-    tau_veto_pairs = ak.cartesian([taus, leptons_fakeable_sorted])
+    tau_veto_pairs = ak.cartesian([taus, leptons_fakeable_sorted], nested=True)
     taus_for_veto, leps_for_veto = ak.unzip(tau_veto_pairs)
 
-    """
-    tau_veto_cleaning = abs(taus_for_veto.delta_r(leps_for_veto)) >= 0.3
-    tau_veto_selection = (
-    (taus_for_veto.pt > 20) & (abs(taus_for_veto.eta) < 2.3) & (abs(taus_for_veto.dxy) <= 1000.0) & (abs(taus_for_veto.dz) <= 0.2) & (taus_for_veto.idDecayModeNewDMs) &
-    (
-        (taus_for_veto.decayMode == 0) | (taus_for_veto.decayMode == 1) | (taus_for_veto.decayMode == 2) | (taus_for_veto.decayMode == 10) | (taus_for_veto.decayMode == 11)
-    ) &
-    (taus_for_veto.idDeepTau2017v2p1VSjet >= 16) & (taus_for_veto.idDeepTau2017v2p1VSmu >= 1) & (taus_for_veto.idDeepTau2017v2p1VSe >= 1)
-    )
-
-
-    tau_veto = ak.any(tau_veto_cleaning & tau_veto_selection, axis=1) == 0
-    """
-
-
-    """
-    electron_cleaning_dr = ak.where(
-        (ak.is_none(mu_for_cleaning, axis=2) == 0) & (ak.is_none(ele_for_cleaning, axis=2) == 0),
-            abs(ele_for_cleaning.delta_r(mu_for_cleaning)),
-            electrons.preselected
-    )
-    electron_cleaning_mask = ak.min(electron_cleaning_dr, axis=2) > 0.30
-    """
-
-    print(abs(taus_for_veto.delta_r(leps_for_veto)))
-    print("taus eta", taus.eta)
-    print("Taus phi", taus.phi)
-    print("Leps eta", leptons_fakeable_sorted.eta)
-    print("Leps phi", leptons_fakeable_sorted.phi)
-
-
-
-    print(abs(taus_for_veto.delta_r(leps_for_veto)))
-
-    tau_veto_cleaning = abs(taus_for_veto.delta_r(leps_for_veto)) >= 0.3
-
+    tau_veto_cleaning = ak.min(abs(taus_for_veto.delta_r(leps_for_veto)), axis=2) >= 0.3
 
     tau_veto_selection = (
-    (taus_for_veto.pt > 20) & (abs(taus_for_veto.eta) < 2.3) & (abs(taus_for_veto.dxy) <= 1000.0) & (abs(taus_for_veto.dz) <= 0.2) & (taus_for_veto.idDecayModeNewDMs) &
+    (taus.pt > 20) & (abs(taus.eta) < 2.3) & (abs(taus.dxy) <= 1000.0) & (abs(taus.dz) <= 0.2) & (taus.idDecayModeNewDMs) &
     (
-        (taus_for_veto.decayMode == 0) | (taus_for_veto.decayMode == 1) | (taus_for_veto.decayMode == 2) | (taus_for_veto.decayMode == 10) | (taus_for_veto.decayMode == 11)
+        (taus.decayMode == 0) | (taus.decayMode == 1) | (taus.decayMode == 2) | (taus.decayMode == 10) | (taus.decayMode == 11)
     ) &
-    (taus_for_veto.idDeepTau2017v2p1VSjet >= 16) & (taus_for_veto.idDeepTau2017v2p1VSmu >= 1) & (taus_for_veto.idDeepTau2017v2p1VSe >= 1)
+    (taus.idDeepTau2017v2p1VSjet >= 16) & (taus.idDeepTau2017v2p1VSmu >= 1) & (taus.idDeepTau2017v2p1VSe >= 1)
     )
 
+    print(tau_veto_cleaning)
     print(tau_veto_selection)
 
     tau_veto = ak.any(tau_veto_cleaning & tau_veto_selection, axis=1) == 0
-    print(tau_veto)
-
-
-
 
     print("Start the check")
-    print(tau_veto_cleaning[14])
-    print(ak.any(tau_veto_cleaning, axis=1)[14])
-    print(ak.any(tau_veto_selection, axis=1)[14])
-    print(tau_veto[14])
-
-    print(events.single_lepton)
+    print(ak.sum(events.single_lepton))
     print(tau_veto)
+    print(events.single_lepton)
 
     single_step7_mask = tau_veto
 
@@ -590,28 +552,6 @@ def do_single_lepton_category():
     print("N single events step7: ", ak.sum(events.single_lepton))
 
 
-
-    """ OLD FOR LOOP VERSION
-      for i in self.taus:
-        tau_lepton_overlap = False
-        if (i.pt > 20.0 and abs(i.eta) < 2.3 and abs(i.dxy) <= 1000.0 and abs(i.dz) <= 0.2 and i.idDecayModeNewDMs and i.decayMode in [0,1,2,10,11] and i.idDeepTau2017v2p1VSjet >= 16 and i.idDeepTau2017v2p1VSmu >= 1 and i.idDeepTau2017v2p1VSe >= 1):
-          if self.debug >2 :
-            self.printObject(i, "Tau for tau_veto")
-          for fake in (fakeable_leptons):
-            if self.debug >2 :
-              self.printObject(fake, "lepton for tau_veto")
-              print("dR ",deltaR(fake.eta, fake.phi, i.eta, i.phi))
-            if deltaR(fake.eta, fake.phi, i.eta, i.phi) < 0.3:
-              tau_lepton_overlap = True
-              break
-          if tau_lepton_overlap:
-            continue
-          else:
-            if self.debug >2 :
-              print("Veto this event by tau!!")
-            return False
-      return True
-    """
 
 
     return
@@ -690,3 +630,8 @@ df = ak._v2.to_rdataframe(
 
 executionTime = (time.time() - startTime)
 print('Execution time in seconds: ' + str(executionTime))
+
+
+print(muons)
+test_selections(muons)
+print(muons.test)
