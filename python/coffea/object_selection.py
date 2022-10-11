@@ -5,7 +5,10 @@ import ROOT
 from coffea.nanoevents.methods import vector
 
 
-def add_conept(muons, electrons):
+def add_conept(EventProcess):
+    muons = EventProcess.muons
+    electrons = EventProcess.electrons
+    Runyear = EventProcess.Runyear
     muons["conept"] = ak.where(
         (abs(muons.pdgId) == 13) & (muons.mediumId) & (muons.mvaTTH > 0.50),
             muons.pt,
@@ -21,13 +24,22 @@ def add_conept(muons, electrons):
 
     return
 
-def link_jets(muons, electrons, ak4_jets, ak8_jets, ak8_subjets):
+def link_jets(EventProcess):
+    muons = EventProcess.muons
+    electrons = EventProcess.electrons
+    ak4_jets = EventProcess.ak4_jets
+    ak8_jets = EventProcess.ak8_jets
+    ak8_subjets = EventProcess.ak8_subjets
+    Runyear = EventProcess.Runyear
+    jetDeepJet_WP_loose = EventProcess.jetDeepJet_WP_loose
+    jetDeepJet_WP_medium = EventProcess.jetDeepJet_WP_medium
+    jetDeepJet_WP_tight  = EventProcess.jetDeepJet_WP_tight
+
     muons.ak4_jets = ak4_jets[muons.jetIdx].mask[(muons.jetIdx >= 0) & (muons.jetIdx < ak.num(ak4_jets))]
     electrons.ak4_jets = ak4_jets[electrons.jetIdx].mask[(electrons.jetIdx >= 0) & (electrons.jetIdx < ak.num(ak4_jets))]
     ak8_jets.subjet1 = ak8_subjets[ak8_jets.subJetIdx1].mask[(ak8_jets.subJetIdx1 >= 0) & (ak8_jets.subJetIdx1 < ak.num(ak8_subjets))]
     ak8_jets.subjet2 = ak8_subjets[ak8_jets.subJetIdx2].mask[(ak8_jets.subJetIdx2 >= 0) & (ak8_jets.subJetIdx2 < ak.num(ak8_subjets))]
 
-    jetDeepJet_WP_loose  = [0.0613, 0.0521, 0.0494]; jetDeepJet_WP_medium = [0.3093, 0.3033, 0.2770]; jetDeepJet_WP_tight  = [0.7221, 0.7489, 0.7264]
     jetDeepJet_min_pt = 20.0; jetDeepJet_max_pt = 45.0
 
     muons.jetDeepJet_Upper_x1 = ak.where(
@@ -45,8 +57,11 @@ def link_jets(muons, electrons, ak4_jets, ak8_jets, ak8_subjets):
     muons.jetDeepJet_Upper = muons.jetDeepJet_Upper_x2 * jetDeepJet_WP_loose[Runyear - 2016] + (1 - muons.jetDeepJet_Upper_x2) * jetDeepJet_WP_medium[Runyear - 2016]
 
 
-def muon_selection(muons):
+def muon_selection(EventProcess):
     #Muons
+    muons = EventProcess.muons
+    Runyear = EventProcess.Runyear
+    jetDeepJet_WP_medium = EventProcess.jetDeepJet_WP_medium
     muon_preselection_mask = (
         (abs(muons.eta) <= 2.4) & (muons.pt >= 5.0) & (abs(muons.dxy) <= 0.05) &
         (abs(muons.dz) <= 0.1) & (muons.miniPFRelIso_all <= 0.4) &
@@ -94,8 +109,14 @@ def muon_selection(muons):
     )
 
 
-def electron_selection(electrons, muons):
+def electron_selection(EventProcess):
     #Electrons
+    electrons = EventProcess.electrons
+    muons = EventProcess.muons
+    Runyear = EventProcess.Runyear
+    jetDeepJet_WP_medium = EventProcess.jetDeepJet_WP_medium
+    jetDeepJet_WP_tight = EventProcess.jetDeepJet_WP_tight
+
     electron_preselection_mask = (
         (abs(electrons.eta) <= 2.5) & (electrons.pt >= 7.0)& (abs(electrons.dxy) <= 0.05) &
         (abs(electrons.dz) <= 0.1) & (electrons.miniPFRelIso_all <= 0.4) &
@@ -170,9 +191,15 @@ def electron_selection(electrons, muons):
 
 
 
-def ak4_jet_selection(ak4_jets, muons, electrons):
+def ak4_jet_selection(EventProcess):
     #AK4 Jets
-    PFJetID = [1, 2, 2]
+    ak4_jets = EventProcess.ak4_jets
+    muons = EventProcess.muons
+    electrons = EventProcess.electrons
+    Runyear = EventProcess.Runyear
+    jetDeepJet_WP_loose = EventProcess.jetDeepJet_WP_loose
+    jetDeepJet_WP_medium = EventProcess.jetDeepJet_WP_medium
+    PFJetID = EventProcess.PFJetID
 
     ak4_jet_preselection_mask = (
         (
@@ -227,8 +254,14 @@ def ak4_jet_selection(ak4_jets, muons, electrons):
     )
 
 
-def ak8_jet_selection(ak8_jets):
+def ak8_jet_selection(EventProcess):
     #AK8 Jets
+    ak8_jets = EventProcess.ak8_jets
+    muons = EventProcess.muons
+    electrons = EventProcess.electrons
+    Runyear = EventProcess.Runyear
+    PFJetID = EventProcess.PFJetID
+
     ak8_jets.tau2overtau1 = ak.where(
         (ak.is_none(ak8_jets, axis=1) == 0) & (ak.is_none(ak8_jets.tau2, axis=1) == 0) & (ak.is_none(ak8_jets.tau1, axis=1) == 0),
             ak8_jets.tau2 / ak8_jets.tau1,
@@ -259,6 +292,9 @@ def ak8_jet_selection(ak8_jets):
             True,
             False
     )
+
+    leptons_fakeable = ak.concatenate([electrons.mask[electrons.fakeable], muons.mask[muons.fakeable]], axis=1)
+    leptons_fakeable = leptons_fakeable[ak.argsort(leptons_fakeable.conept, ascending=False)]
 
     ak8_jet_lep_pair_for_cleaning = ak.cartesian([ak8_jets.mask[ak8_jets.preselected], leptons_fakeable], nested=True)
     ak8_jet_for_cleaning, lep_for_cleaning = ak.unzip( ak8_jet_lep_pair_for_cleaning )

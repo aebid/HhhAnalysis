@@ -5,16 +5,17 @@ import ROOT
 from coffea.nanoevents.methods import vector
 
 
-
+import object_selection
+import event_selection
 
 class EventProcess():
-    def __init__(self, inputFile, sampleName, isMC, runYear, isSL, debug=0):
+    def __init__(self, inputFile, sampleName, isMC, Runyear, isSL, debug=0):
         self.fname = inputFile
-        self.sampleName = samplleName
+        self.sampleName = sampleName
         self.isMC  = isMC
-        self.runYear = runYear
+        self.Runyear = Runyear
         self.isSL = isSL
-        self.debug  = dehug
+        self.debug  = debug
         print("Starting NanoAOD processing")
 
 
@@ -24,7 +25,7 @@ class EventProcess():
         if not self.isSL: self.nLeps = 2
         debug = 0
 
-
+        self.events = events
         self.muons = ak.pad_none(events.Muon, 1)
         self.electrons = ak.pad_none(events.Electron, 1)
         self.taus = ak.pad_none(events.Tau, 1)
@@ -34,6 +35,10 @@ class EventProcess():
         self.HLT = events.HLT
         self.flag = events.Flag
 
+        self.jetDeepJet_WP_loose  = [0.0613, 0.0521, 0.0494]
+        self.jetDeepJet_WP_medium = [0.3093, 0.3033, 0.2770]
+        self.jetDeepJet_WP_tight  = [0.7221, 0.7489, 0.7264]
+        self.PFJetID = [1, 2, 2]
 
         if debug > 0:
             print("Muons: ",       self.muons)
@@ -43,11 +48,27 @@ class EventProcess():
             print("AK8 Jets: ",    self.ak8_jets)
             print("AK8 SubJets: ", self.ak8_subjets)
             print("HLT: ",         self.HLT)
-        from object_selection import object_selection
-        from event_selection import SL_selection,DL_selection
+        #from object_selection import object_selection
+        #from event_selection import SL_selection,DL_selection
+
+    def add_conept(self):
+        return object_selection.add_conept(self)
+    def link_jets(self):
+        return object_selection.link_jets(self)
+    def muon_selection(self):
+        return object_selection.muon_selection(self)
+    def electron_selection(self):
+        return object_selection.electron_selection(self)
+    def ak4_jet_selection(self):
+        return object_selection.ak4_jet_selection(self)
+    def ak8_jet_selection(self):
+        return object_selection.ak8_jet_selection(self)
+
+    def single_lepton_category(self):
+        return event_selection.single_lepton_category(self)
 
 
-
+"""
 ### in  nanoAOD_processing.py
 
 from bbWWProcessor_coffea import EventProcess
@@ -63,7 +84,13 @@ isMC = True
 
 
 eventProcess = EventProcess(fname, "RadionDLM750", isMC, Runyear, isSL, debug)
-##objec selection
-eventProcess.object_selection()
+
+#eventProcess.cone_pt()
+#print(eventProcess.muons)
+#print(eventProcess.muons.conept)
+
+##object selection
+#eventProcess.object_selection()
 ##SL
-eventProcess.SL_selection()
+#eventProcess.SL_selection()
+"""
