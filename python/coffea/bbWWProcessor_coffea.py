@@ -40,6 +40,9 @@ class EventProcess():
         self.jetDeepJet_WP_tight  = [0.7221, 0.7489, 0.7264]
         self.PFJetID = [1, 2, 2]
 
+        self.single_cutflow = []
+        self.double_cutflow = []
+
         if debug > 0:
             print("Muons: ",       self.muons)
             print("Electrons: ",   self.electrons)
@@ -68,29 +71,31 @@ class EventProcess():
         return event_selection.single_lepton_category(self)
 
 
-"""
-### in  nanoAOD_processing.py
 
-from bbWWProcessor_coffea import EventProcess
+    def print_object_selection(self):
 
-
-fname = "sync_2016_m750.root"
-nLeps = 1 #Single lepton or Di Lepton channels
-isSL = True
-debug = 0
-
-Runyear = 2016
-isMC = True
+        print("Events with 1 object comparison (my new coffea value) // (my old nanoAOD value [Tallinn value if different])")
+        print("Muons preselected: ", ak.sum(ak.any(self.muons.preselected, axis=1)), " // 93605")
+        print("Muons fakeable: ", ak.sum(ak.any(self.muons.fakeable, axis=1)), " // 81978")
+        print("Muons tight: ", ak.sum(ak.any(self.muons.tight, axis=1)), " // 78340")
 
 
-eventProcess = EventProcess(fname, "RadionDLM750", isMC, Runyear, isSL, debug)
+        print("Electrons preselected: ", ak.sum(ak.any(self.electrons.preselected, axis=1)), " // NA")
+        print("Electrons cleaned: ", ak.sum(ak.any(self.electrons.cleaned, axis=1)), " // 75430")
+        print("Electrons fakeable: ", ak.sum(ak.any(self.electrons.fakeable, axis=1)), " // 58833")
+        print("Electrons tight: ", ak.sum(ak.any(self.electrons.tight, axis=1)), " // 56395")
 
-#eventProcess.cone_pt()
-#print(eventProcess.muons)
-#print(eventProcess.muons.conept)
 
-##object selection
-#eventProcess.object_selection()
-##SL
-#eventProcess.SL_selection()
-"""
+        print("AK4 Jets preselected: ", ak.sum(ak.any(self.ak4_jets.preselected, axis=1)), " // NA")
+        print("AK4 Jets cleaned: ", ak.sum(ak.any(self.ak4_jets.cleaned_all, axis=1)), " // 144403(144446)")
+        print("AK4 Jets loose Btag: ", ak.sum(ak.any(self.ak4_jets.loose_btag_all, axis=1)), " // NA")
+        print("AK4 Jets medium Btag: ", ak.sum(ak.any(self.ak4_jets.medium_btag_all, axis=1)), " // NA")
+
+        print("AK8 Jets preselected: ", ak.sum(ak.any(self.ak8_jets.preselected, axis=1)), " // 77501")
+        print("AK8 Jets cleaned: ", ak.sum(ak.any(self.ak8_jets.cleaned_all, axis=1)), " // 69384")
+        print("AK8 Jets Btag: ", ak.sum(ak.any(self.ak8_jets.btag_all, axis=1)), " // 54065(53678)")
+
+
+    def print_event_selection(self):
+        print("N events: ", len(self.events))
+        print("N single events: ", ak.sum(self.events.single_lepton))

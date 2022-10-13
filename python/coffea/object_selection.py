@@ -24,6 +24,7 @@ def add_conept(EventProcess):
 
     return
 
+
 def link_jets(EventProcess):
     muons = EventProcess.muons
     electrons = EventProcess.electrons
@@ -190,7 +191,6 @@ def electron_selection(EventProcess):
     )
 
 
-
 def ak4_jet_selection(EventProcess):
     #AK4 Jets
     ak4_jets = EventProcess.ak4_jets
@@ -214,12 +214,7 @@ def ak4_jet_selection(EventProcess):
 
     ak4_jets_medium_btag_mask = ak4_jets.btagDeepFlavB > jetDeepJet_WP_medium[Runyear - 2016]
 
-
-    ak4_jets["preselected"] = ak.where(
-        ak4_jet_preselection_mask,
-            True,
-            False
-    )
+    ak4_jets["preselected"] = ak4_jet_preselection_mask
 
     leptons_fakeable = ak.concatenate([electrons.mask[electrons.fakeable], muons.mask[muons.fakeable]], axis=1)
     leptons_fakeable = leptons_fakeable[ak.argsort(leptons_fakeable.conept, ascending=False)]
@@ -227,31 +222,28 @@ def ak4_jet_selection(EventProcess):
     ak4_jet_lep_pair_for_cleaning = ak.cartesian([ak4_jets.mask[ak4_jets.preselected], leptons_fakeable], nested=True)
     ak4_jet_for_cleaning, lep_for_cleaning = ak.unzip( ak4_jet_lep_pair_for_cleaning )
 
-    ak4_jet_cleaning_dr = ak.where(
-        (ak.is_none(lep_for_cleaning, axis=2) == 0) & (ak.is_none(ak4_jet_for_cleaning, axis=2) == 0),
-            abs(ak4_jet_for_cleaning.delta_r(lep_for_cleaning)),
-            ak4_jets.preselected
-    )
+    ak4_jet_cleaning_dr_all = ak.fill_none(abs(ak4_jet_for_cleaning.delta_r(lep_for_cleaning)), True)
+    ak4_jet_cleaning_mask_all = ak.min(ak4_jet_cleaning_dr_all, axis=2) > 0.40
 
-    ak4_jet_cleaning_mask = ak.min(ak4_jet_cleaning_dr, axis=2) > 0.40
+    ak4_jet_cleaning_dr_single = ak.fill_none(abs(ak4_jet_for_cleaning.delta_r(lep_for_cleaning)), True)[:,:,0:1]
+    ak4_jet_cleaning_mask_single = ak.min(ak4_jet_cleaning_dr_single, axis=2) > 0.40
 
-    ak4_jets["cleaned"] = ak.where(
-        ak4_jet_cleaning_mask & ak4_jets.preselected,
-            True,
-            False
-    )
+    ak4_jet_cleaning_dr_double = ak.fill_none(abs(ak4_jet_for_cleaning.delta_r(lep_for_cleaning)), True)[:,:,0:2]
+    ak4_jet_cleaning_mask_double = ak.min(ak4_jet_cleaning_dr_double, axis=2) > 0.40
 
-    ak4_jets["loose_btag"] = ak.where(
-        ak4_jets_loose_btag_mask & ak4_jets.cleaned,
-            True,
-            False
-    )
 
-    ak4_jets["medium_btag"] = ak.where(
-        ak4_jets_medium_btag_mask & ak4_jets.cleaned,
-            True,
-            False
-    )
+
+    ak4_jets["cleaned_all"] = ak4_jet_cleaning_mask_all & ak4_jets.preselected
+    ak4_jets["cleaned_single"] = ak4_jet_cleaning_mask_single & ak4_jets.preselected
+    ak4_jets["cleaned_double"] = ak4_jet_cleaning_mask_double & ak4_jets.preselected
+
+    ak4_jets["loose_btag_all"] = ak4_jets_loose_btag_mask & ak4_jets.cleaned_all
+    ak4_jets["loose_btag_single"] = ak4_jets_loose_btag_mask & ak4_jets.cleaned_single
+    ak4_jets["loose_btag_double"] = ak4_jets_loose_btag_mask & ak4_jets.cleaned_double
+
+    ak4_jets["medium_btag_all"] = ak4_jets_medium_btag_mask & ak4_jets.cleaned_all
+    ak4_jets["medium_btag_single"] = ak4_jets_medium_btag_mask & ak4_jets.cleaned_single
+    ak4_jets["medium_btag_double"] = ak4_jets_medium_btag_mask & ak4_jets.cleaned_double
 
 
 def ak8_jet_selection(EventProcess):
@@ -268,15 +260,13 @@ def ak8_jet_selection(EventProcess):
             10.0
     )
 
-    ak8_jet_preselection_mask = ak.where(
-        ak.is_none(ak8_jets, axis=1) == 0,
-            (ak.is_none(ak8_jets.subjet1) == 0) & (ak.is_none(ak8_jets.subjet2) == 0) &
-            (ak8_jets.subjet1.pt >= 20) & (abs(ak8_jets.subjet1.eta) <= 2.4) &
-            (ak8_jets.subjet2.pt >= 20) & (abs(ak8_jets.subjet2.eta) <= 2.4) &
-            ( (ak8_jets.jetId & PFJetID[Runyear - 2016]) > 0) & (ak8_jets.pt >= 200) &
-            (abs(ak8_jets.eta) <= 2.4) & (ak8_jets.msoftdrop >= 30) & (ak8_jets.msoftdrop <= 210) &
-            (ak8_jets.tau2 / ak8_jets.tau1 <= 0.75),
-            False
+    ak8_jet_preselection_mask = (
+        (ak.is_none(ak8_jets.subjet1) == 0) & (ak.is_none(ak8_jets.subjet2) == 0) &
+        (ak8_jets.subjet1.pt >= 20) & (abs(ak8_jets.subjet1.eta) <= 2.4) &
+        (ak8_jets.subjet2.pt >= 20) & (abs(ak8_jets.subjet2.eta) <= 2.4) &
+        ( (ak8_jets.jetId & PFJetID[Runyear - 2016]) > 0) & (ak8_jets.pt >= 200) &
+        (abs(ak8_jets.eta) <= 2.4) & (ak8_jets.msoftdrop >= 30) & (ak8_jets.msoftdrop <= 210) &
+        (ak8_jets.tau2 / ak8_jets.tau1 <= 0.75)
     )
 
     ak8_btagDeepB_WP_loose  = [0.2217, 0.1522, 0.1241]; ak8_btagDeepB_WP_medium = [0.6321, 0.4941, 0.4184]; ak8_btagDeepB_WP_tight  = [0.8953, 0.8001, 0.7527]
@@ -287,11 +277,8 @@ def ak8_jet_selection(EventProcess):
         (ak8_jets.subjet2.btagDeepB > ak8_btagDeepB_WP_medium[Runyear - 2016]) & (ak8_jets.subjet2.pt >= 30)
     )
 
-    ak8_jets["preselected"] = ak.where(
-        ak8_jet_preselection_mask,
-            True,
-            False
-    )
+    ak8_jets["preselected"] = ak8_jet_preselection_mask
+
 
     leptons_fakeable = ak.concatenate([electrons.mask[electrons.fakeable], muons.mask[muons.fakeable]], axis=1)
     leptons_fakeable = leptons_fakeable[ak.argsort(leptons_fakeable.conept, ascending=False)]
@@ -299,25 +286,24 @@ def ak8_jet_selection(EventProcess):
     ak8_jet_lep_pair_for_cleaning = ak.cartesian([ak8_jets.mask[ak8_jets.preselected], leptons_fakeable], nested=True)
     ak8_jet_for_cleaning, lep_for_cleaning = ak.unzip( ak8_jet_lep_pair_for_cleaning )
 
-    ak8_jet_cleaning_dr = ak.where(
-        (ak.is_none(lep_for_cleaning, axis=2) == 0) & (ak.is_none(ak8_jet_for_cleaning, axis=2) == 0),
-            abs(ak8_jet_for_cleaning.delta_r(lep_for_cleaning)),
-            ak8_jets.preselected
-    )
+    ak8_jet_cleaning_dr_all = ak.fill_none(abs(ak8_jet_for_cleaning.delta_r(lep_for_cleaning)), True)
+    ak8_jet_cleaning_mask_all = ak.min(ak8_jet_cleaning_dr_all, axis=2) > 0.80
 
-    ak8_jet_cleaning_mask = ak.min(ak8_jet_cleaning_dr, axis=2) > 0.80
+    ak8_jet_cleaning_dr_single = ak8_jet_cleaning_dr_all[:,:,0:1]
+    ak8_jet_cleaning_mask_single = ak.min(ak8_jet_cleaning_dr_single, axis=2) > 0.80
 
-    ak8_jets["cleaned"] = ak.where(
-        ak8_jet_cleaning_mask & ak8_jets.preselected,
-            True,
-            False
-    )
+    ak8_jet_cleaning_dr_double = ak8_jet_cleaning_dr_all[:,:,0:2]
+    ak8_jet_cleaning_mask_double = ak.min(ak8_jet_cleaning_dr_double, axis=2) > 0.80
 
-    ak8_jets["btag"] = ak.where(
-        ak8_jet_btag_mask & ak8_jets.cleaned,
-            True,
-            False
-    )
+    ak8_jets["cleaned_all"] = ak8_jet_cleaning_mask_all & ak8_jets.preselected
+    ak8_jets["cleaned_single"] = ak8_jet_cleaning_mask_single & ak8_jets.preselected
+    ak8_jets["cleaned_double"] = ak8_jet_cleaning_mask_double & ak8_jets.preselected
+
+    ak8_jets["btag_all"] = ak8_jet_btag_mask & ak8_jets.cleaned_all
+    ak8_jets["btag_single"] = ak8_jet_btag_mask & ak8_jets.cleaned_single
+    ak8_jets["btag_double"] = ak8_jet_btag_mask & ak8_jets.cleaned_double
+
+
 
 
 def test_selections(muons):
