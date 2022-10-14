@@ -11,7 +11,7 @@ startTime = time.time()
 fname = "sync_2016_m750.root"
 nLeps = 1 #Single lepton or Di Lepton channels
 isSL = True
-debug = 0
+debug = 1
 
 Runyear = 2016
 isMC = True
@@ -27,7 +27,7 @@ eventProcess.ak4_jet_selection()
 eventProcess.ak8_jet_selection()
 
 eventProcess.single_lepton_category()
-
+eventProcess.double_lepton_category()
 
 
 eventProcess.print_object_selection()
