@@ -66,6 +66,8 @@ def create_df(EventProcess):
         'Single_Signal': np.array(events.Single_Signal, dtype=np.int32),
         'Single_Fake': np.array(events.Single_Fake, dtype=np.int32),
         'single_category_cutflow': np.array(events.single_cutflow, dtype=np.int32),
+        'single_is_e': np.array(ak.fill_none(events.is_e, False), dtype=np.int32),
+        'single_is_m': np.array(ak.fill_none(events.is_m, False), dtype=np.int32),
 
         'Double_HbbFat': np.array(events.Double_HbbFat, dtype=np.int32),
         'Double_Res_1b': np.array(events.Double_Res_1b, dtype=np.int32),
@@ -73,6 +75,9 @@ def create_df(EventProcess):
         'Double_Signal': np.array(events.Double_Signal, dtype=np.int32),
         'Double_Fake': np.array(events.Double_Fake, dtype=np.int32),
         'double_category_cutflow': np.array(events.double_cutflow, dtype=np.int32),
+        'double_is_ee': np.array(ak.fill_none(events.is_ee, False), dtype=np.int32),
+        'double_is_mm': np.array(ak.fill_none(events.is_mm, False), dtype=np.int32),
+        'double_is_em': np.array(ak.fill_none(events.is_em, False), dtype=np.int32),
     }
 
 
