@@ -145,10 +145,25 @@ def single_lepton_category(EventProcess):
 
     #If the leading cone-pT lepton is e (mu), pass single e (mu) trigger
 
+    events["is_e"] = abs(leading_leptons.pdgId) == 11
+    events["is_m"] = abs(leading_leptons.pdgId) == 13
+
+    """
     single_step4_mask = ak.where(
         ak.is_none(leading_leptons) == 0,
             ak.where(
                 (abs(leading_leptons.pdgId) == 11),
+                    EventProcess.electron_trigger_cuts,
+                    EventProcess.muon_trigger_cuts
+            ),
+            False
+    )
+    """
+
+    single_step4_mask = ak.where(
+        ak.is_none(leading_leptons) == 0,
+            ak.where(
+                events.is_e,
                     EventProcess.electron_trigger_cuts,
                     EventProcess.muon_trigger_cuts
             ),
@@ -264,46 +279,34 @@ def single_lepton_category(EventProcess):
     if debug: print("N single events step9: ", ak.sum(events.single_lepton))
     increment_cutflow(events, events.single_lepton, "single_cutflow")
 
+    events["Single_HbbFat_WjjRes_AllReco"] = ak.fill_none((events.single_lepton) & (ak.sum(ak8_jets.btag_single, axis=1) >= 1) & (n_jets_that_not_bb >= 2), False)
 
-    events["single_lepton_category"] = ak.where(
-        events.single_lepton,
-            ak.where(
-                ak.sum(ak8_jets.btag_single, axis=1) >= 1, #Boosted Category
-                    ak.where(
-                        n_jets_that_not_bb >= 2,
-                            "Single_HbbFat_WjjRes_AllReco",
-                            "Single_HbbFat_WjjRes_MissJet"
-                    ), #End Boosted Category
-                    ak.where( #Resolved Category
-                        ak.sum(ak4_jets.cleaned_single, axis=1) >= 4,
-                            ak.where(
-                                ak.sum(ak4_jets.medium_btag_single, axis=1) >= 1,
-                                    "Single_Res_allReco_2b",
-                                    "Single_Res_allReco_1b"
-                            ),
-                            ak.where(
-                                ak.sum(ak4_jets.medium_btag_single, axis=1) >= 1,
-                                    "Single_Res_MissWJet_2b",
-                                    "Single_Res_MissWJet_1b"
-                            ) #End Resolved Category
-                    )
-            ),
-            False
-    )
+    events["Single_HbbFat_WjjRes_MissJet"] = ak.fill_none((events.single_lepton) & (ak.sum(ak8_jets.btag_single, axis=1) >= 1) & (n_jets_that_not_bb < 2), False)
 
+    events["Single_Res_allReco_2b"] = ak.fill_none((events.single_lepton) & (ak.sum(ak8_jets.btag_single, axis=1) == 0) & (ak.sum(ak4_jets.cleaned_single, axis=1) >= 4) & (ak.sum(ak4_jets.medium_btag_single, axis=1) >= 1), False)
 
-    events["single_lepton_signal_or_fake"] = ak.where(
-        events.single_lepton,
-            ak.where(
-                (ak.sum(leptons_tight_sorted.tight, axis=1) == 1) & leading_leptons.tight,
-                    "Signal",
-                    "Fake"
-            ),
-            False
-    )
+    events["Single_Res_allReco_1b"] = ak.fill_none((events.single_lepton) & (ak.sum(ak8_jets.btag_single, axis=1) == 0) & (ak.sum(ak4_jets.cleaned_single, axis=1) >= 4) & (ak.sum(ak4_jets.medium_btag_single, axis=1) < 1), False)
 
-    if debug: print("Single Lep Categories: ", events.single_lepton_category)
-    if debug: print("Single Lep Signal or Fake: ", events.single_lepton_signal_or_fake)
+    events["Single_Res_MissWJet_2b"] = ak.fill_none((events.single_lepton) & (ak.sum(ak8_jets.btag_single, axis=1) == 0) & (ak.sum(ak4_jets.cleaned_single, axis=1) < 4) & (ak.sum(ak4_jets.medium_btag_single, axis=1) >= 1), False)
+
+    events["Single_Res_MissWJet_1b"] = ak.fill_none((events.single_lepton) & (ak.sum(ak8_jets.btag_single, axis=1) == 0) & (ak.sum(ak4_jets.cleaned_single, axis=1) < 4) & (ak.sum(ak4_jets.medium_btag_single, axis=1) < 1), False)
+
+    events["Single_Signal"] = ak.fill_none((events.single_lepton) & ((ak.sum(leptons_tight_sorted.tight, axis=1) == 1) & (leading_leptons.tight)), False)
+
+    events["Single_Fake"] = ak.fill_none((events.single_lepton) & ((ak.sum(leptons_tight_sorted.tight, axis=1) == 1) & (leading_leptons.tight) == 0), False)
+
+    print("Did the selections, but the printing breaks everything")
+
+    if debug:
+        print("Single HbbFat_WjjRes_AllReco: ", events.Single_HbbFat_WjjRes_AllReco, ak.sum(events.Single_HbbFat_WjjRes_AllReco))
+        print("Single HbbFat_WjjRes_MissJet: ", events.Single_HbbFat_WjjRes_MissJet, ak.sum(events.Single_HbbFat_WjjRes_MissJet))
+        print("Single Res_allReco_2b: ", events.Single_Res_allReco_2b, ak.sum(events.Single_Res_allReco_2b))
+        print("Single Res_allReco_1b: ", events.Single_Res_allReco_1b, ak.sum(events.Single_Res_allReco_1b))
+        print("Single Res_MissWJet_2b: ", events.Single_Res_MissWJet_2b, ak.sum(events.Single_Res_MissWJet_2b))
+        print("Single Res_MissWJet_1b: ", events.Single_Res_MissWJet_1b, ak.sum(events.Single_Res_MissWJet_1b))
+        print("Single Signal: ", events.Single_Signal, ak.sum(events.Single_Signal))
+        print("Single Fake: ", events.Single_Fake, ak.sum(events.Single_Fake))
+
 
 
 
@@ -446,6 +449,11 @@ def double_lepton_category(EventProcess):
     #If Leps are ElEl then pass ElEl or El trigger
     #If Leps are MuEl then pass MuEl or El or Mu trigger
 
+    events["is_ee"] = (abs(leading_leptons.pdgId) == 11) & (abs(subleading_leptons.pdgId) == 11)
+    events["is_mm"] = (abs(leading_leptons.pdgId) == 13) & (abs(subleading_leptons.pdgId) == 13)
+    events["is_em"] = ((abs(leading_leptons.pdgId) == 11) & (abs(subleading_leptons.pdgId) == 13)) | ((abs(leading_leptons.pdgId) == 13) & (abs(subleading_leptons.pdgId) == 11))
+
+    """
     HLT_cuts = ak.where(
         (ak.is_none(leading_leptons) == 0) & (ak.is_none(subleading_leptons) == 0),
             ak.where(
@@ -456,6 +464,25 @@ def double_lepton_category(EventProcess):
                             EventProcess.muon_trigger_cuts | EventProcess.double_muon_trigger_cuts,
                             ak.where(
                                 ((abs(leading_leptons.pdgId) == 11) & (abs(subleading_leptons.pdgId) == 13)) | ((abs(leading_leptons.pdgId) == 13) & (abs(subleading_leptons.pdgId) == 11)), #MuEl or ElMu
+                                    EventProcess.muon_electron_trigger_cuts | EventProcess.muon_trigger_cuts | EventProcess.electron_trigger_cuts,
+                                    False
+                            )
+                    )
+            ),
+            False
+    )
+    """
+
+    HLT_cuts = ak.where(
+        (ak.is_none(leading_leptons) == 0) & (ak.is_none(subleading_leptons) == 0),
+            ak.where(
+                events.is_ee, #ElEl
+                    EventProcess.electron_trigger_cuts | EventProcess.double_electron_trigger_cuts,
+                    ak.where(
+                        events.is_mm, #MuMu
+                            EventProcess.muon_trigger_cuts | EventProcess.double_muon_trigger_cuts,
+                            ak.where(
+                                events.is_em, #MuEl or ElMu
                                     EventProcess.muon_electron_trigger_cuts | EventProcess.muon_trigger_cuts | EventProcess.electron_trigger_cuts,
                                     False
                             )
@@ -507,36 +534,22 @@ def double_lepton_category(EventProcess):
     if debug: print("N double events step6: ", ak.sum(events.double_lepton))
     increment_cutflow(events, events.double_lepton, "double_cutflow")
 
-
     leading_ak8_jet_cleaned = ak8_jets[ak.argsort(ak8_jets.pt, axis=1, ascending=False)][:,0]
-    events["double_lepton_category"] = ak.where(
-        events.double_lepton,
-            ak.where(
-                (ak.sum(ak8_jets.cleaned_double, axis=1) >= 1) & leading_ak8_jet_cleaned.btag_double,
-                    "Double_HbbFat",
-                    ak.where(
-                        (ak.sum(ak4_jets.cleaned_double, axis=1) >= 2) & (ak.sum(ak4_jets.medium_btag_double, axis=1) == 1),
-                            "Double_Res_1b",
-                            ak.where(
-                                (ak.sum(ak4_jets.cleaned_double, axis=1) >= 2) & (ak.sum(ak4_jets.medium_btag_double, axis=1) >= 2),
-                                    "Double_Res_2b",
-                                    "False"
-                            )
-                    )
-            ),
-            False
-    )
+
+    events["Double_HbbFat"] = ak.fill_none((events.double_lepton) & (ak.sum(ak8_jets.cleaned_double, axis=1) >= 1) & (leading_ak8_jet_cleaned.btag_double), False)
+
+    events["Double_Res_1b"] = ak.fill_none((events.double_lepton) & (events.Double_HbbFat == 0) & (ak.sum(ak4_jets.cleaned_double, axis=1) >= 2) & (ak.sum(ak4_jets.medium_btag_double, axis=1) == 1), False)
+
+    events["Double_Res_2b"] = ak.fill_none((events.double_lepton) & (events.Double_Res_1b == 0) & (ak.sum(ak4_jets.cleaned_double, axis=1) >= 2) & (ak.sum(ak4_jets.medium_btag_double, axis=1) >= 2), False)
+
+    events["Double_Signal"] = ak.fill_none((events.double_lepton) & ((leading_leptons.tight) & (subleading_leptons.tight)), False)
+
+    events["Double_Fake"] = ak.fill_none((events.double_lepton) & ((leading_leptons.tight) & (subleading_leptons.tight) == 0), False)
 
 
-    events["double_lepton_signal_or_fake"] = ak.where(
-        events.double_lepton,
-            ak.where(
-                (leading_leptons.tight) & (subleading_leptons.tight),
-                    "Signal",
-                    "Fake"
-            ),
-            False
-    )
-
-    if debug: print("double Lep Categories: ", events.double_lepton_category)
-    if debug: print("double Lep Signal or Fake: ", events.double_lepton_signal_or_fake)
+    if debug:
+        print("Double HbbFat: ", events.Double_HbbFat, ak.sum(events.Double_HbbFat))
+        print("Double Res_1b: ", events.Double_Res_1b, ak.sum(events.Double_Res_1b))
+        print("Double Res_2b: ", events.Double_Res_2b, ak.sum(events.Double_Res_2b))
+        print("Double Signal: ", events.Double_Signal, ak.sum(events.Double_Signal))
+        print("Double Fake: ", events.Double_Fake, ak.sum(events.Double_Fake))

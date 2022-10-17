@@ -36,10 +36,11 @@ def link_jets(EventProcess):
     jetDeepJet_WP_medium = EventProcess.jetDeepJet_WP_medium
     jetDeepJet_WP_tight  = EventProcess.jetDeepJet_WP_tight
 
-    muons.ak4_jets = ak4_jets[muons.jetIdx].mask[(muons.jetIdx >= 0) & (muons.jetIdx < ak.num(ak4_jets))]
-    electrons.ak4_jets = ak4_jets[electrons.jetIdx].mask[(electrons.jetIdx >= 0) & (electrons.jetIdx < ak.num(ak4_jets))]
-    ak8_jets.subjet1 = ak8_subjets[ak8_jets.subJetIdx1].mask[(ak8_jets.subJetIdx1 >= 0) & (ak8_jets.subJetIdx1 < ak.num(ak8_subjets))]
-    ak8_jets.subjet2 = ak8_subjets[ak8_jets.subJetIdx2].mask[(ak8_jets.subJetIdx2 >= 0) & (ak8_jets.subJetIdx2 < ak.num(ak8_subjets))]
+    #Linking as a muons["ak4_jets"] causes the muon object to return None for some reason? Must do a soft-link with muons.ak4_jets
+    muons.ak4_jets = ak4_jets[muons.jetIdx].mask[(muons.jetIdx >= 0)]
+    electrons.ak4_jets = ak4_jets[electrons.jetIdx].mask[(electrons.jetIdx >= 0)]
+    ak8_jets.subjet1 = ak8_subjets[ak8_jets.subJetIdx1].mask[(ak8_jets.subJetIdx1 >= 0)]
+    ak8_jets.subjet2 = ak8_subjets[ak8_jets.subJetIdx2].mask[(ak8_jets.subJetIdx2 >= 0)]
 
     jetDeepJet_min_pt = 20.0; jetDeepJet_max_pt = 45.0
 
@@ -87,27 +88,15 @@ def muon_selection(EventProcess):
             )
     )
 
-    muon_tight_mask = (
-        (muons.mvaTTH >= 0.50) & (muons.mediumId)
-    )
+    muon_tight_mask = ((muons.mvaTTH >= 0.50) & (muons.mediumId))
 
-    muons["preselected"] = ak.where(
-        muon_preselection_mask,
-            True,
-            False
-    )
+    muons["preselected"] = muon_preselection_mask
 
-    muons["fakeable"] = ak.where(
-        muon_fakeable_mask & muons.preselected,
-            True,
-            False
-    )
+    muons["fakeable"] = muon_fakeable_mask & muons.preselected
 
-    muons["tight"] = ak.where(
-        muon_tight_mask & muons.fakeable,
-            True,
-            False
-    )
+    muons["tight"] = muon_tight_mask & muons.fakeable
+
+    muons["MC_Match"] = (muons.genPartFlav == 1) | (muons.genPartFlav == 15)
 
 
 def electron_selection(EventProcess):
@@ -189,6 +178,8 @@ def electron_selection(EventProcess):
             True,
             False
     )
+
+    electrons["MC_Match"] = (electrons.genPartFlav == 1) | (electrons.genPartFlav == 15)
 
 
 def ak4_jet_selection(EventProcess):
